@@ -273,7 +273,7 @@ const handleBuildComplete = useCallback(() => {
     try {
       console.log("Editing with description:", editDescription);
       
-      const response = await fetch('http://localhost:8000/api/edit-file', {
+      const response = await fetch('https://eaglecode2.onrender.com/api/edit-file', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -533,7 +533,7 @@ const setupWebSocket = useCallback((prompt: string): Promise<WebSocket> => {
     cleanup();
     
     // Use the correct WebSocket URL
-    const wsUrl = "ws://localhost:8000/ws/build";
+    const wsUrl = "ws://eaglecode2.onrender.com/ws/build";
     console.log("🟡 Connecting to WebSocket:", wsUrl);
     
     const ws = new WebSocket(wsUrl);

@@ -497,7 +497,7 @@ const clearOldProjects = () => {
 // Add this after your other refs and before the useEffect hooks
 const regeneratePreviewForLoadedProject = useCallback(async (projectFiles: Record<string, string>) => {
   try {
-    const response = await fetch('https://eaglecode2.onrender.com/api/generate-preview', {
+    const response = await fetch('http://localhost:8000/api/generate-preview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -812,7 +812,7 @@ useEffect(() => {
           console.log("⚠️ No saved preview, regenerating...");
           setTimeout(async () => {
             try {
-              const response = await fetch('https://eaglecode2.onrender.com/api/generate-preview', {
+              const response = await fetch('http://localhost:8000/api/generate-preview', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -973,7 +973,7 @@ const applyIntelligentEdit = useCallback(async () => {
   const storedDbUrl = localStorage.getItem('temp_database_url');
   
   try {
-    const response = await fetch('https://eaglecode2.onrender.com/api/edit-file', {
+    const response = await fetch('http://localhost:8000/api/edit-file', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1478,7 +1478,7 @@ const generatePreview = useCallback(async () => {
 
   try {
     // Use different endpoint based on environment
-    const endpoint = isVercel ? '/api/generate-static-html' : 'https://eaglecode2.onrender.com/api/generate-preview';
+    const endpoint = isVercel ? '/api/generate-static-html' : 'http://localhost:8000/api/generate-preview';
     
     console.log(`📡 Generating preview using endpoint: ${endpoint}`);
     
@@ -2151,7 +2151,7 @@ const handleDeployWithOptions = async (options: any) => {
       
       toast.loading("Deploying to Vercel...", { id: "vercel-deploy" });
       
-      response = await fetch('https://eaglecode2.onrender.com/api/deploy-vercel', {
+      response = await fetch('http://localhost:8000/api/deploy-vercel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2187,7 +2187,7 @@ const handleDeployWithOptions = async (options: any) => {
       }
     } else {
       // For other platforms, use the advanced deploy endpoint (download ZIP)
-      response = await fetch('https://eaglecode2.onrender.com/api/deploy-advanced', {
+      response = await fetch('http://localhost:8000/api/deploy-advanced', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
