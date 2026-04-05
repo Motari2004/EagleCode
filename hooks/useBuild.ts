@@ -265,26 +265,49 @@ const handleBuildComplete = useCallback(() => {
   cleanup();
 }, [cleanup]);
 
-  // EDIT FILE FUNCTION
-  const editFile = useCallback(async (
-    editDescription: string,
-    currentFiles: Record<string, string>
-  ): Promise<EditFileResult> => {
-    try {
-      console.log("Editing with description:", editDescription);
+
+
+
+
+
+
+const editFile = useCallback(async (
+  editDescription: string,
+  currentFiles: Record<string, string>
+): Promise<EditFileResult> => {
+  try {
+    console.log("Editing with description:", editDescription);
+    
+    // Same production detection
+    const isProduction = typeof window !== 'undefined' && (
+      window.location.hostname.includes('vercel.app') ||
+      window.location.hostname === 'eaglecode.vercel.app' ||
+      window.location.protocol === 'https:' ||
+      window.location.hostname !== 'localhost'
+    );
+    
+    const apiUrl = isProduction ? 'https://eaglecode2.onrender.com' : 'http://localhost:8000';
+    console.log(`📡 Using API URL: ${apiUrl}`);
+    
+    const response = await fetch(`${apiUrl}/api/edit-file`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        edit_description: editDescription,
+        all_files: currentFiles,
+        regenerate_preview: true
+      })
+    });
       
-      const response = await fetch('https://eaglecode2.onrender.com/api/edit-file', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          edit_description: editDescription,
-          all_files: currentFiles,
-          regenerate_preview: true
-        })
-      });
-      
+
+
+
+
+
+
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 200)}`);
@@ -526,71 +549,58 @@ const handleWebSocketMessage = useCallback((event: MessageEvent) => {
 
 
 
-
-  // Setup WebSocket connection - FIXED VERSION with better error handling
+// Setup WebSocket connection - PRODUCTION READY for Render.com
 const setupWebSocket = useCallback((prompt: string): Promise<WebSocket> => {
   return new Promise((resolve, reject) => {
     cleanup();
     
-
-
-
-
-
-// Determine WebSocket URL based on environment
-const getWebSocketUrl = () => {
-  // Check if we're in production (HTTPS)
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-    return 'wss://eaglecode2.onrender.com/ws/build';
-  }
-  // Local development (HTTP)
-  return 'ws://localhost:8000/ws/build';
-};
-
-const wsUrl = getWebSocketUrl();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    console.log("🟡 Connecting to WebSocket:", wsUrl);
+    // 🔥 CRITICAL: Better production detection for Render.com
+    const isProduction = typeof window !== 'undefined' && (
+      window.location.hostname.includes('vercel.app') ||
+      window.location.hostname === 'eaglecode.vercel.app' ||
+      window.location.protocol === 'https:' ||
+      window.location.hostname !== 'localhost'
+    );
     
-
-
-
-
-
-
+    const getWebSocketUrl = () => {
+      if (isProduction) {
+        // Use wss:// for Render.com (supports WebSockets)
+        return 'wss://eaglecode2.onrender.com/ws/build';
+      }
+      // Local development
+      return 'ws://localhost:8000/ws/build';
+    };
+    
+    const wsUrl = getWebSocketUrl();
+    console.log(`🟡 Connecting to WebSocket: ${wsUrl}`);
+    console.log(`📍 Environment: ${isProduction ? 'PRODUCTION (Render.com)' : 'DEVELOPMENT (Local)'}`);
+    console.log(`📍 Hostname: ${window.location.hostname}`);
+    console.log(`📍 Protocol: ${window.location.protocol}`);
+    
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
     
+    // Increase timeout for production (Render.com might be slower to respond)
+    const timeoutDuration = isProduction ? 15000 : 5000;
     const connectionTimeout = setTimeout(() => {
       if (ws.readyState !== WebSocket.OPEN) {
-        console.error("🔴 WebSocket connection timeout");
+        console.error(`🔴 WebSocket connection timeout to ${wsUrl}`);
         ws.close();
-        reject(new Error("Connection timeout - Backend not running on port 8000"));
+        const errorMsg = isProduction 
+          ? `Cannot connect to backend at ${wsUrl}. Make sure Render.com backend is running.`
+          : "Connection timeout - Backend not running on port 8000";
+        reject(new Error(errorMsg));
       }
-    }, 5000);
+    }, timeoutDuration);
     
     ws.onopen = () => {
       clearTimeout(connectionTimeout);
-      console.log("🟢 WebSocket connected successfully");
+      console.log(`🟢 WebSocket connected successfully to ${wsUrl}`);
       
       // Send the prompt immediately after connection
       const message = JSON.stringify({ prompt });
       ws.send(message);
       console.log("📤 Sent prompt:", prompt);
-      console.log("📤 Full message:", message);
       
       // Setup heartbeat
       if (heartbeatIntervalRef.current) {
@@ -599,6 +609,7 @@ const wsUrl = getWebSocketUrl();
       heartbeatIntervalRef.current = setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({ type: "ping" }));
+          console.log("💓 Heartbeat sent");
         }
       }, 30000);
       
@@ -607,20 +618,25 @@ const wsUrl = getWebSocketUrl();
     };
     
     ws.onmessage = (event) => {
-      console.log("📨 WebSocket message received:", event.data.substring(0, 100));
+      console.log("📨 WebSocket message received");
       handleWebSocketMessage(event);
     };
     
     ws.onerror = (error) => {
       clearTimeout(connectionTimeout);
       console.error("🔴 WebSocket error:", error);
-      console.error("🔴 Make sure backend is running on port 8000");
-      reject(new Error("Cannot connect to backend. Please run: python main.py"));
+      console.error("🔴 WebSocket URL:", wsUrl);
+      console.error("🔴 Environment:", isProduction ? "Production" : "Development");
+      const errorMsg = isProduction
+        ? `Cannot connect to backend at ${wsUrl}. Check if Render.com backend is running and supports WebSockets.`
+        : "Cannot connect to backend. Please run: python main.py";
+      reject(new Error(errorMsg));
     };
     
     ws.onclose = (event) => {
       clearTimeout(connectionTimeout);
       console.log("🔴 WebSocket closed:", event.code, event.reason);
+      console.log("🔴 WebSocket URL:", wsUrl);
       
       if (heartbeatIntervalRef.current) {
         clearInterval(heartbeatIntervalRef.current);
@@ -635,16 +651,30 @@ const wsUrl = getWebSocketUrl();
           setupWebSocket(prompt).catch(console.error);
         }, delay);
       } else if (state.isBuilding) {
+        const errorMsg = isProduction
+          ? `Connection lost to backend at ${wsUrl}. The Render.com backend may have gone to sleep.`
+          : "Connection lost. Please make sure backend is running on port 8000";
         setState(prev => ({
           ...prev,
           isBuilding: false,
-          error: "Connection lost. Please make sure backend is running on port 8000",
+          error: errorMsg,
         }));
-        toast.error("Backend not connected. Please run: python main.py");
+        toast.error(errorMsg);
       }
     };
   });
 }, [cleanup, handleWebSocketMessage, state.isBuilding]);
+
+
+
+
+
+
+
+
+
+
+
 
   /// Start build function - FIXED VERSION
 const startBuild = useCallback(async (prompt: string) => {
