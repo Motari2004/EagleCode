@@ -1472,15 +1472,25 @@ const isVercel = typeof window !== 'undefined' &&
                  (process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' || 
                   window.location.hostname.includes('vercel.app'));
 
-// Replace your generatePreview function with this updated version
+
+
+
+
+
 const generatePreview = useCallback(async () => {
   if (Object.keys(files).length <= 1) return;
 
   try {
-    // Use different endpoint based on environment
-    const endpoint = isVercel ? '/api/generate-static-html' : 'https://eaglecode2.onrender.com/api/generate-preview';
+    // Always use production backend
+    const endpoint = 'https://eaglecode2.onrender.com/api/generate-preview';
     
     console.log(`📡 Generating preview using endpoint: ${endpoint}`);
+
+
+
+
+
+
     
     const response = await fetch(endpoint, {
       method: 'POST',
