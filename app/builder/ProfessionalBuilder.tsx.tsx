@@ -2152,26 +2152,36 @@ const handleDeployWithOptions = async (options: any) => {
   try {
     let response;
     
-    // Check if deploying to Vercel
-    if (options.platform === "vercel") {
-      if (!options.vercelToken) {
-        toast.error("Vercel token is required for deployment");
-        return;
-      }
-      
-      toast.loading("Deploying to Vercel...", { id: "vercel-deploy" });
-      
-      response = await fetch('https://eaglecode2.onrender.com/api/deploy-vercel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          files: files,
-          projectName: currentProjectName || prompt?.slice(0, 35) || "scorpio-project",
-          vercel_token: options.vercelToken,
-          envVars: options.envVars,
-          region: options.region,
-        })
-      });
+
+
+
+
+// Find this code block (around line 1370)
+if (options.platform === "vercel") {
+  if (!options.vercelToken) {
+    toast.error("Vercel token is required for deployment");
+    return;
+  }
+  
+  toast.loading("Deploying to Vercel...", { id: "vercel-deploy" });
+  
+  response = await fetch('https://eaglecode2.onrender.com/api/deploy-vercel', {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      // Add these headers for better security handling
+      'Origin': window.location.origin,
+    },
+    body: JSON.stringify({
+      files: files,
+      projectName: currentProjectName || prompt?.slice(0, 35) || "scorpio-project",
+      vercel_token: options.vercelToken,
+      envVars: options.envVars,
+      region: options.region,
+    }),
+    // Add credentials mode
+    credentials: 'omit', // or 'include' if your backend needs cookies
+  });
       
       const result = await response.json();
       toast.dismiss("vercel-deploy");
