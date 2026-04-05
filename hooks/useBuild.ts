@@ -532,10 +532,45 @@ const setupWebSocket = useCallback((prompt: string): Promise<WebSocket> => {
   return new Promise((resolve, reject) => {
     cleanup();
     
-    // Use the correct WebSocket URL
-    const wsUrl = "ws://eaglecode2.onrender.com/ws/build";
+
+
+
+
+
+// Determine WebSocket URL based on environment
+const getWebSocketUrl = () => {
+  // Check if we're in production (HTTPS)
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    return 'wss://eaglecode2.onrender.com/ws/build';
+  }
+  // Local development (HTTP)
+  return 'ws://localhost:8000/ws/build';
+};
+
+const wsUrl = getWebSocketUrl();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     console.log("🟡 Connecting to WebSocket:", wsUrl);
     
+
+
+
+
+
+
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
     
