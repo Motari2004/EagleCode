@@ -278,11 +278,6 @@ const [isProcessingAuth, setIsProcessingAuth] = useState(false);
   // =============================================
 
 
- const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://eaglecode2.onrender.com';
-
-
-
-
 const iframeReady = useRef(false);
 
   const [isEditMode, setIsEditMode] = useState(false);
@@ -522,7 +517,7 @@ const saveProjectToDatabase = async (project: SavedProject) => {
   try {
     console.log("💾 Saving to database:", project.name);
     
-      const response = await fetch(`${BACKEND_URL}/api/save-project`, {  // ✅ Updated
+    const response = await fetch('http://localhost:8000/api/save-project', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(project)
@@ -546,7 +541,7 @@ const loadProjectsFromDatabase = async () => {
   try {
     console.log("📚 Loading projects from database...");
     
-        const response = await fetch(`${BACKEND_URL}/api/get-projects`);  // ✅ Updated
+    const response = await fetch('http://localhost:8000/api/get-projects');
     const result = await response.json();
     
     if (result.success && result.projects) {
@@ -566,7 +561,7 @@ const loadProjectsFromDatabase = async () => {
 
 const deleteProjectFromDatabase = async (projectId: string) => {
   try {
-        const response = await fetch(`${BACKEND_URL}/api/delete-project/${projectId}`, {  // ✅ Updated
+    const response = await fetch(`http://localhost:8000/api/delete-project/${projectId}`, {
       method: 'DELETE',
     });
     
@@ -592,7 +587,7 @@ const deleteProjectFromDatabase = async (projectId: string) => {
 // Add this after your other refs and before the useEffect hooks
 const regeneratePreviewForLoadedProject = useCallback(async (projectFiles: Record<string, string>) => {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/generate-preview`, {  // ✅ Updated
+    const response = await fetch('http://localhost:8000/api/generate-preview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -918,7 +913,7 @@ useEffect(() => {
           console.log("⚠️ No saved preview, regenerating...");
           setTimeout(async () => {
             try {
-              const response = await fetch(`${BACKEND_URL}/api/generate-preview`, {  // ✅ Updated
+              const response = await fetch('http://localhost:8000/api/generate-preview', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1100,7 +1095,7 @@ const applyIntelligentEdit = useCallback(async () => {
   const storedDbUrl = localStorage.getItem('temp_database_url');
   
   try {
-      const response = await fetch(`${BACKEND_URL}/api/edit-file`, {  // ✅ Updated
+    const response = await fetch('http://localhost:8000/api/edit-file', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1471,7 +1466,7 @@ const silentSaveToDatabase = useCallback(async () => {
     };
     
     // Send to backend
-      const response = await fetch(`${BACKEND_URL}/api/save-project`, {  // ✅ Updated
+    const response = await fetch('http://localhost:8000/api/save-project', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(projectToSave)
@@ -1766,7 +1761,7 @@ const generatePreview = useCallback(async () => {
 
   try {
     // Always use production backend
-    const endpoint = 'https://eaglecode2.onrender.com/api/generate-preview';
+    const endpoint = 'http://localhost:8000/api/generate-preview';
     
     console.log(`📡 Generating preview using endpoint: ${endpoint}`);
 
@@ -2461,7 +2456,7 @@ if (options.platform === "vercel") {
   
   toast.loading("Deploying to Vercel...", { id: "vercel-deploy" });
   
-  response = await fetch(`${BACKEND_URL}/api/deploy-vercel`, {  // ✅ Updated
+  response = await fetch('http://localhost:8000/api/deploy-vercel', {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',

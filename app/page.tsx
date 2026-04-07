@@ -243,7 +243,10 @@ const getFromCache = (): { data: SavedProject[]; timestamp: number } | null => {
     { id: "faq-5", question: "Is there a free tier?", answer: "Yes! Nova Engine offers a free tier with unlimited project creation and basic features." }
   ];
 
-  const API_URL = 'http://localhost:8000';
+
+
+
+  const API_URL = 'https://eaglecode2.onrender.com';
 
 
 
