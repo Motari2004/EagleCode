@@ -1,6 +1,6 @@
 // app/builder/page.tsx
 import { Suspense } from 'react';
-import ProfessionalBuilder from './ProfessionalBuilder.tsx';
+import ProfessionalBuilder from './ProfessionalBuilder';
 
 export default function BuilderPage() {
   return (

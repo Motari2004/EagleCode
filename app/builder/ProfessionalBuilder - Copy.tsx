@@ -456,9 +456,23 @@ const getStorageSize = () => {
   return total;
 };
 
+
+
+
+
+
+
+
+
+
+
 const canSaveToLocalStorage = (estimatedSize: number) => {
   const currentSize = getStorageSize();
-  const maxSize = 4.5 * 1024 * 1024; // 4.5MB (leave 0.5MB buffer)
+  // Increase limit to 8MB total (most browsers support 10MB)
+  const maxSize = 8 * 1024 * 1024; // 8MB total for all projects
+  
+  console.log(`📊 Storage: Current ${(currentSize / 1024 / 1024).toFixed(2)}MB, Adding ${(estimatedSize / 1024 / 1024).toFixed(2)}MB, Limit 8MB`);
+  
   return (currentSize + estimatedSize) < maxSize;
 };
 
@@ -489,6 +503,74 @@ const clearOldProjects = () => {
 
 
 
+// ========== DATABASE API FUNCTIONS ==========
+
+const saveProjectToDatabase = async (project: SavedProject) => {
+  try {
+    console.log("💾 Saving to database:", project.name);
+    
+    const response = await fetch('http://localhost:8000/api/save-project', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(project)
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log("✅ Saved to database:", result.id);
+      return true;
+    } else {
+      throw new Error(result.detail || "Save failed");
+    }
+  } catch (error) {
+    console.error("Failed to save to database:", error);
+    return false;
+  }
+};
+
+const loadProjectsFromDatabase = async () => {
+  try {
+    console.log("📚 Loading projects from database...");
+    
+    const response = await fetch('http://localhost:8000/api/get-projects');
+    const result = await response.json();
+    
+    if (result.success && result.projects) {
+      const sorted = result.projects.sort((a: SavedProject, b: SavedProject) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+      setSavedProjects(sorted);
+      savedProjectsRef.current = sorted;
+      console.log(`✅ Loaded ${sorted.length} projects from database`);
+      return sorted;
+    }
+  } catch (error) {
+    console.error("Failed to load projects from database:", error);
+  }
+  return [];
+};
+
+const deleteProjectFromDatabase = async (projectId: string) => {
+  try {
+    const response = await fetch(`http://localhost:8000/api/delete-project/${projectId}`, {
+      method: 'DELETE',
+    });
+    
+    const result = await response.json();
+    return result.success;
+  } catch (error) {
+    console.error("Failed to delete project:", error);
+    return false;
+  }
+};
+
+
+
+
+
+
+
 
 
 
@@ -497,7 +579,7 @@ const clearOldProjects = () => {
 // Add this after your other refs and before the useEffect hooks
 const regeneratePreviewForLoadedProject = useCallback(async (projectFiles: Record<string, string>) => {
   try {
-    const response = await fetch('https://eaglecode2.onrender.com/api/generate-preview', {
+    const response = await fetch('http://localhost:8000/api/generate-preview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -776,6 +858,17 @@ useEffect(() => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 // ========== Load project from sessionStorage when coming from landing page ==========
 useEffect(() => {
   if (mounted && !loadedFiles && !isBuilding) {
@@ -812,7 +905,7 @@ useEffect(() => {
           console.log("⚠️ No saved preview, regenerating...");
           setTimeout(async () => {
             try {
-              const response = await fetch('https://eaglecode2.onrender.com/api/generate-preview', {
+              const response = await fetch('http://localhost:8000/api/generate-preview', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -853,39 +946,17 @@ useEffect(() => {
 
 
 
-
+// Replace your loadProjectDirectly function with this improved version
 const loadProjectDirectly = useCallback((project: SavedProject) => {
   setIsLoadingProject(true);
   setShowPreviewDelayed(false);
   
-  // Update timestamp when loading the project (mark as recently used)
-  const updatedProject = {
-    ...project,
-    timestamp: new Date().toISOString()
-  };
+  // Don't modify the timestamp when loading - keep original timestamp
+  setLoadedFiles(project.files);
+  setPrompt(project.prompt || "");
+  setCurrentProjectName(project.name);
   
-  setLoadedFiles(updatedProject.files);
-  setPrompt(updatedProject.prompt || "");
-  setCurrentProjectName(updatedProject.name);
-  
-  // Update the saved project with new timestamp
-  const allProjects = JSON.parse(localStorage.getItem("scorpioSavedProjects") || "[]");
-  const updatedProjects = allProjects.map((p: SavedProject) => 
-    p.id === updatedProject.id ? updatedProject : p
-  );
-  localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
-  
-  // Reload saved projects to update the list
-  const saved = localStorage.getItem("scorpioSavedProjects");
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    const sorted = parsed.sort((a: SavedProject, b: SavedProject) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-    setSavedProjects(sorted);
-  }
-  
-  const fileKeys = Object.keys(updatedProject.files);
+  const fileKeys = Object.keys(project.files);
   if (fileKeys.length > 0) {
     const firstFile = fileKeys.find(f => f !== "preview_html") || fileKeys[0];
     setActiveFile(firstFile);
@@ -894,9 +965,9 @@ const loadProjectDirectly = useCallback((project: SavedProject) => {
   setViewMode("preview");
   
   // Check if we have a saved preview HTML
-  if (updatedProject.preview_html) {
-    const updatedFiles = { ...updatedProject.files };
-    updatedFiles.preview_html = updatedProject.preview_html;
+  if (project.preview_html) {
+    const updatedFiles = { ...project.files };
+    updatedFiles.preview_html = project.preview_html;
     setLoadedFiles(updatedFiles);
     console.log("✅ Using saved preview - instant load!");
     
@@ -907,14 +978,57 @@ const loadProjectDirectly = useCallback((project: SavedProject) => {
       setIsLoadingProject(false);
       setIsEditMode(false);
       setEditPrompt("");
-      toast.success(`Loaded "${updatedProject.name}" instantly!`, { duration: 3000 });
+      toast.success(`Loaded "${project.name}" instantly!`, { duration: 3000 });
     }, 100);
   } else {
     // fallback code...
+    setTimeout(() => {
+      setIsLoadingProject(false);
+      setShowPreviewDelayed(true);
+    }, 500);
   }
-}, [savedProjects]);
+}, []);
 
+// Add this function to get all saved projects (not just the most recent)
+const getAllSavedProjects = useCallback(() => {
+  const saved = localStorage.getItem("scorpioSavedProjects");
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      // Sort by timestamp descending (newest first)
+      const sorted = parsed.sort((a: SavedProject, b: SavedProject) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+      return sorted;
+    } catch (e) {
+      console.error("Failed to parse saved projects", e);
+      return [];
+    }
+  }
+  return [];
+}, []);
 
+// Update the saved projects loading useEffect
+useEffect(() => {
+  const loadSavedProjects = () => {
+    const saved = localStorage.getItem("scorpioSavedProjects");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Sort by timestamp descending (newest first)
+        const sorted = parsed.sort((a: SavedProject, b: SavedProject) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+        setSavedProjects(sorted);
+        console.log(`📚 Loaded ${sorted.length} saved projects`);
+      } catch (e) {
+        console.error("Failed to parse saved projects", e);
+      }
+    }
+  };
+  
+  loadSavedProjects();
+}, []);
 
 
 
@@ -973,7 +1087,7 @@ const applyIntelligentEdit = useCallback(async () => {
   const storedDbUrl = localStorage.getItem('temp_database_url');
   
   try {
-    const response = await fetch('https://eaglecode2.onrender.com/api/edit-file', {
+    const response = await fetch('http://localhost:8000/api/edit-file', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1239,139 +1353,155 @@ const handleDatabaseConfigured = useCallback(async (updatedFiles: Record<string,
 
 
 
-
-
-// Auto-save project after successful build - INCLUDES PREVIEW HTML
+// Auto-save project to DATABASE (replaces localStorage)
 useEffect(() => {
+  console.log("🔍 Auto-save check:", {
+    mounted,
+    isBuilding,
+    fileCount: Object.keys(buildFiles).length,
+    buildError,
+    loadedFiles,
+    hasPrompt: !!prompt
+  });
+
   if (!mounted || isBuilding || Object.keys(buildFiles).length <= 1 || buildError || loadedFiles) {
+    console.log("❌ Auto-save skipped - conditions not met");
     return;
   }
   
-  if (!prompt) return;
-  
-  // FIX: Calculate estimated size and pass it correctly
-  const estimatedSize = JSON.stringify(buildFiles).length;
-  if (!canSaveToLocalStorage(estimatedSize)) {  // ← Pass estimatedSize, not empty string
-    toast.error("Storage is full. Please delete some old projects to save new ones.", {
-      duration: 5000,
-      action: {
-        label: "Clear Old",
-        onClick: () => clearOldProjects()
-      }
-    });
+  if (!prompt) {
+    console.log("❌ Auto-save skipped - no prompt");
     return;
   }
   
-
-
-
-
-
-
-
-
-
-
-
-  
-  // ========== EXTRACT ACTUAL PROJECT NAME FROM GENERATED FILES ==========
-  let actualProjectName = "";
-  
-  // Try to extract from Navigation.tsx first
-  const navContent = buildFiles["components/Navigation.tsx"];
-  if (navContent) {
-    const brandPatterns = [
-      /<Link[^>]*href="\/"[^>]*>([^<]+)<\/Link>/,
-      /<div[^>]*class="[^"]*font-bold[^"]*"[^>]*>([^<]+)<\/div>/,
-      /<span[^>]*class="[^"]*font-bold[^"]*"[^>]*>([^<]+)<\/span>/,
-    ];
+  const saveToDatabase = async () => {
+    // Make a complete copy of files
+    const completeFiles = { ...buildFiles };
     
-    for (const pattern of brandPatterns) {
-      const match = navContent.match(pattern);
-      if (match && match[1]) {
-        actualProjectName = match[1].trim();
-        break;
+    // Ensure preview_html exists
+    if (!completeFiles.preview_html) {
+      const htmlFile = Object.entries(completeFiles).find(([path]) => 
+        path.endsWith('.html') && path !== 'preview_html'
+      );
+      if (htmlFile) {
+        completeFiles.preview_html = htmlFile[1];
+        console.log("📄 Using", htmlFile[0], "as preview");
       }
     }
-  }
-  
-  // If not found in Navigation, try layout.tsx title
-  if (!actualProjectName) {
-    const layoutContent = buildFiles["app/layout.tsx"];
-    if (layoutContent) {
-      const titleMatch = layoutContent.match(/default:\s*["']([^"']+)["']/);
-      if (titleMatch && titleMatch[1]) {
-        actualProjectName = titleMatch[1];
-        if (actualProjectName.includes(" | ")) {
-          actualProjectName = actualProjectName.split(" | ").pop() || actualProjectName;
-        }
-      }
-    }
-  }
-  
-  // Fallback to generated name if extraction failed
-  if (!actualProjectName) {
-    // Use ref to get existing names without triggering re-render
-    const existingNames = savedProjectsRef.current.map(p => p.name);
-    actualProjectName = generateProjectName(prompt, existingNames);
-  }
-  
-  const previewHtml = buildFiles["preview_html"] || "";
-  
-  // Use ref to check existing projects (doesn't trigger re-render)
-  const existingProject = savedProjectsRef.current.find(p => p.prompt === prompt);
-  
-  const buildId = `${prompt}_${Object.keys(buildFiles).length}_${Date.now()}`;
-  if (lastSavedBuildId.current === buildId) return;
-  
-  if (existingProject) {
-    // Update existing project
-    const updatedProjects = savedProjectsRef.current.map(p => 
-      p.id === existingProject.id 
-        ? { 
-            ...p, 
-            files: { ...buildFiles }, 
-            preview_html: previewHtml,
-            timestamp: new Date().toISOString(), 
-            name: actualProjectName
-          }
-        : p
-    );
-    lastSavedBuildId.current = buildId;
-    setSavedProjects(updatedProjects);
-    localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
-    setCurrentProjectName(actualProjectName);
-    // Update ref silently
-    savedProjectsRef.current = updatedProjects;
-    console.log(`✅ Updated existing project: ${actualProjectName}`);
-  } else {
-    // Make sure the name is unique
-    let finalName = actualProjectName;
-    let counter = 1;
-    while (savedProjectsRef.current.some(p => p.name === finalName)) {
-      finalName = `${actualProjectName} ${counter}`;
-      counter++;
+    
+    // Extract project name
+    let actualProjectName = "";
+    const navContent = buildFiles["components/Navigation.tsx"];
+    if (navContent && typeof navContent === 'string') {
+      const brandMatch = navContent.match(/<Link[^>]*href="\/"[^>]*>([^<]+)<\/Link>/);
+      if (brandMatch && brandMatch[1]) actualProjectName = brandMatch[1].trim();
     }
     
-    const newProject: SavedProject = {
-      id: Date.now().toString(),
-      name: finalName,
+    if (!actualProjectName) {
+      const layoutContent = buildFiles["app/layout.tsx"];
+      if (layoutContent && typeof layoutContent === 'string') {
+        const titleMatch = layoutContent.match(/default:\s*["']([^"']+)["']/);
+        if (titleMatch && titleMatch[1]) actualProjectName = titleMatch[1].split(" | ")[0];
+      }
+    }
+    
+    if (!actualProjectName) {
+      const existingNames = savedProjectsRef.current.map(p => p.name);
+      actualProjectName = generateProjectName(prompt, existingNames);
+    }
+    
+    const existingProject = savedProjectsRef.current.find(p => p.prompt === prompt);
+
+
+    
+    
+    const projectToSave: SavedProject = {
+      id: existingProject?.id || Date.now().toString(),
+      name: actualProjectName,
       prompt: prompt,
-      files: { ...buildFiles },
-      preview_html: previewHtml,
+      files: completeFiles,
+      preview_html: completeFiles.preview_html || "",
       timestamp: new Date().toISOString()
     };
     
-    lastSavedBuildId.current = buildId;
-    const updated = [newProject, ...savedProjectsRef.current].slice(0, 50); // Change 20 to 50 or 100
-    setSavedProjects(updated);
-    localStorage.setItem("scorpioSavedProjects", JSON.stringify(updated));
-    setCurrentProjectName(finalName);
-    // Update ref silently
-    savedProjectsRef.current = updated;
-    console.log(`✅ Created new project: ${finalName}`);
+
+
+    
+    const saved = await saveProjectToDatabase(projectToSave);
+    
+
+
+
+    
+
+if (saved) {
+  const updatedProjects = await loadProjectsFromDatabase();
+  setSavedProjects(updatedProjects);
+  savedProjectsRef.current = updatedProjects;
+  setCurrentProjectName(actualProjectName);
+  
+  // 🔥 CRITICAL: Get the CORRECT database ID (not the temporary one)
+  let correctProjectId = projectToSave.id;
+  if (updatedProjects && Array.isArray(updatedProjects)) {
+    const savedProjectFromDb = updatedProjects.find((p: any) => p.name === actualProjectName);
+    if (savedProjectFromDb && savedProjectFromDb.id) {
+      correctProjectId = savedProjectFromDb.id;
+      console.log(`📍 Found correct database ID: ${correctProjectId} (was: ${projectToSave.id})`);
+    }
   }
-}, [mounted, isBuilding, buildFiles, prompt, buildError, loadedFiles]);  // ❌ REMOVED savedProjects from here
+  
+  // 🔥 UPDATE CACHE with correct database ID
+  const cached = localStorage.getItem("projectsCache");
+  if (cached) {
+    const parsed = JSON.parse(cached);
+    
+    // Create metadata with CORRECT database ID
+    const projectMetadata = {
+      id: correctProjectId,  // Use database ID, not temporary one
+      name: actualProjectName,
+      prompt: prompt.slice(0, 80),
+      files: {},
+      preview_html: '',
+      timestamp: new Date().toISOString()
+    };
+    
+    // Check if project already exists in cache (by old ID or name)
+    const existingIndex = parsed.data.findIndex((p: any) => p.id === projectToSave.id || p.name === actualProjectName);
+    if (existingIndex >= 0) {
+      // Update existing project with correct ID
+      parsed.data[existingIndex] = projectMetadata;
+      console.log("✅ Updated existing project in cache with correct ID");
+    } else {
+      // Add new project to beginning
+      parsed.data.unshift(projectMetadata);
+      console.log("✅ Added new project to cache with correct ID");
+    }
+    
+    // Keep only latest 20 projects in cache
+    parsed.data = parsed.data.slice(0, 20);
+    parsed.timestamp = Date.now();
+    
+    localStorage.setItem("projectsCache", JSON.stringify(parsed));
+  } else if (updatedProjects && Array.isArray(updatedProjects)) {
+    // Create new cache if doesn't exist
+    const projectsMetadata = updatedProjects.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      prompt: p.prompt?.slice(0, 80) || '',
+      files: {},
+      preview_html: '',
+      timestamp: p.timestamp
+    }));
+    localStorage.setItem("projectsCache", JSON.stringify({
+      data: projectsMetadata,
+      timestamp: Date.now()
+    }));
+    console.log("✅ Created new cache with projects");
+  }
+  
+  console.log(`✅ Project saved to database: ${actualProjectName} (ID: ${correctProjectId})`);
+  toast.success(`Project saved: ${actualProjectName}`, { duration: 2000 });
+}
 
 
 
@@ -1380,7 +1510,36 @@ useEffect(() => {
 
 
 
-const manualSave = useCallback(() => {
+
+  };
+  saveToDatabase();
+}, [mounted, isBuilding, buildFiles, prompt, buildError, loadedFiles]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const manualSave = useCallback(async () => {
   const currentFiles = files;
   if (Object.keys(currentFiles).length <= 1) {
     toast.error("No project to save");
@@ -1388,47 +1547,101 @@ const manualSave = useCallback(() => {
   }
   
   const existingNames = savedProjectsRef.current.map(p => p.name);
-  const generatedName = generateProjectName(prompt, existingNames);
-  const projectName = generatedName;
+  const projectName = generateProjectName(prompt, existingNames);
   const previewHtml = currentFiles["preview_html"] || "";
   
-  // Use ref to avoid stale closure
   const existingProject = savedProjectsRef.current.find(p => p.prompt === prompt);
   
-  if (existingProject) {
-    const updatedProjects = savedProjectsRef.current.map(p => 
-      p.id === existingProject.id 
-        ? { 
-            ...p, 
-            files: { ...currentFiles }, 
-            preview_html: previewHtml,
-            timestamp: new Date().toISOString() 
-          }
-        : p
-    );
+  const projectToSave: SavedProject = {
+    id: existingProject?.id || Date.now().toString(),
+    name: projectName,
+    prompt: prompt,
+    files: { ...currentFiles },
+    preview_html: previewHtml,
+    timestamp: new Date().toISOString()
+  };
+  
+  const saved = await saveProjectToDatabase(projectToSave);
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  if (saved) {
+    const updatedProjects = await loadProjectsFromDatabase();
     setSavedProjects(updatedProjects);
-    localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
     savedProjectsRef.current = updatedProjects;
-    toast.success(`Project updated: "${existingProject.name}"`);
-  } else {
-    const newProject: SavedProject = {
-      id: Date.now().toString(),
-      name: projectName,
-      prompt: prompt,
-      files: { ...currentFiles },
-      preview_html: previewHtml,
-      timestamp: new Date().toISOString()
-    };
-    
-
-    const updated = [newProject, ...savedProjectsRef.current]; // Remove .slice(0, 20)
-    setSavedProjects(updated);
-    localStorage.setItem("scorpioSavedProjects", JSON.stringify(updated));
-    savedProjectsRef.current = updated;
     setCurrentProjectName(projectName);
-    toast.success(`Project saved: "${projectName}"`);
+    
+    // 🔥 Update cache by adding/updating the project
+    const cached = localStorage.getItem("projectsCache");
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      
+      // Create metadata for the new/updated project
+      const projectMetadata = {
+        id: projectToSave.id,
+        name: projectName,
+        prompt: prompt.slice(0, 80),
+        files: {},
+        preview_html: '',
+        timestamp: projectToSave.timestamp
+      };
+      
+      // Check if project already exists in cache
+      const existingIndex = parsed.data.findIndex((p: any) => p.id === projectToSave.id);
+      if (existingIndex >= 0) {
+        // Update existing project
+        parsed.data[existingIndex] = projectMetadata;
+        console.log("✅ Updated existing project in cache");
+      } else {
+        // Add new project to beginning
+        parsed.data.unshift(projectMetadata);
+        console.log("✅ Added new project to cache");
+      }
+      
+      // Keep only latest 20 projects in cache
+      parsed.data = parsed.data.slice(0, 20);
+      parsed.timestamp = Date.now();
+      
+      localStorage.setItem("projectsCache", JSON.stringify(parsed));
+    } else {
+      // Create new cache if doesn't exist
+      const projectsMetadata = updatedProjects.map((p: SavedProject) => ({
+        id: p.id,
+        name: p.name,
+        prompt: p.prompt.slice(0, 80),
+        files: {},
+        preview_html: '',
+        timestamp: p.timestamp
+      }));
+      localStorage.setItem("projectsCache", JSON.stringify({
+        data: projectsMetadata,
+        timestamp: Date.now()
+      }));
+      console.log("✅ Created new cache with projects");
+    }
+    
+    toast.success(`Project saved to database: "${projectName}"`);
+  } else {
+    toast.error("Failed to save to database");
   }
-}, [files, prompt]); // Remove savedProjects dependency
+}, [files, prompt]);
 
 
 
@@ -1440,21 +1653,28 @@ const manualSave = useCallback(() => {
 
 
 
-  // Delete project
-  const deleteProject = useCallback((projectId: string, projectName: string) => {
-    const updated = savedProjects.filter(p => p.id !== projectId);
-    setSavedProjects(updated);
-    localStorage.setItem("scorpioSavedProjects", JSON.stringify(updated));
+
+
+
+
+
+const deleteProject = useCallback(async (projectId: string, projectName: string) => {
+  const deleted = await deleteProjectFromDatabase(projectId);
+  
+  if (deleted) {
+    const updatedProjects = await loadProjectsFromDatabase();
+    setSavedProjects(updatedProjects);
+    savedProjectsRef.current = updatedProjects;
     toast.success(`Deleted "${projectName}"`);
     setShowDeleteConfirm(null);
     
     if (loadedFiles && currentProjectName === projectName) {
       clearLoadedProject();
     }
-  }, [savedProjects, loadedFiles, currentProjectName, clearLoadedProject]);
-
-  // In ProfessionalBuilder component, replace the auto-start useEffect with this:
-
+  } else {
+    toast.error("Failed to delete project");
+  }
+}, [loadedFiles, currentProjectName, clearLoadedProject]);
 
 
 
@@ -1482,7 +1702,7 @@ const generatePreview = useCallback(async () => {
 
   try {
     // Always use production backend
-    const endpoint = 'https://eaglecode2.onrender.com/api/generate-preview';
+    const endpoint = 'http://localhost:8000/api/generate-preview';
     
     console.log(`📡 Generating preview using endpoint: ${endpoint}`);
 
@@ -2165,7 +2385,7 @@ if (options.platform === "vercel") {
   
   toast.loading("Deploying to Vercel...", { id: "vercel-deploy" });
   
-  response = await fetch('https://eaglecode2.onrender.com/api/deploy-vercel', {
+  response = await fetch('http://localhost:8000/api/deploy-vercel', {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',
@@ -2207,7 +2427,7 @@ if (options.platform === "vercel") {
       }
     } else {
       // For other platforms, use the advanced deploy endpoint (download ZIP)
-      response = await fetch('https://eaglecode2.onrender.com/api/deploy-advanced', {
+      response = await fetch('http://localhost:8000/api/deploy-advanced', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

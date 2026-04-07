@@ -633,6 +633,10 @@ const setupWebSocket = useCallback((prompt: string): Promise<WebSocket> => {
       reject(new Error(errorMsg));
     };
     
+
+
+
+    
     ws.onclose = (event) => {
       clearTimeout(connectionTimeout);
       console.log("🔴 WebSocket closed:", event.code, event.reason);
