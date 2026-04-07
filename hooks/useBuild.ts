@@ -581,7 +581,7 @@ const setupWebSocket = useCallback((prompt: string): Promise<WebSocket> => {
     wsRef.current = ws;
     
     // Increase timeout for production (Render.com might be slower to respond)
-    const timeoutDuration = isProduction ? 15000 : 5000;
+    const timeoutDuration = isProduction ? 120000 : 10000;  // 60 seconds for prod, 10 for local
     const connectionTimeout = setTimeout(() => {
       if (ws.readyState !== WebSocket.OPEN) {
         console.error(`🔴 WebSocket connection timeout to ${wsUrl}`);
