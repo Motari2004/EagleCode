@@ -278,7 +278,7 @@ const [isProcessingAuth, setIsProcessingAuth] = useState(false);
   // =============================================
 
 
- const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://eaglecode2.onrender.com';
+ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://eaglecode2-1.onrender.com';
 
 
 
