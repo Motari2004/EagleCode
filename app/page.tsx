@@ -248,7 +248,7 @@ const getFromCache = (): { data: SavedProject[]; timestamp: number } | null => {
 
   
 
-  const API_URL = '';  // Empty string means use relative URLs
+  const API_URL = 'https://eaglecode2-1.onrender.com';
 
 
 
