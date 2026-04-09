@@ -286,7 +286,7 @@ const editFile = useCallback(async (
       window.location.hostname !== 'localhost'
     );
     
-    const apiUrl = isProduction ? 'https://eaglecode2.onrender.com' : 'http://localhost:8000';
+    const apiUrl = isProduction ? 'https://eaglecode2-1.onrender.com' : 'http://localhost:8000';
     console.log(`📡 Using API URL: ${apiUrl}`);
     
     const response = await fetch(`${apiUrl}/api/edit-file`, {
@@ -562,15 +562,23 @@ const setupWebSocket = useCallback((prompt: string): Promise<WebSocket> => {
       window.location.hostname !== 'localhost'
     );
     
-    const getWebSocketUrl = () => {
-      if (isProduction) {
-        // Use wss:// for Render.com (supports WebSockets)
-        return 'wss://eaglecode2.onrender.com/ws/build';
-      }
-      // Local development
-      return 'ws://localhost:8000/ws/build';
-    };
+
+
+
+
+const getWebSocketUrl = () => {
+  if (isProduction) {
+    // Use wss:// for Render.com (supports WebSockets)
+    return 'wss://eaglecode2-1.onrender.com/ws/build';  // ✅ CORRECT - added "-1"
+  }
+  // Local development
+  return 'ws://localhost:8000/ws/build';
+};
     
+
+
+
+
     const wsUrl = getWebSocketUrl();
     console.log(`🟡 Connecting to WebSocket: ${wsUrl}`);
     console.log(`📍 Environment: ${isProduction ? 'PRODUCTION (Render.com)' : 'DEVELOPMENT (Local)'}`);
