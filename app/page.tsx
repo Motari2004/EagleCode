@@ -277,7 +277,7 @@ const loadSavedProjects = async () => {
   
   try {
     // Change limit from 100 to 5
-    const response = await fetch(`${API_URL}/api/get-projects?user_id=default&limit=5`);
+    const response = await fetch(`${API_URL}/api/get-projects?user_id=default&limit=11`);
     console.log("📡 Response status:", response.status);
     
     if (!response.ok) {
