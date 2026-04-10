@@ -249,7 +249,7 @@ const faqItems = [
 
   
 
-  const API_URL = 'http://localhost:8000';
+  const API_URL = 'https://eaglecode2-1.onrender.com';
 
 
 
