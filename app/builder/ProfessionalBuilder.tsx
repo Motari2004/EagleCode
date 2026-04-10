@@ -6,6 +6,10 @@ import { useBuild } from "@/hooks/useBuild";
 import { Input } from "@/components/ui/input";
 import { Bot,ArrowRight } from "lucide-react";
 
+
+
+
+
 import { Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DatabaseConfigModal } from "@/components/DatabaseConfigModal";
@@ -278,7 +282,7 @@ const [isProcessingAuth, setIsProcessingAuth] = useState(false);
   // =============================================
 
 
- const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://eaglecode2-1.onrender.com';
+ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 
 
@@ -772,6 +776,10 @@ useEffect(() => {
     setMounted(true);
   }, []);
 
+
+
+
+
   // Load saved projects from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("scorpioSavedProjects");
@@ -1002,6 +1010,10 @@ const loadProjectDirectly = useCallback((project: SavedProject) => {
   }
 }, []);
 
+
+
+
+
 // Add this function to get all saved projects (not just the most recent)
 const getAllSavedProjects = useCallback(() => {
   const saved = localStorage.getItem("scorpioSavedProjects");
@@ -1042,6 +1054,12 @@ useEffect(() => {
   
   loadSavedProjects();
 }, []);
+
+
+
+
+
+
 
 
 
@@ -2654,19 +2672,18 @@ if (options.platform === "vercel") {
 
 
 
-{/* Header */}
-<header className="h-16 border-b border-white/10 bg-gradient-to-r from-slate-900/95 via-purple-900/95 to-slate-900/95 backdrop-blur-xl flex items-center justify-between px-6 z-50 shrink-0 shadow-lg shadow-purple-500/10">
+{/* Header - EagleCode with Emoji */}
+<header className="h-16 border-b border-white/10 bg-gradient-to-r from-slate-900/95 via-amber-900/95 to-slate-900/95 backdrop-blur-xl flex items-center justify-between px-6 z-50 shrink-0 shadow-lg shadow-amber-500/10">
   <div className="flex items-center gap-6 flex-1 max-w-3xl">
     <div className="flex items-center gap-2.5">
-      <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] animate-pulse-glow">
-        <Layers size={20} className="text-white" />
+      <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.4)] animate-pulse-glow text-xl">
+        🦅
       </div>
       <div className="flex flex-col">
-        <span className="font-bold tracking-tighter text-white text-lg leading-none uppercase">Scorpio</span>
-        <span className="text-[9px] text-purple-400 font-mono tracking-[0.2em] font-bold">ORGANIZATION</span>
+        <span className="font-bold tracking-tighter text-white text-lg leading-none uppercase">EagleCode</span>
+        <span className="text-[9px] text-amber-400 font-mono tracking-[0.2em] font-bold">STUDIO</span>
       </div>
     </div>
-    
 
 
 

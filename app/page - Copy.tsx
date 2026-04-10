@@ -249,7 +249,9 @@ const faqItems = [
 
   
 
-  const API_URL = 'http://localhost:8000';
+  const API_URL = 'https://eaglecode2-1.onrender.com';
+
+
 
 
 
@@ -261,9 +263,6 @@ const faqItems = [
 
 
 const loadSavedProjects = async () => {
-  console.log("🔵 Starting loadSavedProjects...");
-  
-  // Check cache first
   const cached = getFromCache();
   if (cached) {
     console.log("📦 Loading from localStorage cache (instant)");
@@ -272,22 +271,14 @@ const loadSavedProjects = async () => {
     return;
   }
   
-  console.log("🔄 Fetching projects from server...");
+  console.log("🔄 Fetching projects metadata from server...");
   setIsLoadingProjects(true);
   
   try {
-    // Change limit from 100 to 5
-    const response = await fetch(`${API_URL}/api/get-projects?user_id=default&limit=5`);
-    console.log("📡 Response status:", response.status);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
+    const response = await fetch(`${API_URL}/api/get-projects?user_id=default&limit=20`);
     const data = await response.json();
-    console.log("📊 Response data:", data);
     
-    if (data.success && data.projects && data.projects.length > 0) {
+    if (data.success && data.projects) {
       const projects: SavedProject[] = data.projects.map((project: any) => ({
         id: project.id,
         name: project.name,
@@ -297,26 +288,22 @@ const loadSavedProjects = async () => {
         timestamp: project.timestamp
       }));
       
-      // Sort by timestamp (newest first)
-      const sortedProjects = projects.sort((a, b) => 
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      );
-      
-      console.log(`✅ Loaded ${sortedProjects.length} projects (limited to 5)`);
-      saveToCache(sortedProjects);
-      setSavedProjects(sortedProjects);
+      saveToCache(projects);
+      setSavedProjects(projects);
+      console.log(`✅ Loaded ${projects.length} projects (metadata only)`);
     } else {
-      console.log("No projects found");
       setSavedProjects([]);
     }
   } catch (error) {
-    console.error("❌ Failed to load projects:", error);
+    console.error("Failed to load projects:", error);
     setSavedProjects([]);
   } finally {
-    console.log("🔵 Setting isLoadingProjects to false");
     setIsLoadingProjects(false);
   }
 };
+
+
+
 
 
 
