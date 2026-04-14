@@ -356,69 +356,168 @@ const isSavingRef = useRef(false);
 
 
 const mobileStyles = `
+  /* Mobile Styles - 768px and below */
   @media (max-width: 768px) {
+    /* ========== GENERAL ========== */
     .header-container { padding: 0 12px; }
     .brand-subtext { display: none; }
-    .action-button span { display: none; }
-    .action-button svg { margin-right: 0; }
     .desktop-only { display: none; }
     .preview-info-badge { display: none; }
-    .view-toggle button span { display: none; }
-    .deploy-button span { display: none; }
-    .ai-edit-button span { display: none; }
     .mobile-full-width { width: 100%; }
     .mobile-stack { flex-direction: column; gap: 8px; }
     .mobile-padding { padding: 0 12px; }
+    
+    /* ========== HEADER SCROLLABLE ========== */
+    header .overflow-x-auto {
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      -webkit-overflow-scrolling: touch !important;
+      scrollbar-width: thin !important;
+    }
+    
+    header .overflow-x-auto::-webkit-scrollbar {
+      height: 3px;
+    }
+    
+    header .overflow-x-auto::-webkit-scrollbar-track {
+      background: #1a1a2e;
+      border-radius: 10px;
+    }
+    
+    header .overflow-x-auto::-webkit-scrollbar-thumb {
+      background: linear-gradient(90deg, #a855f7, #ec4899);
+      border-radius: 10px;
+    }
+    
+    header .min-w-max {
+      min-width: max-content;
+    }
+    
+    /* ========== BUTTON TEXT HIDING ========== */
+    .action-button span { display: none; }
+    .action-button svg { margin-right: 0; }
+    .view-toggle button span { display: none; }
+    .deploy-button span { display: none; }
+    .ai-edit-button span { display: none; }
+    
+    /* ========== SIDEBAR ========== */
     .sidebar-collapsed { width: 48px; }
     
-    /* Enable horizontal scrolling for the main content area */
-    .main-content-scroll {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
+    /* ========== SCROLL HINT ========== */
+    .scroll-hint {
+      display: block;
     }
     
-    /* Make the preview/code area horizontally scrollable */
-    .flex-1.overflow-hidden {
+    /* ========== HORIZONTAL SCROLL FOR MAIN CONTENT ========== */
+    main.flex-1.flex {
       overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch !important;
     }
     
-    /* Ensure content doesn't wrap */
-    .preview-header-buttons {
-      flex-wrap: nowrap;
-      min-width: max-content;
+    section.flex-1 {
+      min-width: 600px;
+    }
+    
+    /* ========== TERMINAL ========== */
+    .terminal-text {
+      font-size: 9px;
+    }
+    
+    /* ========== CODE EDITOR ========== */
+    .code-editor {
+      font-size: 11px;
     }
   }
   
+  /* Small Mobile - 480px and below */
   @media (max-width: 480px) {
     .hide-on-mobile { display: none; }
     .text-mobile-sm { font-size: 11px; }
     .button-mobile-compact { padding: 6px 10px; }
     
-    /* Allow horizontal scroll on entire main section */
-    main.flex-1 {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    
-    /* Keep sidebar and content in one line for scrolling */
-    .flex-1.flex.overflow-hidden {
-      overflow-x: auto !important;
-      flex-wrap: nowrap;
-    }
-    
-    /* Prevent sidebar from collapsing content */
+    /* Smaller sidebar */
     aside {
-      flex-shrink: 0;
+      width: 56px !important;
+    }
+    
+    aside.w-64 {
+      width: 56px !important;
+    }
+    
+    /* Smaller cards */
+    .project-card {
+      width: 160px !important;
+    }
+    
+    /* Compact terminal */
+    .terminal-text {
+      font-size: 8px;
+    }
+    
+    /* Code editor smaller font */
+    .code-editor {
+      font-size: 10px;
     }
     
     section.flex-1 {
-      min-width: 320px;
-      flex-shrink: 0;
+      min-width: 480px;
+    }
+  }
+  
+  /* Medium Mobile - 640px and below */
+  @media (max-width: 640px) {
+    .mobile-hidden {
+      display: none;
+    }
+    
+    .mobile-block {
+      display: block;
+    }
+    
+    section.flex-1 {
+      min-width: 550px;
+    }
+  }
+  
+  /* Desktop - hide scroll hint */
+  @media (min-width: 769px) {
+    .scroll-hint {
+      display: none;
+    }
+  }
+  
+  /* Custom scrollbar styles for all scrollable areas */
+  .overflow-x-auto {
+    scrollbar-width: thin;
+    scrollbar-color: #a855f7 #1a1a2e;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar-track {
+    background: #1a1a2e;
+    border-radius: 10px;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #a855f7, #ec4899);
+    border-radius: 10px;
+  }
+  
+  /* Enable smooth scrolling on all elements */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Body horizontal scroll prevention on desktop, allow on mobile */
+  @media (max-width: 768px) {
+    html, body {
+      overflow-x: auto;
     }
   }
 `;
-
 
 
 
