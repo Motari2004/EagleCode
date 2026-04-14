@@ -794,7 +794,6 @@ useEffect(() => {
 
 
 
-
 {/* Templates Section */}
 <div className="mt-16 text-left">
   <div className="flex items-center gap-2 mb-6">
@@ -802,12 +801,19 @@ useEffect(() => {
     <h2 className="text-sm font-semibold text-slate-300">Templates</h2>
   </div>
   
-  {/* Grid that stays as grid on all screen sizes */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+  {/* FORCED GRID - Will NOT stack vertically */}
+  <div style={{ 
+    display: 'grid', 
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '1rem',
+    width: '100%'
+  }} 
+  className="sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
     {templateProjects.map((template) => (
       <div
         key={template.id}
         onClick={() => loadTemplate(template)}
+        style={{ display: 'flex', flexDirection: 'column' }}
         className={`group bg-gradient-to-br ${template.bgColor} border ${template.borderColor} rounded-xl p-4 hover:${template.hoverBorder} hover:bg-white/10 transition-all cursor-pointer backdrop-blur-sm`}
       >
         <div className={`mb-3 w-10 h-10 rounded-lg bg-gradient-to-br ${template.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
