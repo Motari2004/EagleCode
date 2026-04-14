@@ -833,37 +833,54 @@ useEffect(() => {
 
 
 
-          {/* Features Section */}
-          <div className="mt-16">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-1 h-5 bg-gradient-to-b from-violet-500 to-fuchsia-500 rounded-full" />
-              <h2 className="text-sm font-semibold text-slate-300">Features</h2>
-            </div>
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {features.map((feature, i) => (
-                <ClientMotionDiv
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="group bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-2xl p-6 text-center hover:border-violet-500/40 hover:bg-white/5 transition-all duration-300 backdrop-blur-sm"
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 flex items-center justify-center text-violet-400 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 group-hover:shadow-xl group-hover:shadow-violet-500/20">
-                    {feature.icon}
-                  </div>
-                  
-                  <h3 className="font-semibold text-base text-white mb-2 group-hover:text-violet-400 transition-colors">
-                    {feature.title}
-                  </h3>
-                  
-                  <p className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors leading-relaxed">
-                    {feature.description}
-                  </p>
-                </ClientMotionDiv>
-              ))}
-            </div>
+
+
+
+
+{/* Features Section */}
+<div className="mt-16">
+  <div className="flex items-center gap-2 mb-6">
+    <div className="w-1 h-5 bg-gradient-to-b from-violet-500 to-fuchsia-500 rounded-full" />
+    <h2 className="text-sm font-semibold text-slate-300">Features</h2>
+  </div>
+  
+  {/* FLEXBOX GRID - Guaranteed to work on all screen sizes */}
+  <div className="flex flex-wrap -mx-2">
+    {features.map((feature, i) => (
+      <ClientMotionDiv
+        key={i}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: i * 0.05 }}
+        className="w-full sm:w-1/2 lg:w-1/4 px-2 mb-4"
+      >
+        <div className="group bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-2xl p-4 sm:p-6 text-center hover:border-violet-500/40 hover:bg-white/5 transition-all duration-300 backdrop-blur-sm h-full">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 flex items-center justify-center text-violet-400 mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300 group-hover:shadow-xl group-hover:shadow-violet-500/20">
+            {feature.icon}
           </div>
+          
+          <h3 className="font-semibold text-sm sm:text-base text-white mb-1 sm:mb-2 group-hover:text-violet-400 transition-colors">
+            {feature.title}
+          </h3>
+          
+          <p className="text-xs sm:text-sm text-slate-400 group-hover:text-slate-300 transition-colors leading-relaxed">
+            {feature.description}
+          </p>
+        </div>
+      </ClientMotionDiv>
+    ))}
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
 
           {/* Stats Section */}
           <div className="mt-16">
