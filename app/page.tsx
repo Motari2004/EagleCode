@@ -645,150 +645,144 @@ useEffect(() => {
 
 
 
-
-          {/* Recent Projects - Horizontal Scroll */}
-          {!isLoadingProjects && savedProjects.length > 0 && (
-            <ClientMotionDiv initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-16 text-left">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-cyan-500 rounded-full" />
-                  <h2 className="text-sm font-semibold text-slate-300">Recent Projects</h2>
-                  <span className="text-xs text-slate-500">({savedProjects.length})</span>
-                </div>
-                {savedProjects.length > 4 && (
-                  <div className="flex gap-1">
-                    <button 
-                      onClick={() => {
-                        const container = document.getElementById('projects-scroll');
-                        if (container) container.scrollBy({ left: -280, behavior: 'smooth' });
-                      }}
-                      className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white transition flex items-center justify-center"
-                    >
-                      ←
-                    </button>
-                    <button 
-                      onClick={() => {
-                        const container = document.getElementById('projects-scroll');
-                        if (container) container.scrollBy({ left: 280, behavior: 'smooth' });
-                      }}
-                      className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white transition flex items-center justify-center"
-                    >
-                      →
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Horizontal Scroll Container */}
-              <div 
-                id="projects-scroll"
-                className="flex overflow-x-auto gap-3 pb-4 scrollbar-thin scrollbar-thumb-cyan-500/20 scrollbar-track-transparent"
-                style={{ 
-                  scrollbarWidth: 'thin',
-                  overscrollBehaviorX: 'contain',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
-
-
-
-                {savedProjects.map((project, index) => (
-  <ClientMotionDiv
-    key={project.id}
-    initial={{ opacity: 0, x: 20 }}
-    animate={{ opacity: 1, x: 0 }}
-    transition={{ delay: index * 0.03 }}
-    className="flex-shrink-0 w-64"
-  >
-    <div 
-      onClick={() => loadProject(project)}
-      className={`group cursor-pointer relative bg-white/5 border border-white/10 rounded-xl p-4 hover:border-cyan-500/30 hover:bg-white/10 transition-all duration-200 h-full ${
-        loadingProjectId === project.id ? 'opacity-50' : ''
-      }`}
-    >
-      {/* Loading Overlay */}
-      {loadingProjectId === project.id && (
-        <div className="absolute inset-0 bg-black/60 rounded-xl flex flex-col items-center justify-center z-10 backdrop-blur-sm">
-          <Loader2 className="w-6 h-6 animate-spin text-cyan-400 mb-2" />
-          <span className="text-xs text-cyan-400 font-medium">Loading...</span>
+{/* Recent Projects - Horizontal Scroll */}
+{!isLoadingProjects && savedProjects.length > 0 && (
+  <ClientMotionDiv initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-16 text-left">
+    <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-5 bg-cyan-500 rounded-full" />
+        <h2 className="text-sm font-semibold text-slate-300">Recent Projects</h2>
+        <span className="text-xs text-slate-500">({savedProjects.length})</span>
+      </div>
+      {savedProjects.length > 4 && (
+        <div className="flex gap-1">
+          <button 
+            onClick={() => {
+              const container = document.getElementById('projects-scroll');
+              if (container) container.scrollBy({ left: -200, behavior: 'smooth' });
+            }}
+            className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white transition flex items-center justify-center"
+          >
+            ←
+          </button>
+          <button 
+            onClick={() => {
+              const container = document.getElementById('projects-scroll');
+              if (container) container.scrollBy({ left: 200, behavior: 'smooth' });
+            }}
+            className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white transition flex items-center justify-center"
+          >
+            →
+          </button>
         </div>
       )}
-      
-      {/* Card content - same as before */}
-      <div className="flex justify-between items-start mb-2">
-        <div className="w-7 h-7 rounded-lg bg-cyan-500/10 flex items-center justify-center">
-          <Terminal className="w-3.5 h-3.5 text-cyan-400" />
-        </div>
-        <div className="relative">
-          {showDeleteConfirm === project.id && (
-            <div className="absolute right-0 top-full mt-1 bg-red-950/95 border border-red-500/30 rounded-lg p-2 z-50 min-w-[130px]">
-              <p className="text-[10px] text-red-200 mb-2 text-center">Delete project?</p>
-              <div className="flex gap-1 justify-center">
+    </div>
+
+    {/* Horizontal Scroll Container - SMALLER cards to see MORE at once */}
+    <div 
+      id="projects-scroll"
+      className="flex overflow-x-auto gap-3 pb-4 scrollbar-thin scrollbar-thumb-cyan-500/20 scrollbar-track-transparent"
+      style={{ 
+        scrollbarWidth: 'thin',
+        overscrollBehaviorX: 'contain',
+        WebkitOverflowScrolling: 'touch'
+      }}
+    >
+      {savedProjects.map((project, index) => (
+        <ClientMotionDiv
+          key={project.id}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: index * 0.03 }}
+          className="flex-shrink-0 w-52 sm:w-56"
+        >
+          <div 
+            onClick={() => loadProject(project)}
+            className={`group cursor-pointer relative bg-white/5 border border-white/10 rounded-xl p-3 hover:border-cyan-500/30 hover:bg-white/10 transition-all duration-200 h-full ${
+              loadingProjectId === project.id ? 'opacity-50' : ''
+            }`}
+          >
+            {/* Loading Overlay */}
+            {loadingProjectId === project.id && (
+              <div className="absolute inset-0 bg-black/60 rounded-xl flex flex-col items-center justify-center z-10 backdrop-blur-sm">
+                <Loader2 className="w-5 h-5 animate-spin text-cyan-400 mb-1" />
+                <span className="text-[10px] text-cyan-400 font-medium">Loading...</span>
+              </div>
+            )}
+            
+            {/* Card content - Compact */}
+            <div className="flex justify-between items-start mb-2">
+              <div className="w-6 h-6 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                <Terminal className="w-3 h-3 text-cyan-400" />
+              </div>
+              <div className="relative">
+                {showDeleteConfirm === project.id && (
+                  <div className="absolute right-0 top-full mt-1 bg-red-950/95 border border-red-500/30 rounded-lg p-1.5 z-50 min-w-[110px]">
+                    <p className="text-[9px] text-red-200 mb-1 text-center">Delete?</p>
+                    <div className="flex gap-1 justify-center">
+                      <button 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          deleteProject(project.id); 
+                        }} 
+                        className="text-[9px] bg-red-500/40 hover:bg-red-500/60 text-red-200 px-1.5 py-0.5 rounded"
+                      >
+                        Yes
+                      </button>
+                      <button 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setShowDeleteConfirm(null); 
+                        }} 
+                        className="text-[9px] bg-gray-500/30 hover:bg-gray-500/50 text-gray-300 px-1.5 py-0.5 rounded"
+                      >
+                        No
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <button 
                   onClick={(e) => { 
                     e.stopPropagation(); 
-                    deleteProject(project.id); 
+                    setShowDeleteConfirm(project.id); 
                   }} 
-                  className="text-[10px] bg-red-500/40 hover:bg-red-500/60 text-red-200 px-2 py-1 rounded"
+                  className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition p-0.5"
                 >
-                  Yes
-                </button>
-                <button 
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    setShowDeleteConfirm(null); 
-                  }} 
-                  className="text-[10px] bg-gray-500/30 hover:bg-gray-500/50 text-gray-300 px-2 py-1 rounded"
-                >
-                  No
+                  <Trash2 className="w-3 h-3" />
                 </button>
               </div>
             </div>
-          )}
-          <button 
-            onClick={(e) => { 
-              e.stopPropagation(); 
-              setShowDeleteConfirm(project.id); 
-            }} 
-            className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition p-1"
-          >
-            <Trash2 className="w-3 h-3" />
-          </button>
+            <h3 className="font-medium text-xs text-white mb-1 truncate">{project.name}</h3>
+            <p className="text-[10px] text-slate-400 line-clamp-2 mb-1.5">
+              {project.prompt?.slice(0, 50) || "No description"}
+            </p>
+            <div className="flex items-center gap-1 text-[9px] text-slate-500">
+              <Clock className="w-2 h-2" />
+              <span>{timeAgo(project.timestamp)}</span>
+            </div>
+          </div>
+        </ClientMotionDiv>
+      ))}
+    </div>
+    
+    {/* Scroll Hint */}
+    {savedProjects.length > 4 && (
+      <div className="flex justify-center mt-2">
+        <div className="text-[10px] text-slate-500 animate-pulse">
+          ← Scroll to see more →
         </div>
       </div>
-      <h3 className="font-medium text-sm text-white mb-1 truncate">{project.name}</h3>
-      <p className="text-xs text-slate-400 line-clamp-2 mb-2">
-        {project.prompt?.slice(0, 60) || "No description"}
-      </p>
-      <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-        <Clock className="w-2.5 h-2.5" />
-        <span>{timeAgo(project.timestamp)}</span>
-      </div>
-    </div>
+    )}
   </ClientMotionDiv>
-))}
-              </div>
-              
-              {/* Scroll Hint */}
-              {savedProjects.length > 4 && (
-                <div className="flex justify-center mt-2">
-                  <div className="text-[10px] text-slate-500 animate-pulse">
-                    ← Scroll to see more →
-                  </div>
-                </div>
-              )}
-            </ClientMotionDiv>
-          )}
+)}
 
-          {/* Loading State */}
-          {isLoadingProjects && savedProjects.length === 0 && (
+{/* Loading State */}
+{isLoadingProjects && savedProjects.length === 0 && (
   <div className="mt-16 text-center">
     <Loader2 className="w-8 h-8 animate-spin text-cyan-400 mx-auto" />
     <p className="text-sm text-slate-400 mt-2">Loading projects...</p>
   </div>
 )}
-
-
 
 
 
