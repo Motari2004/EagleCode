@@ -348,176 +348,29 @@ const isSavingRef = useRef(false);
 
 
 
+// Add this with your other useState declarations (around line 200-250)
+const [isMobile, setIsMobile] = useState(false);
 
 
 
 
 
 
+  // ========== ADD THE mobileStyles CONSTANT HERE ==========
+  const mobileStyles = `
+    @media (max-width: 768px) {
+      .header-container { padding: 0 12px; }
+      .brand-subtext { display: none; }
+      .action-button span { display: none; }
+      .action-button svg { margin-right: 0; }
+      .desktop-only { display: none; }
+      .preview-info-badge { display: none; }
+      .view-toggle button span { display: none; }
+      .deploy-button span { display: none; }
+      .ai-edit-button span { display: none; }
+    }
+  `;
 
-const mobileStyles = `
-  /* Mobile Styles - 768px and below */
-  @media (max-width: 768px) {
-    /* ========== GENERAL ========== */
-    .header-container { padding: 0 12px; }
-    .brand-subtext { display: none; }
-    .desktop-only { display: none; }
-    .preview-info-badge { display: none; }
-    .mobile-full-width { width: 100%; }
-    .mobile-stack { flex-direction: column; gap: 8px; }
-    .mobile-padding { padding: 0 12px; }
-    
-    /* ========== HEADER SCROLLABLE ========== */
-    header .overflow-x-auto {
-      overflow-x: auto !important;
-      overflow-y: hidden !important;
-      -webkit-overflow-scrolling: touch !important;
-      scrollbar-width: thin !important;
-    }
-    
-    header .overflow-x-auto::-webkit-scrollbar {
-      height: 3px;
-    }
-    
-    header .overflow-x-auto::-webkit-scrollbar-track {
-      background: #1a1a2e;
-      border-radius: 10px;
-    }
-    
-    header .overflow-x-auto::-webkit-scrollbar-thumb {
-      background: linear-gradient(90deg, #a855f7, #ec4899);
-      border-radius: 10px;
-    }
-    
-    header .min-w-max {
-      min-width: max-content;
-    }
-    
-    /* ========== BUTTON TEXT HIDING ========== */
-    .action-button span { display: none; }
-    .action-button svg { margin-right: 0; }
-    .view-toggle button span { display: none; }
-    .deploy-button span { display: none; }
-    .ai-edit-button span { display: none; }
-    
-    /* ========== SIDEBAR ========== */
-    .sidebar-collapsed { width: 48px; }
-    
-    /* ========== SCROLL HINT ========== */
-    .scroll-hint {
-      display: block;
-    }
-    
-    /* ========== HORIZONTAL SCROLL FOR MAIN CONTENT ========== */
-    main.flex-1.flex {
-      overflow-x: auto !important;
-      -webkit-overflow-scrolling: touch !important;
-    }
-    
-    section.flex-1 {
-      min-width: 600px;
-    }
-    
-    /* ========== TERMINAL ========== */
-    .terminal-text {
-      font-size: 9px;
-    }
-    
-    /* ========== CODE EDITOR ========== */
-    .code-editor {
-      font-size: 11px;
-    }
-  }
-  
-  /* Small Mobile - 480px and below */
-  @media (max-width: 480px) {
-    .hide-on-mobile { display: none; }
-    .text-mobile-sm { font-size: 11px; }
-    .button-mobile-compact { padding: 6px 10px; }
-    
-    /* Smaller sidebar */
-    aside {
-      width: 56px !important;
-    }
-    
-    aside.w-64 {
-      width: 56px !important;
-    }
-    
-    /* Smaller cards */
-    .project-card {
-      width: 160px !important;
-    }
-    
-    /* Compact terminal */
-    .terminal-text {
-      font-size: 8px;
-    }
-    
-    /* Code editor smaller font */
-    .code-editor {
-      font-size: 10px;
-    }
-    
-    section.flex-1 {
-      min-width: 480px;
-    }
-  }
-  
-  /* Medium Mobile - 640px and below */
-  @media (max-width: 640px) {
-    .mobile-hidden {
-      display: none;
-    }
-    
-    .mobile-block {
-      display: block;
-    }
-    
-    section.flex-1 {
-      min-width: 550px;
-    }
-  }
-  
-  /* Desktop - hide scroll hint */
-  @media (min-width: 769px) {
-    .scroll-hint {
-      display: none;
-    }
-  }
-  
-  /* Custom scrollbar styles for all scrollable areas */
-  .overflow-x-auto {
-    scrollbar-width: thin;
-    scrollbar-color: #a855f7 #1a1a2e;
-  }
-  
-  .overflow-x-auto::-webkit-scrollbar {
-    height: 4px;
-  }
-  
-  .overflow-x-auto::-webkit-scrollbar-track {
-    background: #1a1a2e;
-    border-radius: 10px;
-  }
-  
-  .overflow-x-auto::-webkit-scrollbar-thumb {
-    background: linear-gradient(90deg, #a855f7, #ec4899);
-    border-radius: 10px;
-  }
-  
-  /* Enable smooth scrolling on all elements */
-  * {
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  /* Body horizontal scroll prevention on desktop, allow on mobile */
-  @media (max-width: 768px) {
-    html, body {
-      overflow-x: auto;
-    }
-  }
-`;
 
 
 
@@ -840,7 +693,15 @@ const regeneratePreviewForLoadedProject = useCallback(async (projectFiles: Recor
 
 
 
-
+// Mobile detection
+useEffect(() => {
+  const checkMobile = () => {
+    setIsMobile(window.innerWidth <= 768);
+  };
+  checkMobile();
+  window.addEventListener('resize', checkMobile);
+  return () => window.removeEventListener('resize', checkMobile);
+}, []);
 
 
 
@@ -2794,995 +2655,687 @@ if (options.platform === "vercel") {
 
   if (!mounted) return null;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   return (
 
 
 <div className={`flex flex-col h-screen bg-black text-slate-200 overflow-hidden font-sans selection:bg-purple-500/30 ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
 
-
-
-
-
-    <style>{mobileStyles}</style>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{/* Header - Horizontally Scrollable on Mobile */}
-<header className="h-14 sm:h-16 border-b border-white/10 bg-gradient-to-r from-slate-900/95 via-amber-900/95 to-slate-900/95 backdrop-blur-xl z-50 shrink-0 shadow-lg shadow-amber-500/10">
-  
-  {/* Scrollable Container for Mobile */}
-  <div className="overflow-x-auto overflow-y-hidden whitespace-nowrap scrollbar-thin scrollbar-thumb-amber-500/20" style={{ WebkitOverflowScrolling: 'touch' }}>
-    <div className="flex items-center justify-between px-2 sm:px-6 py-2 min-w-max">
-      
-      {/* Logo Section */}
-      <div className="flex items-center gap-2 sm:gap-6 flex-shrink-0">
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
-          <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-1.5 sm:p-2 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.4)] text-base sm:text-xl">
-            🦅
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold tracking-tighter text-white text-xs sm:text-lg leading-none uppercase">EagleCode</span>
-            <span className="text-[7px] sm:text-[9px] text-amber-400 font-mono tracking-[0.1em] sm:tracking-[0.2em] font-bold">STUDIO</span>
-          </div>
-        </div>
-
-        {/* Input Area */}
-        <div className="relative w-48 sm:w-64 md:w-80 flex-shrink-0">
-          {isEditMode && (loadedFiles || Object.keys(buildFiles).length > 1) ? (
-            <div className="flex gap-1 sm:gap-2">
-              <div className="relative flex-1 min-w-0">
-                <div className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-amber-500 text-base sm:text-lg">
-                  🦂
-                </div>
-                <Input
-                  className="bg-amber-500/10 border-amber-500/30 h-9 sm:h-11 text-xs sm:text-sm focus:ring-1 focus:ring-amber-500/50 pl-7 sm:pl-10 pr-8 sm:pr-12 rounded-xl transition-all text-white placeholder:text-gray-400 w-full"
-                  placeholder="Describe change..."
-                  value={editPrompt}
-                  onChange={(e) => setEditPrompt(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && applyIntelligentEdit()}
-                  autoFocus
-                />
-                <Button
-                  onClick={applyIntelligentEdit}
-                  disabled={isEditingProject}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 sm:h-8 sm:w-9 flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full p-0 transition-transform duration-200 active:scale-90 shadow-lg shadow-amber-500/40"
-                >
-                  {isEditingProject ? (
-                    <Loader2 className="animate-spin h-3 w-3 sm:h-5 sm:w-5" />
-                  ) : (
-                    <ArrowRight size={16} className="sm:size-40" />
-                  )}
-                </Button>
-              </div>
-              <Button
-                onClick={() => {
-                  setIsEditMode(false);
-                  setEditPrompt("");
-                }}
-                variant="outline"
-                className="h-9 sm:h-11 border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl px-2 sm:px-4 text-gray-300 hover:text-white transition-all duration-300 text-xs sm:text-sm"
-              >
-                Cancel
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-purple-400 transition-colors">
-                <Search size={12} className="sm:size-16" />
-              </div>
-              <Input
-                className="bg-white/5 border-white/10 h-9 sm:h-11 text-xs sm:text-sm focus:ring-1 focus:ring-purple-500/50 pl-7 sm:pl-10 pr-8 sm:pr-12 rounded-xl transition-all text-white placeholder:text-gray-500 backdrop-blur-sm w-full"
-                placeholder={loadedFiles ? "Click 'Edit' to modify" : "Describe your app..."}
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !loadedFiles && startBuild(prompt)}
-                disabled={!!loadedFiles}
-              />
-              <Button
-                onClick={() => !loadedFiles && startBuild(prompt)}
-                disabled={isBuilding || !!loadedFiles}
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 sm:h-8 sm:w-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg p-0 transition-all active:scale-90 shadow-lg shadow-purple-500/25"
-              >
-                {isBuilding ? <Loader2 className="animate-spin h-3 w-3 sm:h-4 sm:w-4" /> : <Send size={12} className="sm:size-16" />}
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Buttons Section - Scrollable */}
-      <div className="flex items-center gap-1 sm:gap-3 ml-2 sm:ml-4 flex-shrink-0">
-        {(loadedFiles || Object.keys(buildFiles).length > 1) && !isEditMode && (
-          <Button
-            onClick={() => setIsEditMode(true)}
-            className="ai-edit-button flex items-center gap-0 sm:gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl px-2 sm:px-5 py-1.5 sm:py-2.5 text-[10px] sm:text-sm font-semibold transition-all duration-300 shadow-lg shadow-amber-500/30"
-          >
-            <Bot size={14} className="sm:size-24" strokeWidth={2.5} />
-            <span className="hidden sm:inline ml-1">AI Edit</span>
-          </Button>
-        )}
-        
-        {loadedFiles && (
-          <Button 
-            onClick={clearLoadedProject} 
-            className="relative group overflow-hidden bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-xl px-2 sm:px-5 py-1.5 sm:py-2.5 text-[10px] sm:text-xs font-semibold transition-all duration-300 shadow-lg shadow-blue-500/25 border-0"
-          >
-            <RefreshCw size={12} className="sm:size-15 inline-block group-hover:rotate-180 transition-transform duration-500" />
-            <span className="hidden sm:inline ml-1">New</span>
-          </Button>
-        )}
-        
-        {/* Export Button */}
-        <Button 
-          onClick={downloadZip} 
-          disabled={Object.keys(files).length <= 1}
-          className="relative group overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl px-2 sm:px-5 py-1.5 sm:py-2.5 text-[10px] sm:text-xs font-semibold transition-all duration-300 shadow-lg shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Download size={12} className="sm:size-14 inline-block" />
-          <span className="hidden sm:inline ml-1">Export</span>
-        </Button>
-        
-        {/* View Mode Toggle */}
-        <div className="view-toggle flex bg-white/5 backdrop-blur-sm rounded-xl p-0.5 sm:p-1 border border-white/10">
-          <button 
-            onClick={() => setViewMode("preview")} 
-            className={`px-2 sm:px-5 py-1 sm:py-2 rounded-lg text-[9px] sm:text-xs font-semibold transition-all duration-300 flex items-center gap-0 sm:gap-2 ${
-              viewMode === "preview" 
-                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25" 
-                : "text-gray-400 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <Globe size={10} className="sm:size-12" />
-          </button>
-          <button 
-            onClick={() => setViewMode("code")} 
-            className={`px-2 sm:px-5 py-1 sm:py-2 rounded-lg text-[9px] sm:text-xs font-semibold transition-all duration-300 flex items-center gap-0 sm:gap-2 ${
-              viewMode === "code" 
-                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25" 
-                : "text-gray-400 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <Code2 size={10} className="sm:size-12" />
-          </button>
-        </div>
-
-        {/* Deploy Button */}
-        <Button 
-          onClick={() => setIsDeployModalOpen(true)}
-          disabled={Object.keys(files).length <= 1}
-          className="deploy-button relative group overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl px-2 sm:px-5 py-1.5 sm:py-2.5 text-[10px] sm:text-xs font-semibold transition-all duration-300 shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Rocket size={12} className="sm:size-14 inline-block" />
-          <span className="hidden sm:inline ml-1">Deploy</span>
-        </Button>
-      </div>
-    </div>
-  </div>
-</header>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{/* Deploy Modal - Advanced Deployment Options */}
-<DeployModal
-  isOpen={isDeployModalOpen}
-  onClose={() => setIsDeployModalOpen(false)}
-  files={files}
-  projectName={currentProjectName || prompt?.slice(0, 35) || "scorpio-project"}
-  onDeploy={handleDeployWithOptions}
-/>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      <main className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <aside className={`${showFileTree ? 'w-80' : 'w-12'} border-r border-white/5 bg-[#020617] flex flex-col z-40 transition-all duration-300 shrink-0`}>
-          <div className="p-5 border-b border-white/5 flex items-center justify-between bg-slate-950/20">
-            {showFileTree ? (
-              <>
-                <div className="flex items-center gap-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
-                  <FolderTree size={14} className="text-blue-500" /> Filesystem
-                  {loadedFiles && (
-                    <span className="ml-2 text-[10px] text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">Loaded</span>
-                  )}
-                  {isEditMode && (
-                    <span className="ml-2 text-[10px] text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full animate-pulse">
-                      AI Edit Mode
-                    </span>
-                  )}
-                </div>
-                <Button variant="ghost" size="sm" onClick={() => setShowFileTree(false)} className="h-6 w-6 p-0 hover:bg-white/5">
-                  <X size={12} />
-                </Button>
-              </>
-            ) : (
-              <Button variant="ghost" size="sm" onClick={() => setShowFileTree(true)} className="h-8 w-8 p-0 hover:bg-white/5 mx-auto">
-                <FolderTree size={16} className="text-blue-500" />
-              </Button>
-            )}
-          </div>
-
-          {showFileTree && (
-            <>
-              <div className="p-3 border-b border-white/5">
-                <div className="relative">
-                  <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" />
-                  <Input
-                    placeholder="Search files..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8 pr-8 h-8 text-xs bg-slate-900/40 border-white/5 rounded-lg"
-                  />
-                  {searchTerm && <button onClick={clearSearch} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"><X size={12} /></button>}
-                </div>
-              </div>
-
-              {/* AI Edit Mode Hint */}
-              {isEditMode && (
-                <div className="mx-3 mt-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
-                  <div className="flex items-start gap-2">
-                   
-                    <div className="text-xs text-yellow-400">
-                      <p className="font-medium mb-1.5">AI-Powered Editing</p>
-                      <p className="text-yellow-300/80 text-[11px] mb-2">Just describe what you want to change:</p>
-                      <ul className="text-[10px] text-yellow-300/70 space-y-1.5">
-                        <li className="flex items-start gap-1.5">
-                          <span className="text-yellow-500">•</span>
-                          <span>"Change the title to 'My Dashboard'"</span>
-                        </li>
-                        <li className="flex items-start gap-1.5">
-                          <span className="text-yellow-500">•</span>
-                          <span>"Add a dark mode toggle button"</span>
-                        </li>
-                        <li className="flex items-start gap-1.5">
-                          <span className="text-yellow-500">•</span>
-                          <span>"Make the header background blue"</span>
-                        </li>
-                        <li className="flex items-start gap-1.5">
-                          <span className="text-yellow-500">•</span>
-                          <span>"Add a contact form with name and email"</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex-1 overflow-y-auto py-4 custom-scrollbar px-3">
-                <FileTree
-                  files={files}
-                  searchTerm={searchTerm}
-                  activeFile={activeFile}
-                  generatingFile={generatingFile}
-                  generationLog={generationLog}
-                  onFileSelect={(path) => {
-                    setActiveFile(path);
-                    setViewMode("code");
-                  }}
-                  onQuickEdit={(loadedFiles || Object.keys(buildFiles).length > 1) && !isEditMode ? (path) => {
-                    setIsEditMode(true);
-                    toast.info(`AI will intelligently edit: ${path}`, { duration: 1500 });
-                  } : undefined}
-                  isEditMode={isEditMode}
-                />
-              </div>
-            </>
-          )}
-
-
-
-
-
-
-
-
-
-          
-          {/* Terminal Display */}
-          <div className="mx-4 mb-4 p-3 bg-black/60 border border-blue-500/20 rounded-xl font-mono text-[11px] leading-relaxed shadow-2xl">
-            <div className="flex items-center justify-between mb-3 text-slate-500 border-b border-white/5 pb-2">
-              <div className="flex items-center gap-2">
-                <Terminal size={11} className="text-blue-400" />
-                <span className="text-[10px] font-bold tracking-widest">BUILD TERMINAL</span>
-              </div>
-              <span className="text-[9px] text-blue-500 animate-pulse">
-                {isEditMode ? 'AI EDIT MODE' : (loadedFiles ? 'LOADED' : 'LIVE')}
-              </span>
-            </div>
-            
-            <div className="min-h-[60px] flex items-center">
-              {isEditMode ? (
-                <div className="text-yellow-500 flex items-center gap-9 w-full">
-                 
-                  <span className="text-[10px]">AI will automatically find and edit the right file(s)</span>
-                </div>
-              ) : loadedFiles ? (
-                <div className="text-green-500 flex items-center gap-2 w-full">
-                  <CheckCircle2 size={12} />
-                  <span className="text-[10px]">Project loaded. Click "AI Edit" to make changes</span>
-                </div>
-              ) : isBuilding && !currentTerminalMessage ? (
-                <div className="text-blue-400/80 flex items-center gap-2 w-full">
-                  <Activity size={10} className="animate-spin" />
-                  <span className="text-[10px]">Initializing Scorpio engine...</span>
-                </div>
-              ) : currentTerminalMessage ? (
-                <div className={`animate-in fade-in slide-in-from-left-2 duration-300 flex items-start gap-2 w-full ${
-                  currentTerminalMessage.status === 'generating' ? 'text-blue-400' : 'text-slate-300'
-                }`}>
-                  {currentTerminalMessage.status === 'generating' ? (
-                    <>
-                      <Loader2 size={10} className="animate-spin mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
-                        
-                        <span className="text-slate-400 text-[10px]">generating</span>
-                        <span className="text-blue-400/90 ml-2 font-mono break-all">{currentTerminalMessage.file}</span>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 size={10} className="text-green-500 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
-                        <span className="text-green-500 font-bold mr-2">✓</span>
-                        <span className="text-slate-400 text-[10px]">created</span>
-                        <span className="text-slate-300 ml-2 font-mono break-all">{currentTerminalMessage.file}</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ) : !isBuilding && Object.keys(buildFiles).length > 1 && !loadedFiles ? (
-                <div className="text-slate-400 text-[10px]">Build complete. Ready for next prompt or AI edit.</div>
-              ) : null}
-            </div>
-          </div>
-
-
-
-
-
-          {/* Status Footer */}
-          <div className="p-5 bg-blue-600/5 border-t border-blue-500/10 backdrop-blur-md mt-auto">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] text-blue-400 font-bold uppercase tracking-tighter">
-                {isEditMode ? 'AI Edit Mode' : (loadedFiles ? 'Loaded Project' : (isBuilding ? 'Build Progress' : 'Build Complete'))}
-              </span>
-              <span className="text-xs font-mono text-blue-300">{loadedFiles ? '100' : progress}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden p-[1px]">
-              <div className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 rounded-full transition-all duration-700" style={{ width: `${loadedFiles ? 100 : progress}%` }} />
-            </div>
-            {isEditMode && (
-              <div className="mt-3 text-[10px] text-yellow-500 text-center animate-pulse">
-                
-              </div>
-            )}
-            {!isBuilding && !loadedFiles && Object.keys(buildFiles).length > 1 && (
-              <div className="mt-3 text-[10px] text-slate-500 text-center">
-                ✓ {Object.keys(buildFiles).length - 1} files generated successfully
-              </div>
-            )}
-            {loadedFiles && !isEditMode && (
-              <div className="mt-3 text-[10px] text-green-500 text-center">
-                ✓ {Object.keys(files).length - 1} files loaded. Click "AI Edit" to make changes
-              </div>
-            )}
-            {buildError && <div className="mt-3 text-[10px] text-red-400 text-center">⚠️ {buildError}</div>}
-          </div>
-        </aside>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        {/* Main Stage */}
-       <section className="flex-1 bg-black/40 flex flex-col relative overflow-hidden">
-          {viewMode === "code" ? (
-            /* FIX 1: Added min-h-0 to allow this flex child to shrink within the section */
-            <div className="flex-1 flex flex-col animate-in fade-in duration-300 min-h-0">
-              <div className="h-12 px-6 bg-slate-950 border-b border-white/5 flex items-center justify-between shadow-xl shrink-0">
-                <div className="flex items-center gap-3 text-xs font-mono">
-                  <Code2 size={14} className="text-blue-500" />
-                  <span className="text-slate-600">src/</span>
-                  <span className="text-blue-400 font-semibold truncate max-w-[420px]">{activeFile || "Select a file"}</span>
-                  {generatingFile === activeFile && !loadedFiles && (
-                    <div className="flex items-center gap-1 text-[10px] text-blue-500">
-                      <Loader2 size={10} className="animate-spin" />
-                      <span>generating...</span>
-                    </div>
-                  )}
-                  {isEditMode && (
-                    <div className="flex items-center gap-1 text-[10px] text-yellow-500">
-                      <Sparkles size={10} />
-                      <span>AI edit mode active</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={downloadCurrentFile} className="p-2 hover:bg-white/5 rounded-lg transition-colors text-slate-400 hover:text-white" disabled={!activeFile}>
-                    <Download size={16} />
-                  </button>
-                  <button onClick={copyCode} className="p-2 hover:bg-white/5 rounded-lg transition-colors text-slate-400 hover:text-white" disabled={!activeFile}>
-                    {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* FIX 2: Added min-h-0 and w-full to ensure overflow-auto works correctly */}
-              <div ref={codeContainerRef} className="flex-1 overflow-auto bg-[#0d1117] custom-scrollbar min-h-0 w-full">
-                {activeFile && currentFileContent ? (
-                  <SyntaxHighlighter
-                    language={getFileLanguage(activeFile)}
-                    style={vscDarkPlus}
-                    showLineNumbers
-                    wrapLines={false}
-                    customStyle={{
-                      margin: 0,
-                      padding: '2rem 2.5rem',
-                      background: '#0d1117',
-                      fontSize: '14px',
-                      lineHeight: '1.65',
-                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                      minHeight: '100%',
-                      /* FIX 3: Set overflow to 'initial' so it doesn't fight the parent div's scrollbar */
-                      overflow: 'initial' 
-                    }}
-                    lineNumberStyle={{ color: '#4b5563', paddingRight: '2.5rem', textAlign: 'right', userSelect: 'none' }}
-                  >
-                    {currentFileContent}
-                  </SyntaxHighlighter>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-slate-500">
-                    <div className="text-center">
-                      <Code2 size={48} className="mx-auto mb-4 opacity-20" />
-                      <p>Select a file from the sidebar to view its source code</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-
-
-
-
-
-
-
-            /* Preview Mode */
-            /* FIX 4: Added min-h-0 here as well for consistency in the preview layout */
-
-
-
-
-            <div className="flex-1 flex flex-col bg-white min-h-0">
-
-
-
-              <div className="h-12 px-4 bg-gradient-to-r from-slate-950/95 via-purple-950/90 to-slate-950/95 border-b border-white/10 flex items-center gap-3 shadow-lg backdrop-blur-sm shrink-0">
-  {/* Navigation Buttons Group */}
-  <div className="flex items-center gap-1.5 bg-black/40 rounded-xl p-1 border border-white/10">
-
-
-
-
-
-
-{/* Back Button with Warning Tooltip */}
-<div className="relative group">
-  <button 
-    onClick={goBack} 
-    className="group relative overflow-hidden p-2 rounded-lg transition-all duration-300 text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20"
-    title="⚠️ Go back - Will take you to landing page if no history"
-  >
-    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 -translate-x-full group-hover:translate-x-full transition-transform duration-500" />
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="16" 
-      height="16" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2.5" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className="group-hover:-translate-x-0.5 transition-transform duration-200"
-    >
-      <path d="m15 18-6-6 6-6"/>
-    </svg>
-  </button>
-  
-  {/* Tooltip that appears on hover */}
-  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900/95 backdrop-blur-md text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 shadow-xl border border-yellow-500/30 whitespace-nowrap">
-    <div className="flex flex-col gap-1">
-      <span className="flex items-center gap-1 text-yellow-400 font-medium">
-        <span>⚠️</span> 
-        <span>Going Back?</span>
-      </span>
-      <span className="text-slate-300 text-[10px] flex items-center gap-1">
-        <span>←</span> 
-        <span>Navigate within preview</span>
-      </span>
-      <div className="w-full h-px bg-white/10 my-1" />
-      <span className="text-red-400 text-[10px] flex items-center gap-1">
-        <span>🚪</span> 
-        <span>No history = Exit to landing page</span>
-      </span>
-    </div>
-    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900/95"></div>
-  </div>
-</div>
-
-
-
-
-
-
-
-
-    
-    
-    {/* Forward Button */}
-    <button 
-      onClick={goForward} 
-      disabled={currentPathIndex === navigationHistory.length - 1}
-      className={`group relative overflow-hidden p-2 rounded-lg transition-all duration-300 ${
-        currentPathIndex === navigationHistory.length - 1 
-          ? 'text-slate-600 cursor-not-allowed opacity-50' 
-          : 'text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20'
-      }`}
-      title="Go forward"
-    >
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 -translate-x-full group-hover:translate-x-full transition-transform duration-500" />
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width="16" 
-        height="16" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2.5" 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
-        className="group-hover:translate-x-0.5 transition-transform duration-200"
-      >
-        <path d="m9 18 6-6-6-6"/>
-      </svg>
-    </button>
-    
-    {/* Divider */}
-    <div className="w-px h-6 bg-white/10 mx-1" />
-    
-    {/* Refresh Button */}
-    <button 
-      onClick={refreshPreview} 
-      className="group relative overflow-hidden p-2 rounded-lg transition-all duration-300 text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20"
-      title="Refresh preview"
-    >
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 -translate-x-full group-hover:translate-x-full transition-transform duration-500" />
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width="14" 
-        height="14" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
-        className="group-hover:rotate-180 transition-transform duration-500"
-      >
-        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-        <path d="M21 3v5h-5"/>
-        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-        <path d="M8 16H3v5"/>
-      </svg>
-    </button>
-  </div>
-  
-  {/* URL Display - Enhanced */}
-  <div className="flex-1 bg-black/40 backdrop-blur-sm px-4 py-1.5 rounded-full text-[13px] text-slate-400 flex items-center gap-2 border border-white/10 shadow-inner">
-    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-lg shadow-green-500/50" />
-    <span className="text-[11px] font-mono text-slate-500">https://localhost:3000</span>
-    <span className="text-blue-400 font-mono text-sm font-medium tracking-wide">{virtualPath}</span>
-  </div>
-  
-  {/* Optional: Preview Info Badge */}
-  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full border border-purple-500/20">
-    <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
-    <span className="text-[10px] font-mono text-purple-400 uppercase tracking-wider">Live Preview</span>
-  </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-              <div className="flex-1 relative overflow-hidden bg-[#020617]">
-  {/* Loading State - Shows while building or waiting for content */}
-  {/* For loaded projects: show loading waves until showPreviewDelayed is true */}
-  {(isBuilding || (!rawPreviewHtml && !loadedFiles) || (loadedFiles && !showPreviewDelayed)) && (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#020617] via-purple-900/20 to-[#020617] z-40 overflow-hidden">
-      {/* Animated background orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
-      </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      {/* Content Container */}
-      <div className="relative z-20 flex flex-col items-center">
-        {isBuilding ? (
-          <>
-            {/* Wave Loading Animation */}
-            <div className="mb-8 flex items-end justify-center gap-1.5 h-20">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="w-2 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full"
-                  style={{
-                    height: `${20 + Math.sin(i * 0.8) * 20}px`,
-                    animation: `wave 1.2s ease-in-out infinite`,
-                    animationDelay: `${i * 0.1}s`,
-                  }}
-                />
-              ))}
-            </div>
-
-            <h3 className="text-white font-bold text-2xl mb-3 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Generating your website
-            </h3>
-            
-          </>
-        ) : loadedFiles && !showPreviewDelayed ? (
-          <>
-            {/* Special Loading Animation for Loaded Projects */}
-            <div className="mb-8 flex items-end justify-center gap-1.5 h-20">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="w-2 bg-gradient-to-t from-cyan-500 to-blue-500 rounded-full"
-                  style={{
-                    height: `${20 + Math.sin(i * 0.8) * 20}px`,
-                    animation: `wave 1.2s ease-in-out infinite`,
-                    animationDelay: `${i * 0.1}s`,
-                  }}
-                />
-              ))}
-            </div>
-
-            <h3 className="text-white font-bold text-2xl mb-3 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              Loading Your Project
-            </h3>
-
-            <div className="flex gap-1 mb-6 h-8 flex items-center">
-              <span className="text-slate-300 text-xl font-bold animate-pulse" style={{ animationDelay: '0s' }}>.</span>
-              <span className="text-slate-300 text-xl font-bold animate-pulse" style={{ animationDelay: '0.3s' }}>.</span>
-              <span className="text-slate-300 text-xl font-bold animate-pulse" style={{ animationDelay: '0.6s' }}>.</span>
-            </div>
-
-            <div className="text-center">
-              <p className="text-slate-400 text-sm font-mono mb-2">Preparing your preview...</p>
-              <div className="flex items-center justify-center gap-1 mt-2">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse delay-150" />
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse delay-300" />
-              </div>
-              <p className="text-[11px] text-slate-500 mt-3 font-mono">
-                {currentProjectName || "Project"} will appear in a moment
-              </p>
-            </div>
-          </>
-        ) : (
-          <>
-
-
-
-
-
-{/* Idle state with animation */}
-<div className="relative mb-8">
-  <div className="absolute -inset-8 bg-gradient-to-r from-orange-600/30 to-amber-600/30 rounded-full blur-2xl animate-pulse" />
-  <Star className="text-yellow-400 animate-bounce relative z-10" size={56} />
-</div>
-
-
-            <h3 className="text-white font-bold text-3xl mb-3 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Scorpio Engine
-            </h3>
-
-            <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-6 shadow-lg shadow-blue-500/50" />
-
-            <p className="text-slate-400 text-center max-w-xs">
-              <span className="block text-sm mb-2">Transform Your Ideas Into Reality</span>
-              <span className="text-xs text-slate-500">Describe what you want to build or change</span>
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-2 justify-center">
-              {['AI Powered', 'Production Ready', 'Instant Deploy'].map((feature, i) => (
-                <div 
-                  key={i}
-                  className="px-4 py-2 rounded-full text-xs font-semibold text-blue-300 border border-blue-500/30 bg-blue-500/10 backdrop-blur-sm hover:border-blue-500/50 hover:bg-blue-500/20 transition-all"
-                >
-                  {feature}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Animated scanlines */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_49%,rgba(59,130,246,0.03)_50%,transparent_51%)] bg-[size:100%_4px] animate-scanlines pointer-events-none" />
-    </div>
-  )}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{/* Preview iframe - Simple version with no extra script injection */}
-{previewUrl && !isBuilding && showPreviewDelayed && (
-  <iframe
-    key={previewKey}
-    ref={iframeRef}
-    src={previewUrl}
-    className="w-full h-full border-0 bg-[#020617] animate-in fade-in duration-700"
-    loading="eager"
-    sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-popups-to-escape-sandbox"
-    title="Preview"
-    onLoad={() => {
-      setPreviewError(null);
-      console.log("✅ Preview loaded");
-      
-      // Just notify parent that preview is ready - NO script injection
-      try {
-        const iframeWindow = iframeRef.current?.contentWindow;
-        if (iframeWindow) {
-          setTimeout(() => {
-            iframeWindow.postMessage({ type: 'PREVIEW_READY', path: window.location.pathname }, '*');
-          }, 100);
-        }
-      } catch (err) {
-        console.warn("Could not notify parent:", err);
+  <style>{mobileStyles}</style>
+
+  {/* Mobile-specific styles for horizontal scrolling */}
+  <style>{`
+    @media (max-width: 768px) {
+      .mobile-horizontal-scroll {
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
       }
-    }}
-    onError={() => setPreviewError("Failed to load preview")}
-  />
-)}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  {/* Wave animation keyframes */}
-  <style jsx>{`
-    @keyframes wave {
-      0%, 100% {
-        height: 20px;
+      .mobile-sidebar {
+        scroll-snap-align: start;
+        min-width: 85vw;
+        width: 85vw;
+        flex-shrink: 0;
       }
-      50% {
-        height: 60px;
+      .mobile-preview {
+        scroll-snap-align: start;
+        min-width: 100vw;
+        width: 100vw;
+        flex-shrink: 0;
+      }
+      .mobile-code-view {
+        scroll-snap-align: start;
+        min-width: 100vw;
+        width: 100vw;
+        flex-shrink: 0;
+      }
+      .mobile-sidebar-collapsed {
+        min-width: 60px;
+        width: 60px;
+      }
+      .hide-on-mobile {
+        display: none;
+      }
+      .mobile-header-buttons button span {
+        display: none;
+      }
+      .mobile-header-buttons button svg {
+        margin: 0;
       }
     }
   `}</style>
 
+  {/* Header - EagleCode with Emoji */}
+  <header className="h-16 border-b border-white/10 bg-gradient-to-r from-slate-900/95 via-amber-900/95 to-slate-900/95 backdrop-blur-xl flex items-center justify-between px-3 sm:px-6 z-50 shrink-0 shadow-lg shadow-amber-500/10">
+    <div className="flex items-center gap-6 flex-1 max-w-3xl">
+      <div className="flex items-center gap-2.5">
+        <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.4)] animate-pulse-glow text-xl">
+          🦅
+        </div>
+        <div className="flex flex-col">
+          <span className="font-bold tracking-tighter text-white text-lg leading-none uppercase">EagleCode</span>
+          <span className="text-[9px] text-amber-400 font-mono tracking-[0.2em] font-bold">STUDIO</span>
+        </div>
+      </div>
 
+      {/* Dynamic Input Area - AI-Powered Editing */}
+      <div className="relative flex-1 group ml-4">
+        {isEditMode && (loadedFiles || Object.keys(buildFiles).length > 1) ? (
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-lg">
+                🦂
+              </div>
+              <Input
+                className="bg-amber-500/10 border-amber-500/30 h-11 text-sm focus:ring-1 focus:ring-amber-500/50 pl-10 pr-12 rounded-xl transition-all text-white placeholder:text-gray-400"
+                placeholder="Describe what you want to change..."
+                value={editPrompt}
+                onChange={(e) => setEditPrompt(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && applyIntelligentEdit()}
+                autoFocus
+              />
+              <Button
+                onClick={applyIntelligentEdit}
+                disabled={isEditingProject}
+                className="absolute right-1.5 top-1.5 h-8 w-9 flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full p-0 transition-transform duration-200 active:scale-90 shadow-lg shadow-amber-500/40"
+              >
+                {isEditingProject ? (
+                  <Loader2 className="animate-spin h-5 w-5" />
+                ) : (
+                  <ArrowRight size={40} />
+                )}
+              </Button>
+            </div>
+            <Button
+              onClick={() => {
+                setIsEditMode(false);
+                setEditPrompt("");
+              }}
+              variant="outline"
+              className="h-11 border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl px-4 text-gray-300 hover:text-white transition-all duration-300"
+            >
+              Cancel
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-purple-400 transition-colors">
+              <Search size={16} />
+            </div>
+            <Input
+              className="bg-white/5 border-white/10 h-11 text-sm focus:ring-1 focus:ring-purple-500/50 pl-10 pr-12 rounded-xl transition-all text-white placeholder:text-gray-500 backdrop-blur-sm"
+              placeholder={loadedFiles ? "Click 'Edit' to modify this project with AI" : "Describe your app or what to change..."}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !loadedFiles && startBuild(prompt)}
+              disabled={!!loadedFiles}
+            />
+            <Button
+              onClick={() => !loadedFiles && startBuild(prompt)}
+              disabled={isBuilding || !!loadedFiles}
+              className="absolute right-1.5 top-1.5 h-8 w-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg p-0 transition-all active:scale-90 shadow-lg shadow-purple-500/25"
+            >
+              {isBuilding ? <Loader2 className="animate-spin h-4 w-4" /> : <Send size={16} />}
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
 
+    {/* Header Buttons */}
+    <div className="flex items-center gap-3 mobile-header-buttons">
+      {(loadedFiles || Object.keys(buildFiles).length > 1) && !isEditMode && (
+        <Button
+          onClick={() => setIsEditMode(true)}
+          className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-300 shadow-lg shadow-amber-500/30"
+        >
+          <Bot size={24} strokeWidth={2.5} />
+          <span className="hide-on-mobile">AI Edit</span>
+        </Button>
+      )}
+      
+      {loadedFiles && (
+        <Button 
+          onClick={clearLoadedProject} 
+          className="relative group overflow-hidden bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-xl px-5 py-2.5 text-xs font-semibold transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 border-0"
+        >
+          <RefreshCw size={15} className="mr-2 inline-block group-hover:rotate-180 transition-transform duration-500" />
+          <span className="hide-on-mobile">New Build</span>
+        </Button>
+      )}
+      
+      {/* Export Button */}
+      <Button 
+        onClick={downloadZip} 
+        disabled={Object.keys(files).length <= 1}
+        className="relative group overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl px-3 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-semibold transition-all duration-300 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 border-0 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Download size={14} className="mr-0 sm:mr-2 inline-block group-hover:-translate-y-0.5 transition-transform" />
+        <span className="hidden sm:inline">Export</span>
+      </Button>
+      
+      {/* Fullscreen Button - Hide on mobile */}
+      <Button 
+        onClick={toggleFullscreen} 
+        className="hidden md:flex group bg-white/5 backdrop-blur-sm hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20 border border-white/10 hover:border-purple-500/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-xs font-medium text-gray-300 hover:text-white transition-all duration-300"
+      >
+        {isFullscreen ? (
+          <>
+            <Minimize2 size={12} className="mr-1 sm:mr-2 group-hover:scale-90 transition-transform" />
+            <span className="hidden sm:inline">Exit</span>
+          </>
+        ) : (
+          <>
+            <Maximize2 size={12} className="mr-1 sm:mr-2 group-hover:scale-110 transition-transform" />
+            <span className="hidden sm:inline">Fullscreen</span>
+          </>
+        )}
+      </Button>
+      
+      {/* View Mode Toggle */}
+      <div className="flex bg-white/5 backdrop-blur-sm rounded-xl p-1 border border-white/10">
+        <button 
+          onClick={() => setViewMode("preview")} 
+          className={`px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-300 flex items-center gap-1 sm:gap-2 ${
+            viewMode === "preview" 
+              ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25" 
+              : "text-gray-400 hover:text-white hover:bg-white/10"
+          }`}
+        >
+          <Globe size={12} /> <span className="hidden xs:inline">Preview</span>
+        </button>
+        <button 
+          onClick={() => setViewMode("code")} 
+          className={`px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-300 flex items-center gap-1 sm:gap-2 ${
+            viewMode === "code" 
+              ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25" 
+              : "text-gray-400 hover:text-white hover:bg-white/10"
+          }`}
+        >
+          <Code2 size={12} /> <span className="hidden xs:inline">Source</span>
+        </button>
+      </div>
+      
+      {/* Deploy Button */}
+      <Button 
+        onClick={() => setIsDeployModalOpen(true)}
+        disabled={Object.keys(files).length <= 1}
+        className="relative group overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl px-3 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-semibold transition-all duration-300 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 border-0 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Rocket size={14} className="mr-0 sm:mr-2 inline-block group-hover:-translate-y-0.5 transition-transform" />
+        <span className="hidden sm:inline">Integrate & Deploy</span>
+        <span className="sm:hidden">Deploy</span>
+      </Button>
+    </div>
+  </header>
 
+  {/* Deploy Modal */}
+  <DeployModal
+    isOpen={isDeployModalOpen}
+    onClose={() => setIsDeployModalOpen(false)}
+    files={files}
+    projectName={currentProjectName || prompt?.slice(0, 35) || "scorpio-project"}
+    onDeploy={handleDeployWithOptions}
+  />
 
+  {/* Main Content - Horizontal scroll on mobile */}
+  <main className={`flex-1 flex ${isMobile ? 'mobile-horizontal-scroll' : 'overflow-hidden'}`}>
+    
+    {/* Sidebar - Always visible, scroll-snapped on mobile */}
+    <aside className={`${showFileTree ? 'w-80' : 'w-12'} border-r border-white/5 bg-[#020617] flex flex-col z-40 transition-all duration-300 shrink-0 ${isMobile ? (showFileTree ? 'mobile-sidebar' : 'mobile-sidebar-collapsed') : ''}`}>
+      <div className="p-5 border-b border-white/5 flex items-center justify-between bg-slate-950/20">
+        {showFileTree ? (
+          <>
+            <div className="flex items-center gap-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+              <FolderTree size={14} className="text-blue-500" /> 
+              <span className={isMobile ? 'text-xs' : ''}>Filesystem</span>
+              {loadedFiles && (
+                <span className="ml-2 text-[10px] text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">Loaded</span>
+              )}
+              {isEditMode && (
+                <span className="ml-2 text-[10px] text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full animate-pulse">
+                  AI Edit Mode
+                </span>
+              )}
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setShowFileTree(false)} className="h-6 w-6 p-0 hover:bg-white/5">
+              <X size={12} />
+            </Button>
+          </>
+        ) : (
+          <Button variant="ghost" size="sm" onClick={() => setShowFileTree(true)} className="h-8 w-8 p-0 hover:bg-white/5 mx-auto">
+            <FolderTree size={16} className="text-blue-500" />
+          </Button>
+        )}
+      </div>
 
+      {showFileTree && (
+        <>
+          <div className="p-3 border-b border-white/5">
+            <div className="relative">
+              <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Input
+                placeholder="Search files..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 pr-8 h-8 text-xs bg-slate-900/40 border-white/5 rounded-lg"
+              />
+              {searchTerm && <button onClick={clearSearch} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"><X size={12} /></button>}
+            </div>
+          </div>
 
-
-  
-</div>
+          {/* AI Edit Mode Hint */}
+          {isEditMode && (
+            <div className="mx-3 mt-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+              <div className="flex items-start gap-2">
+                <div className="text-xs text-yellow-400">
+                  <p className="font-medium mb-1.5">AI-Powered Editing</p>
+                  <p className="text-yellow-300/80 text-[11px] mb-2">Just describe what you want to change:</p>
+                  <ul className="text-[10px] text-yellow-300/70 space-y-1.5">
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-yellow-500">•</span>
+                      <span>"Change the title to 'My Dashboard'"</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-yellow-500">•</span>
+                      <span>"Add a dark mode toggle button"</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-yellow-500">•</span>
+                      <span>"Make the header background blue"</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-yellow-500">•</span>
+                      <span>"Add a contact form with name and email"</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
           )}
-        </section>
-      </main>
 
+          <div className="flex-1 overflow-y-auto py-4 custom-scrollbar px-3">
+            <FileTree
+              files={files}
+              searchTerm={searchTerm}
+              activeFile={activeFile}
+              generatingFile={generatingFile}
+              generationLog={generationLog}
+              onFileSelect={(path) => {
+                setActiveFile(path);
+                setViewMode("code");
+              }}
+              onQuickEdit={(loadedFiles || Object.keys(buildFiles).length > 1) && !isEditMode ? (path) => {
+                setIsEditMode(true);
+                toast.info(`AI will intelligently edit: ${path}`, { duration: 1500 });
+              } : undefined}
+              isEditMode={isEditMode}
+            />
+          </div>
+        </>
+      )}
 
+      {/* Terminal Display */}
+      <div className="mx-4 mb-4 p-3 bg-black/60 border border-blue-500/20 rounded-xl font-mono text-[11px] leading-relaxed shadow-2xl">
+        <div className="flex items-center justify-between mb-3 text-slate-500 border-b border-white/5 pb-2">
+          <div className="flex items-center gap-2">
+            <Terminal size={11} className="text-blue-400" />
+            <span className="text-[10px] font-bold tracking-widest">BUILD TERMINAL</span>
+          </div>
+          <span className="text-[9px] text-blue-500 animate-pulse">
+            {isEditMode ? 'AI EDIT MODE' : (loadedFiles ? 'LOADED' : 'LIVE')}
+          </span>
+        </div>
+        
+        <div className="min-h-[60px] flex items-center">
+          {isEditMode ? (
+            <div className="text-yellow-500 flex items-center gap-9 w-full">
+              <span className="text-[10px]">AI will automatically find and edit the right file(s)</span>
+            </div>
+          ) : loadedFiles ? (
+            <div className="text-green-500 flex items-center gap-2 w-full">
+              <CheckCircle2 size={12} />
+              <span className="text-[10px]">Project loaded. Click "AI Edit" to make changes</span>
+            </div>
+          ) : isBuilding && !currentTerminalMessage ? (
+            <div className="text-blue-400/80 flex items-center gap-2 w-full">
+              <Activity size={10} className="animate-spin" />
+              <span className="text-[10px]">Initializing Scorpio engine...</span>
+            </div>
+          ) : currentTerminalMessage ? (
+            <div className={`animate-in fade-in slide-in-from-left-2 duration-300 flex items-start gap-2 w-full ${
+              currentTerminalMessage.status === 'generating' ? 'text-blue-400' : 'text-slate-300'
+            }`}>
+              {currentTerminalMessage.status === 'generating' ? (
+                <>
+                  <Loader2 size={10} className="animate-spin mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <span className="text-slate-400 text-[10px]">generating</span>
+                    <span className="text-blue-400/90 ml-2 font-mono break-all">{currentTerminalMessage.file}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={10} className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <span className="text-green-500 font-bold mr-2">✓</span>
+                    <span className="text-slate-400 text-[10px]">created</span>
+                    <span className="text-slate-300 ml-2 font-mono break-all">{currentTerminalMessage.file}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : !isBuilding && Object.keys(buildFiles).length > 1 && !loadedFiles ? (
+            <div className="text-slate-400 text-[10px]">Build complete. Ready for next prompt or AI edit.</div>
+          ) : null}
+        </div>
+      </div>
 
+      {/* Status Footer */}
+      <div className="p-5 bg-blue-600/5 border-t border-blue-500/10 backdrop-blur-md mt-auto">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] text-blue-400 font-bold uppercase tracking-tighter">
+            {isEditMode ? 'AI Edit Mode' : (loadedFiles ? 'Loaded Project' : (isBuilding ? 'Build Progress' : 'Build Complete'))}
+          </span>
+          <span className="text-xs font-mono text-blue-300">{loadedFiles ? '100' : progress}%</span>
+        </div>
+        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden p-[1px]">
+          <div className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 rounded-full transition-all duration-700" style={{ width: `${loadedFiles ? 100 : progress}%` }} />
+        </div>
+        {isEditMode && (
+          <div className="mt-3 text-[10px] text-yellow-500 text-center animate-pulse">
+          </div>
+        )}
+        {!isBuilding && !loadedFiles && Object.keys(buildFiles).length > 1 && (
+          <div className="mt-3 text-[10px] text-slate-500 text-center">
+            ✓ {Object.keys(buildFiles).length - 1} files generated successfully
+          </div>
+        )}
+        {loadedFiles && !isEditMode && (
+          <div className="mt-3 text-[10px] text-green-500 text-center">
+            ✓ {Object.keys(files).length - 1} files loaded. Click "AI Edit" to make changes
+          </div>
+        )}
+        {buildError && <div className="mt-3 text-[10px] text-red-400 text-center">⚠️ {buildError}</div>}
+      </div>
+    </aside>
 
+    {/* Main Stage */}
+    <section className={`flex-1 bg-black/40 flex flex-col relative ${isMobile ? (viewMode === "code" ? 'mobile-code-view' : 'mobile-preview') : ''}`}>
+      {viewMode === "code" ? (
+        <div className="flex-1 flex flex-col animate-in fade-in duration-300 min-h-0">
+          <div className="h-12 px-6 bg-slate-950 border-b border-white/5 flex items-center justify-between shadow-xl shrink-0">
+            <div className="flex items-center gap-3 text-xs font-mono">
+              <Code2 size={14} className="text-blue-500" />
+              <span className="text-slate-600">src/</span>
+              <span className="text-blue-400 font-semibold truncate max-w-[420px]">{activeFile || "Select a file"}</span>
+              {generatingFile === activeFile && !loadedFiles && (
+                <div className="flex items-center gap-1 text-[10px] text-blue-500">
+                  <Loader2 size={10} className="animate-spin" />
+                  <span>generating...</span>
+                </div>
+              )}
+              {isEditMode && (
+                <div className="flex items-center gap-1 text-[10px] text-yellow-500">
+                  <Sparkles size={10} />
+                  <span>AI edit mode active</span>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={downloadCurrentFile} className="p-2 hover:bg-white/5 rounded-lg transition-colors text-slate-400 hover:text-white" disabled={!activeFile}>
+                <Download size={16} />
+              </button>
+              <button onClick={copyCode} className="p-2 hover:bg-white/5 rounded-lg transition-colors text-slate-400 hover:text-white" disabled={!activeFile}>
+                {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+              </button>
+            </div>
+          </div>
 
+          <div ref={codeContainerRef} className="flex-1 overflow-auto bg-[#0d1117] custom-scrollbar min-h-0 w-full">
+            {activeFile && currentFileContent ? (
+              <SyntaxHighlighter
+                language={getFileLanguage(activeFile)}
+                style={vscDarkPlus}
+                showLineNumbers
+                wrapLines={false}
+                customStyle={{
+                  margin: 0,
+                  padding: '2rem 2.5rem',
+                  background: '#0d1117',
+                  fontSize: '14px',
+                  lineHeight: '1.65',
+                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                  minHeight: '100%',
+                  overflow: 'initial' 
+                }}
+                lineNumberStyle={{ color: '#4b5563', paddingRight: '2.5rem', textAlign: 'right', userSelect: 'none' }}
+              >
+                {currentFileContent}
+              </SyntaxHighlighter>
+            ) : (
+              <div className="flex items-center justify-center h-full text-slate-500">
+                <div className="text-center">
+                  <Code2 size={48} className="mx-auto mb-4 opacity-20" />
+                  <p>Select a file from the sidebar to view its source code</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Preview Mode */
+        <div className="flex-1 flex flex-col bg-white min-h-0">
+          <div className="h-12 px-4 bg-gradient-to-r from-slate-950/95 via-purple-950/90 to-slate-950/95 border-b border-white/10 flex items-center gap-3 shadow-lg backdrop-blur-sm shrink-0">
+            {/* Navigation Buttons Group */}
+            <div className="flex items-center gap-1.5 bg-black/40 rounded-xl p-1 border border-white/10">
+              {/* Back Button */}
+              <div className="relative group">
+                <button 
+                  onClick={goBack} 
+                  className="group relative overflow-hidden p-2 rounded-lg transition-all duration-300 text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20"
+                  title="Go back"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m15 18-6-6 6-6"/>
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Forward Button */}
+              <button 
+                onClick={goForward} 
+                disabled={currentPathIndex === navigationHistory.length - 1}
+                className={`group relative overflow-hidden p-2 rounded-lg transition-all duration-300 ${
+                  currentPathIndex === navigationHistory.length - 1 
+                    ? 'text-slate-600 cursor-not-allowed opacity-50' 
+                    : 'text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m9 18 6-6-6-6"/>
+                </svg>
+              </button>
+              
+              <div className="w-px h-6 bg-white/10 mx-1" />
+              
+              {/* Refresh Button */}
+              <button 
+                onClick={refreshPreview} 
+                className="group relative overflow-hidden p-2 rounded-lg transition-all duration-300 text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                  <path d="M21 3v5h-5"/>
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                  <path d="M8 16H3v5"/>
+                </svg>
+              </button>
+            </div>
+            
+            {/* URL Display */}
+            <div className="flex-1 bg-black/40 backdrop-blur-sm px-4 py-1.5 rounded-full text-[13px] text-slate-400 flex items-center gap-2 border border-white/10 shadow-inner">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-lg shadow-green-500/50" />
+              <span className="text-[11px] font-mono text-slate-500">localhost:3000</span>
+              <span className="text-blue-400 font-mono text-sm font-medium tracking-wide truncate">{virtualPath}</span>
+            </div>
+            
+            {/* Preview Info Badge */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full border border-purple-500/20">
+              <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+              <span className="text-[10px] font-mono text-purple-400 uppercase tracking-wider">Live Preview</span>
+            </div>
+          </div>
 
+          <div className="flex-1 relative overflow-hidden bg-[#020617]">
+            {/* Loading State */}
+            {(isBuilding || (!rawPreviewHtml && !loadedFiles) || (loadedFiles && !showPreviewDelayed)) && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#020617] via-purple-900/20 to-[#020617] z-40 overflow-hidden">
+                <div className="relative z-20 flex flex-col items-center">
+                  {isBuilding ? (
+                    <>
+                      <div className="mb-8 flex items-end justify-center gap-1.5 h-20">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="w-2 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full" style={{ height: '40px', animation: `wave 1.2s ease-in-out infinite`, animationDelay: `${i * 0.1}s` }} />
+                        ))}
+                      </div>
+                      <h3 className="text-white font-bold text-2xl mb-3 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        Generating your website
+                      </h3>
+                    </>
+                  ) : loadedFiles && !showPreviewDelayed ? (
+                    <>
+                      <div className="mb-8 flex items-end justify-center gap-1.5 h-20">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="w-2 bg-gradient-to-t from-cyan-500 to-blue-500 rounded-full" style={{ height: '40px', animation: `wave 1.2s ease-in-out infinite`, animationDelay: `${i * 0.1}s` }} />
+                        ))}
+                      </div>
+                      <h3 className="text-white font-bold text-2xl mb-3 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                        Loading Your Project
+                      </h3>
+                      <p className="text-slate-400 text-sm">Preparing your preview...</p>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            )}
 
+            {/* Preview iframe */}
+            {previewUrl && !isBuilding && showPreviewDelayed && (
+              <iframe
+                key={previewKey}
+                ref={iframeRef}
+                src={previewUrl}
+                className="w-full h-full border-0 bg-[#020617] animate-in fade-in duration-700"
+                loading="eager"
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-popups-to-escape-sandbox"
+                title="Preview"
+                onLoad={() => {
+                  setPreviewError(null);
+                  try {
+                    const iframeWindow = iframeRef.current?.contentWindow;
+                    if (iframeWindow) {
+                      setTimeout(() => {
+                        iframeWindow.postMessage({ type: 'PREVIEW_READY', path: window.location.pathname }, '*');
+                      }, 100);
+                    }
+                  } catch (err) {
+                    console.warn("Could not notify parent:", err);
+                  }
+                }}
+                onError={() => setPreviewError("Failed to load preview")}
+              />
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  </main>
 
-    {/* Subtle save indicator - appears briefly when saving */}
-{isAutoSaving && (  // Changed from isAutoSavingRef.current
-  <div className="fixed bottom-4 right-4 z-50 bg-black/80 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-2 text-xs text-purple-400 border border-purple-500/30 shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-300">
-    <Loader2 size={12} className="animate-spin" />
-    <span>Saving...</span>
-  </div>
-)}
-
-{/* Last saved time indicator */}
-{lastSaveTime && !isAutoSaving && (  // Changed from !isAutoSavingRef.current
-  <div className="fixed bottom-4 right-4 z-50 bg-black/60 backdrop-blur-md rounded-full px-3 py-1.5 text-[10px] text-slate-500 border border-white/10">
-    Saved {(() => {
-      const seconds = Math.floor((new Date().getTime() - lastSaveTime.getTime()) / 1000);
-      if (seconds < 60) return `${seconds}s ago`;
-      const minutes = Math.floor(seconds / 60);
-      if (minutes < 60) return `${minutes}m ago`;
-      return `${Math.floor(minutes / 60)}h ago`;
-    })()}
-  </div>
-)}
-    {/* ===== END INDICATOR ===== */}
-
-
-
-
-
-
-
+  {/* Save indicator */}
+  {isAutoSaving && (
+    <div className="fixed bottom-4 right-4 z-50 bg-black/80 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-2 text-xs text-purple-400 border border-purple-500/30 shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <Loader2 size={12} className="animate-spin" />
+      <span>Saving...</span>
     </div>
+  )}
+
+  {/* Last saved time indicator */}
+  {lastSaveTime && !isAutoSaving && (
+    <div className="fixed bottom-4 right-4 z-50 bg-black/60 backdrop-blur-md rounded-full px-3 py-1.5 text-[10px] text-slate-500 border border-white/10">
+      Saved {(() => {
+        const seconds = Math.floor((new Date().getTime() - lastSaveTime.getTime()) / 1000);
+        if (seconds < 60) return `${seconds}s ago`;
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        return `${Math.floor(minutes / 60)}h ago`;
+      })()}
+    </div>
+  )}
+
+  {/* Wave animation keyframes */}
+  <style jsx>{`
+    @keyframes wave {
+      0%, 100% { height: 20px; }
+      50% { height: 60px; }
+    }
+  `}</style>
+
+</div>
   );
 }
