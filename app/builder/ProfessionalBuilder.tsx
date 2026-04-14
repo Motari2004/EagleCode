@@ -2928,25 +2928,6 @@ if (options.platform === "vercel") {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   {/* Deploy Modal */}
   <DeployModal
     isOpen={isDeployModalOpen}
@@ -2959,184 +2940,223 @@ if (options.platform === "vercel") {
   {/* Main Content - Horizontal scroll on mobile */}
   <main className={`flex-1 flex ${isMobile ? 'mobile-horizontal-scroll' : 'overflow-hidden'}`}>
     
-    {/* Sidebar - Always visible, scroll-snapped on mobile */}
-    <aside className={`${showFileTree ? 'w-80' : 'w-12'} border-r border-white/5 bg-[#020617] flex flex-col z-40 transition-all duration-300 shrink-0 ${isMobile ? (showFileTree ? 'mobile-sidebar' : 'mobile-sidebar-collapsed') : ''}`}>
-      <div className="p-5 border-b border-white/5 flex items-center justify-between bg-slate-950/20">
-        {showFileTree ? (
-          <>
-            <div className="flex items-center gap-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
-              <FolderTree size={14} className="text-blue-500" /> 
-              <span className={isMobile ? 'text-xs' : ''}>Filesystem</span>
-              {loadedFiles && (
-                <span className="ml-2 text-[10px] text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">Loaded</span>
-              )}
-              {isEditMode && (
-                <span className="ml-2 text-[10px] text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full animate-pulse">
-                  AI Edit Mode
-                </span>
-              )}
-            </div>
-            <Button variant="ghost" size="sm" onClick={() => setShowFileTree(false)} className="h-6 w-6 p-0 hover:bg-white/5">
-              <X size={12} />
-            </Button>
-          </>
-        ) : (
-          <Button variant="ghost" size="sm" onClick={() => setShowFileTree(true)} className="h-8 w-8 p-0 hover:bg-white/5 mx-auto">
-            <FolderTree size={16} className="text-blue-500" />
-          </Button>
-        )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    {/* Sidebar - Fixed layout with scrollable file list only */}
+<aside className={`${showFileTree ? 'w-80' : 'w-12'} border-r border-white/5 bg-[#020617] flex flex-col z-40 transition-all duration-300 shrink-0 ${isMobile ? (showFileTree ? 'mobile-sidebar' : 'mobile-sidebar-collapsed') : ''}`}>
+  
+  {/* Header - Fixed at top */}
+  <div className="p-5 border-b border-white/5 flex items-center justify-between bg-slate-950/20 flex-shrink-0">
+    {showFileTree ? (
+      <>
+        <div className="flex items-center gap-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+          <FolderTree size={14} className="text-blue-500" /> 
+          <span className={isMobile ? 'text-xs' : ''}>Filesystem</span>
+          {loadedFiles && (
+            <span className="ml-2 text-[10px] text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">Loaded</span>
+          )}
+          {isEditMode && (
+            <span className="ml-2 text-[10px] text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full animate-pulse">
+              AI Edit Mode
+            </span>
+          )}
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => setShowFileTree(false)} className="h-6 w-6 p-0 hover:bg-white/5">
+          <X size={12} />
+        </Button>
+      </>
+    ) : (
+      <Button variant="ghost" size="sm" onClick={() => setShowFileTree(true)} className="h-8 w-8 p-0 hover:bg-white/5 mx-auto">
+        <FolderTree size={16} className="text-blue-500" />
+      </Button>
+    )}
+  </div>
+
+  {showFileTree && (
+    <>
+      {/* Search Bar - Fixed */}
+      <div className="p-3 border-b border-white/5 flex-shrink-0">
+        <div className="relative">
+          <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Input
+            placeholder="Search files..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-8 pr-8 h-8 text-xs bg-slate-900/40 border-white/5 rounded-lg"
+          />
+          {searchTerm && <button onClick={clearSearch} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"><X size={12} /></button>}
+        </div>
       </div>
 
-      {showFileTree && (
-        <>
-          <div className="p-3 border-b border-white/5">
-            <div className="relative">
-              <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" />
-              <Input
-                placeholder="Search files..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 pr-8 h-8 text-xs bg-slate-900/40 border-white/5 rounded-lg"
-              />
-              {searchTerm && <button onClick={clearSearch} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"><X size={12} /></button>}
+      {/* AI Edit Mode Hint - Compact & Fixed */}
+      {isEditMode && (
+        <div className="mx-3 mt-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex-shrink-0">
+          <div className="flex items-start gap-1.5">
+            <Sparkles size={12} className="text-yellow-500 mt-0.5 flex-shrink-0" />
+            <div className="text-xs text-yellow-400">
+              <p className="font-medium mb-0.5 text-[10px]">AI-Powered Editing</p>
+              <p className="text-yellow-300/80 text-[9px] mb-0.5">Describe what you want to change:</p>
+              <ul className="text-[8px] text-yellow-300/70 space-y-0.5">
+                <li className="flex items-start gap-1">• "Change title to 'Dashboard'"</li>
+                <li className="flex items-start gap-1">• "Add dark mode button"</li>
+                <li className="flex items-start gap-1">• "Make header blue"</li>
+              </ul>
             </div>
           </div>
-
-          {/* AI Edit Mode Hint */}
-          {isEditMode && (
-            <div className="mx-3 mt-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
-              <div className="flex items-start gap-2">
-                <div className="text-xs text-yellow-400">
-                  <p className="font-medium mb-1.5">AI-Powered Editing</p>
-                  <p className="text-yellow-300/80 text-[11px] mb-2">Just describe what you want to change:</p>
-                  <ul className="text-[10px] text-yellow-300/70 space-y-1.5">
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-yellow-500">•</span>
-                      <span>"Change the title to 'My Dashboard'"</span>
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-yellow-500">•</span>
-                      <span>"Add a dark mode toggle button"</span>
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-yellow-500">•</span>
-                      <span>"Make the header background blue"</span>
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-yellow-500">•</span>
-                      <span>"Add a contact form with name and email"</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="flex-1 overflow-y-auto py-4 custom-scrollbar px-3">
-            <FileTree
-              files={files}
-              searchTerm={searchTerm}
-              activeFile={activeFile}
-              generatingFile={generatingFile}
-              generationLog={generationLog}
-              onFileSelect={(path) => {
-                setActiveFile(path);
-                setViewMode("code");
-              }}
-              onQuickEdit={(loadedFiles || Object.keys(buildFiles).length > 1) && !isEditMode ? (path) => {
-                setIsEditMode(true);
-                toast.info(`AI will intelligently edit: ${path}`, { duration: 1500 });
-              } : undefined}
-              isEditMode={isEditMode}
-            />
-          </div>
-        </>
+        </div>
       )}
 
-      {/* Terminal Display */}
-      <div className="mx-4 mb-4 p-3 bg-black/60 border border-blue-500/20 rounded-xl font-mono text-[11px] leading-relaxed shadow-2xl">
-        <div className="flex items-center justify-between mb-3 text-slate-500 border-b border-white/5 pb-2">
-          <div className="flex items-center gap-2">
-            <Terminal size={11} className="text-blue-400" />
-            <span className="text-[10px] font-bold tracking-widest">BUILD TERMINAL</span>
-          </div>
-          <span className="text-[9px] text-blue-500 animate-pulse">
-            {isEditMode ? 'AI EDIT MODE' : (loadedFiles ? 'LOADED' : 'LIVE')}
-          </span>
-        </div>
-        
-        <div className="min-h-[60px] flex items-center">
-          {isEditMode ? (
-            <div className="text-yellow-500 flex items-center gap-9 w-full">
-              <span className="text-[10px]">AI will automatically find and edit the right file(s)</span>
-            </div>
-          ) : loadedFiles ? (
-            <div className="text-green-500 flex items-center gap-2 w-full">
-              <CheckCircle2 size={12} />
-              <span className="text-[10px]">Project loaded. Click "AI Edit" to make changes</span>
-            </div>
-          ) : isBuilding && !currentTerminalMessage ? (
-            <div className="text-blue-400/80 flex items-center gap-2 w-full">
-              <Activity size={10} className="animate-spin" />
-              <span className="text-[10px]">Initializing Scorpio engine...</span>
-            </div>
-          ) : currentTerminalMessage ? (
-            <div className={`animate-in fade-in slide-in-from-left-2 duration-300 flex items-start gap-2 w-full ${
-              currentTerminalMessage.status === 'generating' ? 'text-blue-400' : 'text-slate-300'
-            }`}>
-              {currentTerminalMessage.status === 'generating' ? (
-                <>
-                  <Loader2 size={10} className="animate-spin mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <span className="text-slate-400 text-[10px]">generating</span>
-                    <span className="text-blue-400/90 ml-2 font-mono break-all">{currentTerminalMessage.file}</span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 size={10} className="text-green-500 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <span className="text-green-500 font-bold mr-2">✓</span>
-                    <span className="text-slate-400 text-[10px]">created</span>
-                    <span className="text-slate-300 ml-2 font-mono break-all">{currentTerminalMessage.file}</span>
-                  </div>
-                </>
-              )}
-            </div>
-          ) : !isBuilding && Object.keys(buildFiles).length > 1 && !loadedFiles ? (
-            <div className="text-slate-400 text-[10px]">Build complete. Ready for next prompt or AI edit.</div>
-          ) : null}
-        </div>
+      {/* FILE LIST - THIS IS THE ONLY SCROLLABLE SECTION */}
+      <div className="flex-1 overflow-y-auto py-2 custom-scrollbar px-2 min-h-0">
+        <FileTree
+          files={files}
+          searchTerm={searchTerm}
+          activeFile={activeFile}
+          generatingFile={generatingFile}
+          generationLog={generationLog}
+          onFileSelect={(path) => {
+            setActiveFile(path);
+            setViewMode("code");
+          }}
+          onQuickEdit={(loadedFiles || Object.keys(buildFiles).length > 1) && !isEditMode ? (path) => {
+            setIsEditMode(true);
+            toast.info(`AI will intelligently edit: ${path}`, { duration: 1500 });
+          } : undefined}
+          isEditMode={isEditMode}
+        />
       </div>
+    </>
+  )}
 
-      {/* Status Footer */}
-      <div className="p-5 bg-blue-600/5 border-t border-blue-500/10 backdrop-blur-md mt-auto">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[10px] text-blue-400 font-bold uppercase tracking-tighter">
-            {isEditMode ? 'AI Edit Mode' : (loadedFiles ? 'Loaded Project' : (isBuilding ? 'Build Progress' : 'Build Complete'))}
-          </span>
-          <span className="text-xs font-mono text-blue-300">{loadedFiles ? '100' : progress}%</span>
+  {/* ========== BUILD PROGRESS SECTION - ALWAYS VISIBLE AT BOTTOM ========== */}
+  <div className="flex-shrink-0">
+    
+    {/* Terminal Display - Compact */}
+    <div className="mx-3 mb-2 p-2 bg-black/60 border border-blue-500/20 rounded-lg font-mono text-[10px] leading-relaxed shadow-2xl">
+      <div className="flex items-center justify-between mb-1 text-slate-500 border-b border-white/5 pb-1">
+        <div className="flex items-center gap-1.5">
+          <Terminal size={10} className="text-blue-400" />
+          <span className="text-[9px] font-bold tracking-widest">BUILD STATUS</span>
         </div>
-        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden p-[1px]">
-          <div className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 rounded-full transition-all duration-700" style={{ width: `${loadedFiles ? 100 : progress}%` }} />
-        </div>
-        {isEditMode && (
-          <div className="mt-3 text-[10px] text-yellow-500 text-center animate-pulse">
-          </div>
-        )}
-        {!isBuilding && !loadedFiles && Object.keys(buildFiles).length > 1 && (
-          <div className="mt-3 text-[10px] text-slate-500 text-center">
-            ✓ {Object.keys(buildFiles).length - 1} files generated successfully
-          </div>
-        )}
-        {loadedFiles && !isEditMode && (
-          <div className="mt-3 text-[10px] text-green-500 text-center">
-            ✓ {Object.keys(files).length - 1} files loaded. Click "AI Edit" to make changes
-          </div>
-        )}
-        {buildError && <div className="mt-3 text-[10px] text-red-400 text-center">⚠️ {buildError}</div>}
+        <span className="text-[8px] text-blue-500 animate-pulse">
+          {isEditMode ? 'AI EDIT' : (loadedFiles ? 'LOADED' : 'READY')}
+        </span>
       </div>
-    </aside>
+      
+      <div className="min-h-[40px] flex items-center">
+        {isEditMode ? (
+          <div className="text-yellow-500 flex items-center gap-1.5 w-full">
+            <Sparkles size={9} className="animate-pulse" />
+            <span className="text-[9px]">AI will automatically find and edit files</span>
+          </div>
+        ) : loadedFiles ? (
+          <div className="text-green-500 flex items-center gap-1.5 w-full">
+            <CheckCircle2 size={10} />
+            <span className="text-[9px]">Project loaded. Click "AI Edit" to make changes</span>
+          </div>
+        ) : isBuilding && !currentTerminalMessage ? (
+          <div className="text-blue-400/80 flex items-center gap-1.5 w-full">
+            <Activity size={9} className="animate-spin" />
+            <span className="text-[9px]">Initializing Scorpio engine...</span>
+          </div>
+        ) : currentTerminalMessage ? (
+          <div className={`animate-in fade-in slide-in-from-left-2 duration-300 flex items-start gap-1.5 w-full ${
+            currentTerminalMessage.status === 'generating' ? 'text-blue-400' : 'text-slate-300'
+          }`}>
+            {currentTerminalMessage.status === 'generating' ? (
+              <>
+                <Loader2 size={9} className="animate-spin mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <span className="text-slate-400 text-[9px]">generating</span>
+                  <span className="text-blue-400/90 ml-1 font-mono text-[9px] break-all">{currentTerminalMessage.file}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 size={9} className="text-green-500 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <span className="text-green-500 font-bold mr-1">✓</span>
+                  <span className="text-slate-400 text-[9px]">created</span>
+                  <span className="text-slate-300 ml-1 font-mono text-[9px] break-all">{currentTerminalMessage.file}</span>
+                </div>
+              </>
+            )}
+          </div>
+        ) : !isBuilding && Object.keys(buildFiles).length > 1 && !loadedFiles ? (
+          <div className="text-slate-400 text-[9px]">Build complete. Ready for next prompt.</div>
+        ) : null}
+      </div>
+    </div>
+
+    {/* Status Footer - Compact & Always Visible */}
+    <div className="p-3 bg-blue-600/5 border-t border-blue-500/10 backdrop-blur-md">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-[9px] text-blue-400 font-bold uppercase tracking-tighter">
+          {isEditMode ? 'AI Edit' : (loadedFiles ? 'Loaded' : (isBuilding ? 'Building' : 'Ready'))}
+        </span>
+        <span className="text-[9px] font-mono text-blue-300">{loadedFiles ? '100' : progress}%</span>
+      </div>
+      <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 rounded-full transition-all duration-700" style={{ width: `${loadedFiles ? 100 : progress}%` }} />
+      </div>
+      {!isBuilding && !loadedFiles && Object.keys(buildFiles).length > 1 && (
+        <div className="mt-1.5 text-[8px] text-slate-500 text-center">
+          ✓ {Object.keys(buildFiles).length - 1} files generated
+        </div>
+      )}
+      {loadedFiles && !isEditMode && (
+        <div className="mt-1.5 text-[8px] text-green-500 text-center">
+          ✓ {Object.keys(files).length - 1} files loaded
+        </div>
+      )}
+      {buildError && <div className="mt-1.5 text-[8px] text-red-400 text-center">⚠️ {buildError}</div>}
+    </div>
+  </div>
+</aside>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     {/* Main Stage */}
     <section className={`flex-1 bg-black/40 flex flex-col relative ${isMobile ? (viewMode === "code" ? 'mobile-code-view' : 'mobile-preview') : ''}`}>
