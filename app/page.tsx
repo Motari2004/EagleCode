@@ -249,7 +249,7 @@ const faqItems = [
 
   
 
-  const API_URL = 'https://eaglecode2-1.onrender.com';
+  const API_URL = 'http://localhost:8000';
 
 
 
@@ -543,8 +543,7 @@ useEffect(() => {
     </div>
           
           <div className="flex items-center gap-3">
-            <Link href="/docs" className="text-xs text-slate-400 hover:text-white transition">Docs</Link>
-            
+
             <Button 
               onClick={() => router.push('/signin')} 
               size="sm" 
@@ -789,31 +788,44 @@ useEffect(() => {
   </div>
 )}
 
-          {/* Templates Section */}
-          <div className="mt-16 text-left">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-1 h-5 bg-cyan-500 rounded-full" />
-              <h2 className="text-sm font-semibold text-slate-300">Templates</h2>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {templateProjects.map((template) => (
-                <div
-                  key={template.id}
-                  onClick={() => loadTemplate(template)}
-                  className={`group bg-gradient-to-br ${template.bgColor} border ${template.borderColor} rounded-xl p-4 hover:${template.hoverBorder} hover:bg-white/10 transition-all cursor-pointer backdrop-blur-sm`}
-                >
-                  <div className={`mb-3 w-10 h-10 rounded-lg bg-gradient-to-br ${template.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    {template.icon}
-                  </div>
-                  <h3 className="font-semibold text-sm text-white mb-1">{template.name}</h3>
-                  <p className="text-xs text-slate-400 mb-3">{template.description}</p>
-                  <div className={`flex items-center gap-1 text-[10px] ${template.iconColor} opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1`}>
-                    Use Template <ArrowRight className="w-3 h-3" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+
+
+
+
+
+
+
+{/* Templates Section */}
+<div className="mt-16 text-left">
+  <div className="flex items-center gap-2 mb-6">
+    <div className="w-1 h-5 bg-cyan-500 rounded-full" />
+    <h2 className="text-sm font-semibold text-slate-300">Templates</h2>
+  </div>
+  
+  {/* Grid that stays as grid on all screen sizes */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    {templateProjects.map((template) => (
+      <div
+        key={template.id}
+        onClick={() => loadTemplate(template)}
+        className={`group bg-gradient-to-br ${template.bgColor} border ${template.borderColor} rounded-xl p-4 hover:${template.hoverBorder} hover:bg-white/10 transition-all cursor-pointer backdrop-blur-sm`}
+      >
+        <div className={`mb-3 w-10 h-10 rounded-lg bg-gradient-to-br ${template.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+          {template.icon}
+        </div>
+        <h3 className="font-semibold text-sm text-white mb-1">{template.name}</h3>
+        <p className="text-xs text-slate-400 mb-3">{template.description}</p>
+        <div className={`flex items-center gap-1 text-[10px] ${template.iconColor} opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1`}>
+          Use Template <ArrowRight className="w-3 h-3" />
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+
+
+
 
           {/* Features Section */}
           <div className="mt-16">

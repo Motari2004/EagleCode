@@ -630,17 +630,36 @@ const getWebSocketUrl = () => {
       handleWebSocketMessage(event);
     };
     
-    ws.onerror = (error) => {
-      clearTimeout(connectionTimeout);
-      console.error("🔴 WebSocket error:", error);
-      console.error("🔴 WebSocket URL:", wsUrl);
-      console.error("🔴 Environment:", isProduction ? "Production" : "Development");
-      const errorMsg = isProduction
-        ? `Cannot connect to backend at ${wsUrl}. Check if Render.com backend is running and supports WebSockets.`
-        : "Cannot connect to backend. Please run: python main.py";
-      reject(new Error(errorMsg));
-    };
+
+
+
     
+
+ws.onerror = (error) => {
+  clearTimeout(connectionTimeout);
+  
+  // Check current connection state
+  const isConnected = ws.readyState === WebSocket.OPEN;
+  const isConnecting = ws.readyState === WebSocket.CONNECTING;
+  
+  if (isConnected) {
+    // Connection is still open - this is a non-fatal error
+    // Don't show error in console, just debug log
+    console.debug("WebSocket non-fatal error (ignoring, connection still open)");
+    return; // Don't reject, keep the connection
+  }
+  
+  if (isConnecting) {
+    // Connection failed during initial connection
+    console.error("🔴 WebSocket connection failed:", error);
+    console.error("🔴 WebSocket URL:", wsUrl);
+    
+    const errorMsg = isProduction
+      ? `Cannot connect to backend at ${wsUrl}. Make sure backend is running.`
+      : "Cannot connect to backend. Please run: python main.py";
+    reject(new Error(errorMsg));
+  }
+};
 
 
 
