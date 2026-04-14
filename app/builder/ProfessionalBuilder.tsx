@@ -2672,44 +2672,6 @@ if (options.platform === "vercel") {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   return (
 
 
@@ -2760,169 +2722,227 @@ if (options.platform === "vercel") {
     }
   `}</style>
 
-  {/* Header - EagleCode with Emoji */}
-  <header className="h-16 border-b border-white/10 bg-gradient-to-r from-slate-900/95 via-amber-900/95 to-slate-900/95 backdrop-blur-xl flex items-center justify-between px-3 sm:px-6 z-50 shrink-0 shadow-lg shadow-amber-500/10">
-    <div className="flex items-center gap-6 flex-1 max-w-3xl">
-      <div className="flex items-center gap-2.5">
-        <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.4)] animate-pulse-glow text-xl">
-          🦅
-        </div>
-        <div className="flex flex-col">
-          <span className="font-bold tracking-tighter text-white text-lg leading-none uppercase">EagleCode</span>
-          <span className="text-[9px] text-amber-400 font-mono tracking-[0.2em] font-bold">STUDIO</span>
-        </div>
-      </div>
 
-      {/* Dynamic Input Area - AI-Powered Editing */}
-      <div className="relative flex-1 group ml-4">
-        {isEditMode && (loadedFiles || Object.keys(buildFiles).length > 1) ? (
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-lg">
-                🦂
-              </div>
-              <Input
-                className="bg-amber-500/10 border-amber-500/30 h-11 text-sm focus:ring-1 focus:ring-amber-500/50 pl-10 pr-12 rounded-xl transition-all text-white placeholder:text-gray-400"
-                placeholder="Describe what you want to change..."
-                value={editPrompt}
-                onChange={(e) => setEditPrompt(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && applyIntelligentEdit()}
-                autoFocus
-              />
-              <Button
-                onClick={applyIntelligentEdit}
-                disabled={isEditingProject}
-                className="absolute right-1.5 top-1.5 h-8 w-9 flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full p-0 transition-transform duration-200 active:scale-90 shadow-lg shadow-amber-500/40"
-              >
-                {isEditingProject ? (
-                  <Loader2 className="animate-spin h-5 w-5" />
-                ) : (
-                  <ArrowRight size={40} />
-                )}
-              </Button>
-            </div>
-            <Button
-              onClick={() => {
-                setIsEditMode(false);
-                setEditPrompt("");
-              }}
-              variant="outline"
-              className="h-11 border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl px-4 text-gray-300 hover:text-white transition-all duration-300"
-            >
-              Cancel
-            </Button>
-          </div>
-        ) : (
-          <>
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-purple-400 transition-colors">
-              <Search size={16} />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  {/* Header - EagleCode with Emoji */}
+<header className="h-16 border-b border-white/10 bg-gradient-to-r from-slate-900/95 via-amber-900/95 to-slate-900/95 backdrop-blur-xl flex items-center justify-between px-3 sm:px-6 z-50 shrink-0 shadow-lg shadow-amber-500/10">
+  <div className="flex items-center gap-6 flex-1 max-w-3xl">
+    <div className="flex items-center gap-2.5">
+      <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.4)] animate-pulse-glow text-xl">
+        🦅
+      </div>
+      <div className="flex flex-col">
+        <span className="font-bold tracking-tighter text-white text-lg leading-none uppercase">EagleCode</span>
+        <span className="text-[9px] text-amber-400 font-mono tracking-[0.2em] font-bold">STUDIO</span>
+      </div>
+    </div>
+
+    {/* Dynamic Input Area - AI-Powered Editing */}
+    <div className="relative flex-1 group ml-4">
+      {isEditMode && (loadedFiles || Object.keys(buildFiles).length > 1) ? (
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-lg">
+              🦂
             </div>
             <Input
-              className="bg-white/5 border-white/10 h-11 text-sm focus:ring-1 focus:ring-purple-500/50 pl-10 pr-12 rounded-xl transition-all text-white placeholder:text-gray-500 backdrop-blur-sm"
-              placeholder={loadedFiles ? "Click 'Edit' to modify this project with AI" : "Describe your app or what to change..."}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !loadedFiles && startBuild(prompt)}
-              disabled={!!loadedFiles}
+              className="bg-amber-500/10 border-amber-500/30 h-11 text-sm focus:ring-1 focus:ring-amber-500/50 pl-10 pr-12 rounded-xl transition-all text-white placeholder:text-gray-400"
+              placeholder="Describe what you want to change..."
+              value={editPrompt}
+              onChange={(e) => setEditPrompt(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && applyIntelligentEdit()}
+              autoFocus
             />
             <Button
-              onClick={() => !loadedFiles && startBuild(prompt)}
-              disabled={isBuilding || !!loadedFiles}
-              className="absolute right-1.5 top-1.5 h-8 w-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg p-0 transition-all active:scale-90 shadow-lg shadow-purple-500/25"
+              onClick={applyIntelligentEdit}
+              disabled={isEditingProject}
+              className="absolute right-1.5 top-1.5 h-8 w-9 flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full p-0 transition-transform duration-200 active:scale-90 shadow-lg shadow-amber-500/40"
             >
-              {isBuilding ? <Loader2 className="animate-spin h-4 w-4" /> : <Send size={16} />}
+              {isEditingProject ? (
+                <Loader2 className="animate-spin h-5 w-5" />
+              ) : (
+                <ArrowRight size={40} />
+              )}
             </Button>
-          </>
-        )}
-      </div>
+          </div>
+          <Button
+            onClick={() => {
+              setIsEditMode(false);
+              setEditPrompt("");
+            }}
+            variant="outline"
+            className="h-11 border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl px-4 text-gray-300 hover:text-white transition-all duration-300"
+          >
+            Cancel
+          </Button>
+        </div>
+      ) : (
+        <>
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-purple-400 transition-colors">
+            <Search size={16} />
+          </div>
+          <Input
+            className="bg-white/5 border-white/10 h-11 text-sm focus:ring-1 focus:ring-purple-500/50 pl-10 pr-12 rounded-xl transition-all text-white placeholder:text-gray-500 backdrop-blur-sm"
+            placeholder={loadedFiles ? "Click 'Edit' to modify this project with AI" : "Describe your app or what to change..."}
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && !loadedFiles && startBuild(prompt)}
+            disabled={!!loadedFiles}
+          />
+          <Button
+            onClick={() => !loadedFiles && startBuild(prompt)}
+            disabled={isBuilding || !!loadedFiles}
+            className="absolute right-1.5 top-1.5 h-8 w-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg p-0 transition-all active:scale-90 shadow-lg shadow-purple-500/25"
+          >
+            {isBuilding ? <Loader2 className="animate-spin h-4 w-4" /> : <Send size={16} />}
+          </Button>
+        </>
+      )}
     </div>
+  </div>
 
-    {/* Header Buttons */}
-    <div className="flex items-center gap-3 mobile-header-buttons">
-      {(loadedFiles || Object.keys(buildFiles).length > 1) && !isEditMode && (
-        <Button
-          onClick={() => setIsEditMode(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-300 shadow-lg shadow-amber-500/30"
-        >
-          <Bot size={24} strokeWidth={2.5} />
-          <span className="hide-on-mobile">AI Edit</span>
-        </Button>
+  {/* Header Buttons - Scrollable on mobile with names visible */}
+  <div className={`flex items-center gap-3 ${isMobile ? 'overflow-x-auto px-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent' : ''}`}
+       style={isMobile ? { 
+         maxWidth: '50%', 
+         overflowX: 'auto', 
+         overflowY: 'hidden',
+         WebkitOverflowScrolling: 'touch',
+         scrollbarWidth: 'thin'
+       } : {}}>
+    
+    {(loadedFiles || Object.keys(buildFiles).length > 1) && !isEditMode && (
+      <Button
+        onClick={() => setIsEditMode(true)}
+        className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 shadow-lg shadow-amber-500/30 whitespace-nowrap"
+      >
+        <Bot size={20} strokeWidth={2.5} />
+        <span>AI Edit</span>
+      </Button>
+    )}
+    
+    {loadedFiles && (
+      <Button 
+        onClick={clearLoadedProject} 
+        className="relative group overflow-hidden bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-xl px-4 py-2.5 text-xs font-semibold transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 border-0 whitespace-nowrap"
+      >
+        <RefreshCw size={14} className="mr-2 inline-block group-hover:rotate-180 transition-transform duration-500" />
+        <span>New Build</span>
+      </Button>
+    )}
+    
+    {/* Export Button */}
+    <Button 
+      onClick={downloadZip} 
+      disabled={Object.keys(files).length <= 1}
+      className="relative group overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl px-4 py-2.5 text-xs font-semibold transition-all duration-300 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 border-0 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+    >
+      <Download size={14} className="mr-2 inline-block group-hover:-translate-y-0.5 transition-transform" />
+      <span>Export</span>
+    </Button>
+    
+    {/* Fullscreen Button - Hide on mobile */}
+    <Button 
+      onClick={toggleFullscreen} 
+      className="hidden md:flex group bg-white/5 backdrop-blur-sm hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20 border border-white/10 hover:border-purple-500/50 rounded-xl px-4 py-2.5 text-xs font-medium text-gray-300 hover:text-white transition-all duration-300 whitespace-nowrap"
+    >
+      {isFullscreen ? (
+        <>
+          <Minimize2 size={12} className="mr-2 group-hover:scale-90 transition-transform" />
+          <span>Exit</span>
+        </>
+      ) : (
+        <>
+          <Maximize2 size={12} className="mr-2 group-hover:scale-110 transition-transform" />
+          <span>Fullscreen</span>
+        </>
       )}
-      
-      {loadedFiles && (
-        <Button 
-          onClick={clearLoadedProject} 
-          className="relative group overflow-hidden bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-xl px-5 py-2.5 text-xs font-semibold transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 border-0"
-        >
-          <RefreshCw size={15} className="mr-2 inline-block group-hover:rotate-180 transition-transform duration-500" />
-          <span className="hide-on-mobile">New Build</span>
-        </Button>
-      )}
-      
-      {/* Export Button */}
-      <Button 
-        onClick={downloadZip} 
-        disabled={Object.keys(files).length <= 1}
-        className="relative group overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl px-3 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-semibold transition-all duration-300 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 border-0 disabled:opacity-50 disabled:cursor-not-allowed"
+    </Button>
+    
+    {/* View Mode Toggle */}
+    <div className="flex bg-white/5 backdrop-blur-sm rounded-xl p-1 border border-white/10">
+      <button 
+        onClick={() => setViewMode("preview")} 
+        className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${
+          viewMode === "preview" 
+            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25" 
+            : "text-gray-400 hover:text-white hover:bg-white/10"
+        }`}
       >
-        <Download size={14} className="mr-0 sm:mr-2 inline-block group-hover:-translate-y-0.5 transition-transform" />
-        <span className="hidden sm:inline">Export</span>
-      </Button>
-      
-      {/* Fullscreen Button - Hide on mobile */}
-      <Button 
-        onClick={toggleFullscreen} 
-        className="hidden md:flex group bg-white/5 backdrop-blur-sm hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20 border border-white/10 hover:border-purple-500/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-xs font-medium text-gray-300 hover:text-white transition-all duration-300"
+        <Globe size={12} /> <span>Preview</span>
+      </button>
+      <button 
+        onClick={() => setViewMode("code")} 
+        className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${
+          viewMode === "code" 
+            ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25" 
+            : "text-gray-400 hover:text-white hover:bg-white/10"
+        }`}
       >
-        {isFullscreen ? (
-          <>
-            <Minimize2 size={12} className="mr-1 sm:mr-2 group-hover:scale-90 transition-transform" />
-            <span className="hidden sm:inline">Exit</span>
-          </>
-        ) : (
-          <>
-            <Maximize2 size={12} className="mr-1 sm:mr-2 group-hover:scale-110 transition-transform" />
-            <span className="hidden sm:inline">Fullscreen</span>
-          </>
-        )}
-      </Button>
-      
-      {/* View Mode Toggle */}
-      <div className="flex bg-white/5 backdrop-blur-sm rounded-xl p-1 border border-white/10">
-        <button 
-          onClick={() => setViewMode("preview")} 
-          className={`px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-300 flex items-center gap-1 sm:gap-2 ${
-            viewMode === "preview" 
-              ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25" 
-              : "text-gray-400 hover:text-white hover:bg-white/10"
-          }`}
-        >
-          <Globe size={12} /> <span className="hidden xs:inline">Preview</span>
-        </button>
-        <button 
-          onClick={() => setViewMode("code")} 
-          className={`px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-300 flex items-center gap-1 sm:gap-2 ${
-            viewMode === "code" 
-              ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25" 
-              : "text-gray-400 hover:text-white hover:bg-white/10"
-          }`}
-        >
-          <Code2 size={12} /> <span className="hidden xs:inline">Source</span>
-        </button>
-      </div>
-      
-      {/* Deploy Button */}
-      <Button 
-        onClick={() => setIsDeployModalOpen(true)}
-        disabled={Object.keys(files).length <= 1}
-        className="relative group overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl px-3 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-semibold transition-all duration-300 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 border-0 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <Rocket size={14} className="mr-0 sm:mr-2 inline-block group-hover:-translate-y-0.5 transition-transform" />
-        <span className="hidden sm:inline">Integrate & Deploy</span>
-        <span className="sm:hidden">Deploy</span>
-      </Button>
+        <Code2 size={12} /> <span>Source</span>
+      </button>
     </div>
-  </header>
+    
+    {/* Deploy Button */}
+    <Button 
+      onClick={() => setIsDeployModalOpen(true)}
+      disabled={Object.keys(files).length <= 1}
+      className="relative group overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl px-4 py-2.5 text-xs font-semibold transition-all duration-300 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 border-0 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+    >
+      <Rocket size={14} className="mr-2 inline-block group-hover:-translate-y-0.5 transition-transform" />
+      <span>Deploy</span>
+    </Button>
+  </div>
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   {/* Deploy Modal */}
   <DeployModal
