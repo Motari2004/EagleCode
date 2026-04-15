@@ -921,13 +921,17 @@ const loadCredits = useCallback(async () => {
     });
     const data = await response.json();
     console.log("💰 Credits loaded from database:", data);
-    setCredits({
-      dailyRemaining: data.dailyRemaining,
-      monthlyRemaining: data.monthlyRemaining,
-      dailyLimit: data.dailyLimit,
-      monthlyLimit: data.monthlyLimit,
-      plan: data.plan
-    });
+    
+    // Only update credits after we have valid data
+    if (data.dailyRemaining !== undefined) {
+      setCredits({
+        dailyRemaining: data.dailyRemaining,
+        monthlyRemaining: data.monthlyRemaining,
+        dailyLimit: data.dailyLimit,
+        monthlyLimit: data.monthlyLimit,
+        plan: data.plan
+      });
+    }
   } catch (error) {
     console.error("Failed to load credits:", error);
   }
@@ -952,66 +956,32 @@ useEffect(() => {
 
 
 
-
-// Show low credit warning on page load with modern styling
+// Show low credit warning on page load - ONLY after credits are loaded
 useEffect(() => {
-  if (!user) return;
+  // Don't show modal if credits are still loading (dailyLimit is 0 means not loaded yet)
+  if (!user || credits.dailyLimit === 0) return;
   
   if (credits.dailyRemaining === 1) {
-    toast.warning(`Only 1 Credit Remaining!`, {
-      description: `You have only 1 credit left. Upgrade to Pro for unlimited credits and advanced features.`,
-      duration: 10000,
-      position: "top-center",
-      style: {
-        background: 'linear-gradient(135deg, #1e1b4b, #2d1b69)',
-        color: '#fff',
-        border: '1px solid rgba(245, 158, 11, 0.5)',
-        borderRadius: '16px',
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-      },
-      icon: '⚠️',
-      action: {
-        label: "Upgrade Now 💎",
-        onClick: () => window.location.href = "/pricing"
-      }
-    });
+    setShowUpgradeModal(true);
   } else if (credits.dailyRemaining >= 2 && credits.dailyRemaining <= 3 && credits.plan === 'free') {
-    toast.warning(`Low on Credits!`, {
-      description: `Only ${credits.dailyRemaining} credits left today. Upgrade to Pro for 1,000 credits/month!`,
-      duration: 8000,
+    toast.warning(`⚠️ Low on credits! Only ${credits.dailyRemaining} credits left today.`, {
+      duration: 5000,
       position: "top-center",
       style: {
         background: 'linear-gradient(135deg, #1e1b4b, #2d1b69)',
         color: '#fff',
         border: '1px solid rgba(245, 158, 11, 0.5)',
         borderRadius: '16px',
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
       },
-      icon: '⚠️',
       action: {
-        label: "Upgrade 🚀",
+        label: "Upgrade",
         onClick: () => window.location.href = "/pricing"
       }
     });
   } else if (credits.dailyRemaining === 0 && credits.plan === 'free') {
-    toast.error(`Out of Credits!`, {
-      description: `You've used all your daily credits. Upgrade to Pro to continue building amazing websites!`,
-      duration: 10000,
-      position: "top-center",
-      style: {
-        background: 'linear-gradient(135deg, #1e1b4b, #2d1b69)',
-        color: '#fff',
-        border: '1px solid rgba(239, 68, 68, 0.5)',
-        borderRadius: '16px',
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-      },
-      action: {
-        label: "Upgrade Now 🚀",
-        onClick: () => window.location.href = "/pricing"
-      }
-    });
+    setShowUpgradeModal(true);
   }
-}, [credits.dailyRemaining, credits.plan, user]);
+}, [credits.dailyRemaining, credits.plan, credits.dailyLimit, user]);
 
 
 
