@@ -14,6 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import ClientMotionDiv from "@/components/ClientMotionDiv";
 
+
+import { useUser } from "@/contexts/UserContext";
+import UserProfile from "@/components/UserProfile";
+
+
+
+
 interface SavedProject {
   id: string;
   name: string;
@@ -38,6 +45,8 @@ interface TemplateProject {
 }
 
 export default function LandingPage() {
+
+    const { user, isLoading: isUserLoading } = useUser();
   const [prompt, setPrompt] = useState("");
   const [isNavigating, setIsNavigating] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -532,6 +541,15 @@ useEffect(() => {
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent" />
       </div>
 
+
+
+
+
+
+
+
+
+
 {/* Header - Unicode Eagle */}
 <header className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
   <div className="container mx-auto px-6 h-14 flex items-center justify-between">
@@ -543,24 +561,29 @@ useEffect(() => {
     </div>
           
           <div className="flex items-center gap-3">
-
-            <Button 
-              onClick={() => router.push('/signin')} 
-              size="sm" 
-              className="h-8 px-3 bg-transparent text-slate-300 hover:text-white hover:bg-white/10 rounded-lg text-xs border border-white/10 transition-all duration-200"
-            >
-              Sign In
-            </Button>
-            
-            <Button 
-              onClick={() => router.push('/signup')} 
-              size="sm" 
-              className="h-8 px-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:opacity-90 rounded-lg text-xs font-medium shadow-lg shadow-cyan-500/20"
-            >
-              Sign Up
-              <ArrowRight className="w-3 h-3 ml-1" />
-            </Button>
-          </div>
+  {user ? (
+    <UserProfile />
+  ) : (
+    <>
+      <Button 
+        onClick={() => router.push('/signin')} 
+        size="sm" 
+        className="h-8 px-3 bg-transparent text-slate-300 hover:text-white hover:bg-white/10 rounded-lg text-xs border border-white/10 transition-all duration-200"
+      >
+        Sign In
+      </Button>
+      
+      <Button 
+        onClick={() => router.push('/signup')} 
+        size="sm" 
+        className="h-8 px-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:opacity-90 rounded-lg text-xs font-medium shadow-lg shadow-cyan-500/20"
+      >
+        Sign Up
+        <ArrowRight className="w-3 h-3 ml-1" />
+      </Button>
+    </>
+  )}
+</div>
         </div>
       </header>
 

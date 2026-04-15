@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useBuild } from "@/hooks/useBuild";
 import { Input } from "@/components/ui/input";
-import { useUser } from "@/contexts/UserContext";
 import { Bot,ArrowRight } from "lucide-react";
 
 
@@ -19,7 +18,7 @@ import {
   Send, Loader2, FileCode, FolderTree, Download,
   Terminal, Copy, Check, Globe, RefreshCw,
   Sparkles, Layers, Search, Code2, Activity, CheckCircle2,
-  Maximize2, Minimize2, X, AlertCircle, Folder, FolderOpen,  Rocket, Save, Trash2, Edit3, Target, Zap, Shield, Code, Star, Coffee, Clock
+  Maximize2, Minimize2, X, AlertCircle, Folder, FolderOpen,  Rocket, Save, Trash2, Edit3, Target, Zap, Shield, Code, Star, Coffee
 } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
@@ -267,7 +266,6 @@ function FileTree({
 
 export default function ProfessionalBuilder() {
   const searchParams = useSearchParams();
-    const { user } = useUser(); // Add this line
   const [prompt, setPrompt] = useState("");
   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"code" | "preview">("preview");
@@ -352,222 +350,6 @@ const isSavingRef = useRef(false);
 
 // Add this with your other useState declarations (around line 200-250)
 const [isMobile, setIsMobile] = useState(false);
-
-
-
-
-
-
-
-
-
-
-
-// Add with your other useState declarations
-const [credits, setCredits] = useState({
-  dailyRemaining: 0,
-  monthlyRemaining: 0,
-  dailyLimit: 0,
-  monthlyLimit: 0,
-  plan: 'free'
-});
-const [isCheckingCredits, setIsCheckingCredits] = useState(false);
-const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Credit check function
-const checkAndDeductCredits = async (creditsToDeduct: number, action: string) => {
-  console.log("🔍 checkAndDeductCredits called!", { creditsToDeduct, action });
-  
-  if (!user) {
-    console.log("❌ No user found!");
-    toast.error("Please sign in to continue", {
-      style: {
-        background: '#1e1b4b',
-        color: '#fff',
-        border: '1px solid rgba(139, 92, 246, 0.3)',
-      },
-      icon: '🔐',
-    });
-    return false;
-  }
-
-  console.log("👤 User ID:", user.id);
-
-  try {
-    console.log("📡 Checking credits for user:", user.id);
-    const checkResponse = await fetch(`/api/credits?userId=${user.id}`, {
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache' }
-    });
-    const creditData = await checkResponse.json();
-    console.log("📡 Credit data:", creditData);
-    
-    if (!checkResponse.ok) {
-      console.log("❌ Credit check failed:", creditData);
-      toast.error("Failed to check credits");
-      return false;
-    }
-    
-
-
-
-
-
-
-
-
-
-
-
-
-     // ========== CHECK FOR INSUFFICIENT CREDITS ==========
-    if (creditData.dailyRemaining < creditsToDeduct) {
-      console.log("❌ Insufficient daily credits:", creditData.dailyRemaining);
-      
-      // Show modal instead of toast
-      setShowUpgradeModal(true);
-      return false;
-    }
-    
-    if (creditData.monthlyRemaining < creditsToDeduct) {
-      console.log("❌ Insufficient monthly credits:", creditData.monthlyRemaining);
-      
-      // Show modal instead of toast
-      setShowUpgradeModal(true);
-      return false;
-    }
-    
-    // ========== LOW CREDIT WARNINGS ==========
-    if (creditData.dailyRemaining === 1) {
-      toast.warning(`Only 1 Credit Left!`, {
-        description: `After this ${action}, you'll have 0 credits. Consider upgrading to Pro for unlimited credits.`,
-        duration: 8000,
-        position: "top-center",
-        style: {
-          background: 'linear-gradient(135deg, #1e1b4b, #2d1b69)',
-          color: '#fff',
-          border: '1px solid rgba(245, 158, 11, 0.5)',
-          borderRadius: '16px',
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-        },
-        icon: '⚠️',
-        action: {
-          label: "Upgrade 💎",
-          onClick: () => window.location.href = "/pricing"
-        }
-      });
-    }
-    
-    if (creditData.dailyRemaining >= 2 && creditData.dailyRemaining <= 3) {
-      toast.warning(`Low on Credits!`, {
-        description: `Only ${creditData.dailyRemaining} credits left today. Upgrade to Pro for more credits.`,
-        duration: 5000,
-        position: "top-center",
-        style: {
-          background: 'linear-gradient(135deg, #1e1b4b, #2d1b69)',
-          color: '#fff',
-          border: '1px solid rgba(245, 158, 11, 0.5)',
-          borderRadius: '16px',
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-        },
-        icon: '⚠️',
-        action: {
-          label: "Upgrade 🚀",
-          onClick: () => window.location.href = "/pricing"
-        }
-      });
-    }
-    
-    console.log("✅ Credits available, deducting...");
-    const deductResponse = await fetch('/api/credits', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        userId: user.id, 
-        credits: creditsToDeduct 
-      })
-    });
-    
-    const deductData = await deductResponse.json();
-    console.log("📡 Deduct response:", deductData);
-    
-    if (deductResponse.ok) {
-      await loadCredits();
-      
-      toast.success(`Credits Deducted!`, {
-        description: `Used ${creditsToDeduct} credit${creditsToDeduct > 1 ? 's' : ''} for ${action}. ${deductData.dailyRemaining} credits left today.`,
-        duration: 4000,
-        position: "bottom-right",
-        style: {
-          background: 'linear-gradient(135deg, #064e3b, #065f46)',
-          color: '#fff',
-          border: '1px solid rgba(16, 185, 129, 0.5)',
-          borderRadius: '16px',
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-        },
-        icon: '✅',
-      });
-      
-      if (deductData.dailyRemaining === 0) {
-        setShowUpgradeModal(true);
-      }
-      
-      return true;
-    } else {
-      toast.error("Failed to deduct credits", {
-        style: {
-          background: '#1e1b4b',
-          color: '#fff',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-          borderRadius: '16px',
-        },
-      });
-      return false;
-    }
-  } catch (error) {
-    console.error("❌ Credit check error:", error);
-    toast.error("Failed to check credits", {
-      style: {
-        background: '#1e1b4b',
-        color: '#fff',
-        border: '1px solid rgba(239, 68, 68, 0.3)',
-        borderRadius: '16px',
-      },
-    });
-    return false;
-  }
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -892,126 +674,6 @@ const regeneratePreviewForLoadedProject = useCallback(async (projectFiles: Recor
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Load credits when user is logged in - ALWAYS FETCH FRESH
-const loadCredits = useCallback(async () => {
-  if (!user) return;
-  
-  try {
-    const response = await fetch(`/api/credits?userId=${user.id}`, {
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache' }
-    });
-    const data = await response.json();
-    console.log("💰 Credits loaded from database:", data);
-    setCredits({
-      dailyRemaining: data.dailyRemaining,
-      monthlyRemaining: data.monthlyRemaining,
-      dailyLimit: data.dailyLimit,
-      monthlyLimit: data.monthlyLimit,
-      plan: data.plan
-    });
-  } catch (error) {
-    console.error("Failed to load credits:", error);
-  }
-}, [user]);
-
-useEffect(() => {
-  loadCredits();
-}, [loadCredits]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Show low credit warning on page load with modern styling
-useEffect(() => {
-  if (!user) return;
-  
-  if (credits.dailyRemaining === 1) {
-    toast.warning(`Only 1 Credit Remaining!`, {
-      description: `You have only 1 credit left. Upgrade to Pro for unlimited credits and advanced features.`,
-      duration: 10000,
-      position: "top-center",
-      style: {
-        background: 'linear-gradient(135deg, #1e1b4b, #2d1b69)',
-        color: '#fff',
-        border: '1px solid rgba(245, 158, 11, 0.5)',
-        borderRadius: '16px',
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-      },
-      icon: '⚠️',
-      action: {
-        label: "Upgrade Now 💎",
-        onClick: () => window.location.href = "/pricing"
-      }
-    });
-  } else if (credits.dailyRemaining >= 2 && credits.dailyRemaining <= 3 && credits.plan === 'free') {
-    toast.warning(`Low on Credits!`, {
-      description: `Only ${credits.dailyRemaining} credits left today. Upgrade to Pro for 1,000 credits/month!`,
-      duration: 8000,
-      position: "top-center",
-      style: {
-        background: 'linear-gradient(135deg, #1e1b4b, #2d1b69)',
-        color: '#fff',
-        border: '1px solid rgba(245, 158, 11, 0.5)',
-        borderRadius: '16px',
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-      },
-      icon: '⚠️',
-      action: {
-        label: "Upgrade 🚀",
-        onClick: () => window.location.href = "/pricing"
-      }
-    });
-  } else if (credits.dailyRemaining === 0 && credits.plan === 'free') {
-    toast.error(`Out of Credits!`, {
-      description: `You've used all your daily credits. Upgrade to Pro to continue building amazing websites!`,
-      duration: 10000,
-      position: "top-center",
-      style: {
-        background: 'linear-gradient(135deg, #1e1b4b, #2d1b69)',
-        color: '#fff',
-        border: '1px solid rgba(239, 68, 68, 0.5)',
-        borderRadius: '16px',
-        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-      },
-      action: {
-        label: "Upgrade Now 🚀",
-        onClick: () => window.location.href = "/pricing"
-      }
-    });
-  }
-}, [credits.dailyRemaining, credits.plan, user]);
 
 
 
@@ -1477,15 +1139,6 @@ const applyIntelligentEdit = useCallback(async () => {
     return;
   }
 
-  // Add credit check here
-  let creditsNeeded = 2;
-  if (editPrompt.length > 200) creditsNeeded = 3;
-  if (editPrompt.length > 500) creditsNeeded = 5;
-  
-  const hasCredits = await checkAndDeductCredits(creditsNeeded, "AI Edit");
-  if (!hasCredits) return;
-
-
   const currentFiles = loadedFiles || buildFiles;
   
   if (Object.keys(currentFiles).length <= 1) {
@@ -1519,14 +1172,6 @@ const applyIntelligentEdit = useCallback(async () => {
     }
     
     const result = await response.json();
-
-
-
-
-
-
-
-
     
     // ADD THIS BLOCK - Check if backend needs database URL
     if (result.needs_database_url) {
@@ -2231,62 +1876,24 @@ const generatePreview = useCallback(async () => {
 
 
 
+
+
+
+
+
 // AUTO-START Logic from URL
 useEffect(() => {
   const urlPrompt = searchParams.get("prompt");
   if (urlPrompt && !hasAutoStarted.current && !loadedFiles && !isBuilding) {
     console.log("🚀 Auto-starting build with prompt:", urlPrompt);
     setPrompt(urlPrompt);
-    
-    // Set loading state immediately so button shows spinner
-    setIsCheckingCredits(true);
-    
-    // Check credits before auto-starting
-    setTimeout(async () => {
-      let creditsNeeded = 2;
-      if (urlPrompt.length > 500) creditsNeeded = 3;
-      if (urlPrompt.length > 1000) creditsNeeded = 5;
-      
-      console.log("💰 Auto-start credits needed:", creditsNeeded);
-      console.log("💰 Calling checkAndDeductCredits for auto-start...");
-      
-      const hasCredits = await checkAndDeductCredits(creditsNeeded, "AI Generation");
-      
-      setIsCheckingCredits(false);
-      
-      if (hasCredits) {
-        console.log("🚀 Auto-starting build...");
-        startBuild(urlPrompt);
-      } else {
-        console.log("❌ No credits, auto-start cancelled");
-        // Clear the URL parameter to prevent infinite loop
-        window.history.replaceState({}, "", "/builder");
-      }
+    // Small delay to ensure component is ready
+    setTimeout(() => {
+      startBuild(urlPrompt);
     }, 100);
     hasAutoStarted.current = true;
   }
 }, [searchParams, startBuild, loadedFiles, isBuilding]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   // Handle terminal messages
   useEffect(() => {
@@ -3065,131 +2672,6 @@ if (options.platform === "vercel") {
 
 
 
-
-
-
-
-
-
-// Upgrade Modal Component - Compact Version with Better Text Visibility
-const UpgradeModal = () => {
-  if (!showUpgradeModal) return null;
-  
-  const remainingCredits = credits.dailyRemaining;
-  
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={() => setShowUpgradeModal(false)}
-      />
-      
-      {/* Modal - Compact */}
-      <div className="relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-white/10 shadow-2xl max-w-sm w-full p-5 animate-in fade-in zoom-in duration-200">
-        <button
-          onClick={() => setShowUpgradeModal(false)}
-          className="absolute top-3 right-3 text-slate-400 hover:text-white transition"
-        >
-          <X size={18} />
-        </button>
-        
-        {/* Icon */}
-        <div className="w-14 h-14 rounded-full bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center mx-auto mb-3">
-          <AlertCircle className="w-7 h-7 text-white" />
-        </div>
-        
-        {/* Title */}
-        <h3 className="text-xl font-bold text-center text-white mb-2">
-          Insufficient Credits!
-        </h3>
-        
-        {/* Credit Status - More visible */}
-        <div className="text-center mb-4">
-          <p className="text-slate-300 text-sm mb-1">You only have</p>
-          <p className="text-4xl font-bold text-red-400">{remainingCredits}</p>
-          <p className="text-slate-300 text-sm mt-1">out of 5 daily credits</p>
-        </div>
-        
-        {/* Divider */}
-        <div className="border-t border-white/10 my-3"></div>
-        
-        {/* Two Options - Side by side with better text */}
-        <div className="flex gap-3 mb-4">
-          {/* Wait Option */}
-          <div className="flex-1 bg-white/10 rounded-xl p-3 text-center hover:bg-white/15 transition-all duration-200">
-            <Clock className="w-5 h-5 text-blue-400 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-white">Wait for Reset</p>
-            <p className="text-xs text-slate-400 mt-1">Credits refresh<br />tomorrow at midnight</p>
-          </div>
-          
-          {/* Upgrade Option */}
-          <div className="flex-1 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-xl p-3 text-center border border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-200">
-            <Zap className="w-5 h-5 text-yellow-400 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-white">Upgrade to Pro</p>
-            <p className="text-xs text-cyan-400 mt-1">Get 120 credits<br />per month</p>
-          </div>
-        </div>
-        
-        {/* Price and Button */}
-        <div className="text-center mb-3">
-          <span className="text-3xl font-bold text-white">$19</span>
-          <span className="text-slate-400 text-base">/month</span>
-        </div>
-        
-        <button
-          onClick={() => {
-            setShowUpgradeModal(false);
-            window.location.href = "/pricing";
-          }}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold text-base hover:opacity-90 transition-all duration-300 shadow-lg shadow-purple-500/25"
-        >
-          Upgrade Now 🚀
-        </button>
-        
-        <button
-          onClick={() => setShowUpgradeModal(false)}
-          className="w-full py-2 text-sm text-slate-400 hover:text-white transition mt-2"
-        >
-          Maybe later
-        </button>
-      </div>
-    </div>
-  );
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   return (
 
 
@@ -3284,15 +2766,6 @@ const UpgradeModal = () => {
       </div>
     </div>
 
-
-
-
-
-
-
-
-
-
     {/* Dynamic Input Area - AI-Powered Editing - Scrollable on mobile */}
     <div className="relative flex-1 group min-w-[200px] sm:min-w-[300px]">
       {isEditMode && (loadedFiles || Object.keys(buildFiles).length > 1) ? (
@@ -3309,13 +2782,6 @@ const UpgradeModal = () => {
               onKeyDown={(e) => e.key === "Enter" && applyIntelligentEdit()}
               autoFocus
             />
-
-
-
-
-
-
-
             <Button
               onClick={applyIntelligentEdit}
               disabled={isEditingProject}
@@ -3327,22 +2793,6 @@ const UpgradeModal = () => {
                 <ArrowRight size={40} />
               )}
             </Button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            
           </div>
           <Button
             onClick={() => {
@@ -3365,143 +2815,22 @@ const UpgradeModal = () => {
             placeholder={loadedFiles ? "Click 'Edit' to modify this project with AI" : "Describe your app or what to change..."}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-
-
-
-
-
-
-            onKeyDown={async (e) => {
-  if (e.key === "Enter" && !loadedFiles) {
-    console.log("🔘 Enter key pressed");
-    
-    // Set loading state immediately
-    setIsCheckingCredits(true);
-    
-    let creditsNeeded = 2;
-    if (prompt.length > 500) creditsNeeded = 3;
-    if (prompt.length > 1000) creditsNeeded = 5;
-    
-    const hasCredits = await checkAndDeductCredits(creditsNeeded, "AI Generation");
-    
-    setIsCheckingCredits(false);
-    
-    if (hasCredits) {
-      startBuild(prompt);
-    }
-  }
-}}
-
-
-
+            onKeyDown={(e) => e.key === "Enter" && !loadedFiles && startBuild(prompt)}
             disabled={!!loadedFiles}
           />
-
-
-
-
-
-
-
-
-
-
-
-
           <Button
-  onClick={async () => {
-    console.log("🔘 Generate button clicked");
-    console.log("loadedFiles:", loadedFiles);
-    console.log("prompt length:", prompt.length);
-    
-    if (!loadedFiles) {
-      // Set loading state immediately
-      setIsCheckingCredits(true);
-      
-      let creditsNeeded = 2;
-      if (prompt.length > 500) creditsNeeded = 3;
-      if (prompt.length > 1000) creditsNeeded = 5;
-      
-      console.log("💰 Credits needed:", creditsNeeded);
-      console.log("💰 Calling checkAndDeductCredits...");
-      
-      const hasCredits = await checkAndDeductCredits(creditsNeeded, "AI Generation");
-      
-      setIsCheckingCredits(false);
-      
-      console.log("💰 Has credits:", hasCredits);
-      
-      if (hasCredits) {
-        console.log("🚀 Starting build...");
-        startBuild(prompt);
-      } else {
-        console.log("❌ No credits, build cancelled");
-      }
-    } else {
-      console.log("⚠️ loadedFiles is true, skipping generation");
-    }
-  }}
-  disabled={isBuilding || !!loadedFiles || isCheckingCredits}
-  className="absolute right-1.5 top-1.5 h-8 w-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg p-0 transition-all active:scale-90 shadow-lg shadow-purple-500/25"
->
-  {isBuilding || isCheckingCredits ? <Loader2 className="animate-spin h-4 w-4" /> : <Send size={16} />}
-</Button>
-
-
-
-
-
-
-
-
-
+            onClick={() => !loadedFiles && startBuild(prompt)}
+            disabled={isBuilding || !!loadedFiles}
+            className="absolute right-1.5 top-1.5 h-8 w-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg p-0 transition-all active:scale-90 shadow-lg shadow-purple-500/25"
+          >
+            {isBuilding ? <Loader2 className="animate-spin h-4 w-4" /> : <Send size={16} />}
+          </Button>
         </div>
       )}
     </div>
 
     {/* Header Buttons - All visible with names */}
     <div className="flex items-center gap-3 flex-shrink-0">
-
-
-
-
-
-
-
-
-
-
-
-      {/* Credits Display - Clickable */}
-{user && (
-  <button
-    onClick={() => setShowUpgradeModal(true)}
-    className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-full border border-yellow-500/20 hover:from-yellow-500/20 hover:to-orange-500/20 transition-all duration-200 cursor-pointer group"
-  >
-    <Zap className="w-4 h-4 text-yellow-400 group-hover:scale-110 transition-transform" />
-    <div className="flex flex-col">
-      <span className="text-xs font-medium text-white">
-        {credits.dailyRemaining}/{credits.dailyLimit}
-      </span>
-      <span className="text-[9px] text-slate-400">{credits.plan}</span>
-    </div>
-    <div className="w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center ml-1">
-      <span className="text-[10px] text-yellow-400">↑</span>
-    </div>
-  </button>
-)}
-
-
-
-
-
-
-
-
-
-
-
-
       {(loadedFiles || Object.keys(buildFiles).length > 1) && !isEditMode && (
         <Button
           onClick={() => setIsEditMode(true)}
@@ -3816,7 +3145,7 @@ const UpgradeModal = () => {
 
 
     
-
+    
 
     {/* Main Stage */}
     <section className={`flex-1 bg-black/40 flex flex-col relative ${isMobile ? (viewMode === "code" ? 'mobile-code-view' : 'mobile-preview') : ''}`}>
@@ -4031,10 +3360,6 @@ const UpgradeModal = () => {
     </div>
   )}
 
-
-
-
-
   {/* Wave animation keyframes */}
   <style jsx>{`
     @keyframes wave {
@@ -4043,16 +3368,6 @@ const UpgradeModal = () => {
     }
   `}</style>
 
-  {/* Upgrade Modal */}
-  <UpgradeModal />
-
 </div>
-
-
-
-
-
-
-
   );
 }
