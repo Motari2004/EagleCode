@@ -568,13 +568,12 @@ const setupWebSocket = useCallback((prompt: string): Promise<WebSocket> => {
 
 const getWebSocketUrl = () => {
   if (isProduction) {
-    // Use wss:// for Render.com (supports WebSockets)
-    return 'wss://eaglecode2-1.onrender.com/ws/build';  // ✅ CORRECT - added "-1"
+    // Use the CORRECT backend URL (without -1)
+    return 'wss://eaglecode2.onrender.com/ws/build';
   }
   // Local development
   return 'ws://localhost:8000/ws/build';
 };
-    
 
 
 
