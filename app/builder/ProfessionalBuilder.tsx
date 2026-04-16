@@ -284,7 +284,31 @@ const [isProcessingAuth, setIsProcessingAuth] = useState(false);
   // =============================================
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1277,23 +1301,6 @@ useEffect(() => {
 
 
 
-
-
-  // Restore last project on startup
-  useEffect(() => {
-    if (mounted && savedProjects.length > 0 && !loadedFiles && Object.keys(buildFiles).length <= 1 && !isBuilding && !isLoadingProject) {
-      const lastProject = savedProjects[0];
-      if (lastProject && Object.keys(lastProject.files).length > 0) {
-        toast.info(`Last project: "${lastProject.name}"`, {
-          duration: 5000,
-          action: {
-            label: "Restore",
-            onClick: () => loadProjectDirectly(lastProject)
-          }
-        });
-      }
-    }
-  }, [mounted, savedProjects, loadedFiles, buildFiles, isBuilding, isLoadingProject]);
 
 
 
