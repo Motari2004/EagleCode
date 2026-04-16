@@ -34,7 +34,13 @@ export default function OAuthCallbackContent() {
     if (hasRedirected.current) return;
     hasRedirected.current = true;
     cleanup();
-    router.push(path);
+    
+    // Use window.location for home redirect (more reliable on Vercel)
+    if (path === "/") {
+      window.location.href = path;
+    } else {
+      router.push(path);
+    }
   }, [router, cleanup]);
 
   useEffect(() => {
@@ -120,9 +126,12 @@ export default function OAuthCallbackContent() {
       }
       
       setStatus("success");
-      redirectTimeoutRef.current = setTimeout(() => {
-        handleRedirect("/");
-      }, 2000);
+      
+      // Use window.location for more reliable redirect on Vercel
+      setTimeout(() => {
+        console.log("🔀 Redirecting to home page");
+        window.location.href = "/";
+      }, 1500);
     } else if (!error && !token && !hasProcessed.current) {
       hasProcessed.current = true;
       setStatus("error");
@@ -156,6 +165,9 @@ export default function OAuthCallbackContent() {
           <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-white mb-2">Successfully Signed In!</h2>
           <p className="text-sm text-slate-400">Redirecting you to EagleCode...</p>
+          <div className="mt-4">
+            <Loader2 className="w-6 h-6 animate-spin text-cyan-400 mx-auto" />
+          </div>
         </div>
       </div>
     );
