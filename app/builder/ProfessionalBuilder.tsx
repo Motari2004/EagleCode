@@ -547,10 +547,13 @@ const checkAndDeductCredits = async (creditsToDeduct: number, action: string) =>
         icon: '✅',
       });
       
-      if (deductData.dailyRemaining === 0) {
-        setShowUpgradeModal(true);
-      }
-      
+
+
+
+
+
+
+
       return true;
     } else {
       toast.error("Failed to deduct credits", {
@@ -1046,17 +1049,12 @@ useEffect(() => {
 
 
 
-
-
-
-// Show low credit warning on page load - ONLY after credits are loaded
+// Show low credit warning on page load - ONLY toast, NO modal
 useEffect(() => {
-  // Don't show modal if credits are still loading (dailyLimit is 0 means not loaded yet)
-  if (!user || credits.dailyLimit === 0) return;
+  if (!user || credits.dailyLimit === 0 || isBuilding) return;
   
-  if (credits.dailyRemaining === 1) {
-    setShowUpgradeModal(true);
-  } else if (credits.dailyRemaining >= 2 && credits.dailyRemaining <= 3 && credits.plan === 'free') {
+  // Only show toast warnings for low credits (2-3 credits left)
+  if (credits.dailyRemaining >= 2 && credits.dailyRemaining <= 3 && credits.plan === 'free') {
     toast.warning(`⚠️ Low on credits! Only ${credits.dailyRemaining} credits left today.`, {
       duration: 5000,
       position: "top-center",
@@ -1071,11 +1069,10 @@ useEffect(() => {
         onClick: () => window.location.href = "/pricing"
       }
     });
-  } else if (credits.dailyRemaining === 0 && credits.plan === 'free') {
-    setShowUpgradeModal(true);
   }
-}, [credits.dailyRemaining, credits.plan, credits.dailyLimit, user]);
-
+  
+  // REMOVE any setShowUpgradeModal calls from here
+}, [credits.dailyRemaining, credits.plan, credits.dailyLimit, user, isBuilding]);
 
 
 
