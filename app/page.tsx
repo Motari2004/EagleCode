@@ -269,8 +269,20 @@ const faqItems = [
 
 
 
+
 const loadSavedProjects = async () => {
   console.log("🔵 Starting loadSavedProjects...");
+  
+  // Get the auth token
+  const token = localStorage.getItem("eaglecode_token");
+  
+  // If no token, user is not logged in - don't fetch projects
+  if (!token) {
+    console.log("⚠️ No token found, user not logged in");
+    setSavedProjects([]);
+    setIsLoadingProjects(false);
+    return;
+  }
   
   // Check cache first
   const cached = getFromCache();
@@ -285,8 +297,13 @@ const loadSavedProjects = async () => {
   setIsLoadingProjects(true);
   
   try {
-    // Change limit from 100 to 5
-    const response = await fetch(`${API_URL}/api/get-projects?user_id=default&limit=11`);
+    // Remove user_id query param - backend will get user from token
+    const response = await fetch(`${API_URL}/api/get-projects`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
     console.log("📡 Response status:", response.status);
     
     if (!response.ok) {
@@ -311,7 +328,7 @@ const loadSavedProjects = async () => {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
       
-      console.log(`✅ Loaded ${sortedProjects.length} projects (limited to 5)`);
+      console.log(`✅ Loaded ${sortedProjects.length} projects`);
       saveToCache(sortedProjects);
       setSavedProjects(sortedProjects);
     } else {
@@ -326,6 +343,20 @@ const loadSavedProjects = async () => {
     setIsLoadingProjects(false);
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

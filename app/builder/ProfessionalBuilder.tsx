@@ -764,15 +764,27 @@ const clearOldProjects = () => {
 
 
 
-// ========== DATABASE API FUNCTIONS ==========
 
+
+
+
+
+
+
+
+// ========== DATABASE API FUNCTIONS ==========
 const saveProjectToDatabase = async (project: SavedProject) => {
   try {
     console.log("💾 Saving to database:", project.name);
     
-      const response = await fetch(`${BACKEND_URL}/api/save-project`, {  // ✅ Updated
+    const token = localStorage.getItem("eaglecode_token");
+    
+    const response = await fetch(`${BACKEND_URL}/api/save-project`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify(project)
     });
     
@@ -790,12 +802,49 @@ const saveProjectToDatabase = async (project: SavedProject) => {
   }
 };
 
+
+
+
+
+
+
+
+
+
+
 const loadProjectsFromDatabase = async () => {
   try {
     console.log("📚 Loading projects from database...");
     
-        const response = await fetch(`${BACKEND_URL}/api/get-projects`);  // ✅ Updated
+    // Get the auth token
+    const token = localStorage.getItem("eaglecode_token");
+    
+    // If no token, user is not logged in - don't try to load projects
+    if (!token) {
+      console.log("⚠️ No token found, user not logged in");
+      setSavedProjects([]);
+      savedProjectsRef.current = [];
+      return [];
+    }
+    
+    console.log("🔑 Token found, loading projects...");
+    
+    const response = await fetch(`${BACKEND_URL}/api/get-projects`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log("📡 Response status:", response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const result = await response.json();
+    console.log("📊 Projects response:", result);
     
     if (result.success && result.projects) {
       const sorted = result.projects.sort((a: SavedProject, b: SavedProject) =>
@@ -805,17 +854,42 @@ const loadProjectsFromDatabase = async () => {
       savedProjectsRef.current = sorted;
       console.log(`✅ Loaded ${sorted.length} projects from database`);
       return sorted;
+    } else {
+      console.log("No projects found or request failed");
+      setSavedProjects([]);
+      savedProjectsRef.current = [];
+      return [];
     }
   } catch (error) {
-    console.error("Failed to load projects from database:", error);
+    console.error("❌ Failed to load projects from database:", error);
+    setSavedProjects([]);
+    savedProjectsRef.current = [];
+    return [];
   }
-  return [];
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const deleteProjectFromDatabase = async (projectId: string) => {
   try {
-        const response = await fetch(`${BACKEND_URL}/api/delete-project/${projectId}`, {  // ✅ Updated
+    const token = localStorage.getItem("eaglecode_token");
+    
+    const response = await fetch(`${BACKEND_URL}/api/delete-project/${projectId}`, {
       method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     });
     
     const result = await response.json();
@@ -825,11 +899,6 @@ const deleteProjectFromDatabase = async (projectId: string) => {
     return false;
   }
 };
-
-
-
-
-
 
 
 
@@ -987,6 +1056,25 @@ useEffect(() => {
 
 
 
+
+
+
+
+
+
+
+
+// Load projects from database when user is logged in
+useEffect(() => {
+  if (user && user.id) {
+    console.log("👤 User logged in, loading projects...");
+    loadProjectsFromDatabase();
+  } else {
+    console.log("👤 No user logged in, clearing projects");
+    setSavedProjects([]);
+    savedProjectsRef.current = [];
+  }
+}, [user]); // Only run when user changes
 
 
 
@@ -1309,46 +1397,50 @@ useEffect(() => {
 
 
 
-// Replace your loadProjectDirectly function with this improved version
-const loadProjectDirectly = useCallback((project: SavedProject) => {
+
+
+
+
+
+const loadProjectDirectly = useCallback(async (project: SavedProject) => {
   setIsLoadingProject(true);
   setShowPreviewDelayed(false);
   
-  // Don't modify the timestamp when loading - keep original timestamp
-  setLoadedFiles(project.files);
-  setPrompt(project.prompt || "");
-  setCurrentProjectName(project.name);
-  
-  const fileKeys = Object.keys(project.files);
-  if (fileKeys.length > 0) {
-    const firstFile = fileKeys.find(f => f !== "preview_html") || fileKeys[0];
-    setActiveFile(firstFile);
-  }
-  
-  setViewMode("preview");
-  
-  // Check if we have a saved preview HTML
-  if (project.preview_html) {
-    const updatedFiles = { ...project.files };
-    updatedFiles.preview_html = project.preview_html;
-    setLoadedFiles(updatedFiles);
-    console.log("✅ Using saved preview - instant load!");
+  try {
+    const token = localStorage.getItem("eaglecode_token");
     
-    setShowPreviewDelayed(true);
-    setPreviewKey(Date.now());
+    const response = await fetch(`${BACKEND_URL}/api/get-project/${project.id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     
-    setTimeout(() => {
-      setIsLoadingProject(false);
-      setIsEditMode(false);
-      setEditPrompt("");
-      toast.success(`Loaded "${project.name}" instantly!`, { duration: 3000 });
-    }, 100);
-  } else {
-    // fallback code...
-    setTimeout(() => {
-      setIsLoadingProject(false);
-      setShowPreviewDelayed(true);
-    }, 500);
+    const data = await response.json();
+    
+    if (data.success) {
+      setLoadedFiles(data.files);
+      setPrompt(data.project.prompt || "");
+      setCurrentProjectName(data.project.name);
+      
+      const fileKeys = Object.keys(data.files);
+      if (fileKeys.length > 0) {
+        const firstFile = fileKeys.find(f => f !== "preview_html") || fileKeys[0];
+        setActiveFile(firstFile);
+      }
+      
+      setViewMode("preview");
+      
+      if (data.project.preview_html) {
+        setShowPreviewDelayed(true);
+        setPreviewKey(Date.now());
+        toast.success(`Loaded "${data.project.name}"!`, { duration: 3000 });
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load project:", error);
+    toast.error("Failed to load project");
+  } finally {
+    setIsLoadingProject(false);
   }
 }, []);
 
@@ -1764,6 +1856,11 @@ const currentBuildId = useMemo(() => {
 
 
 
+
+
+
+
+
 const silentSaveToDatabase = useCallback(async () => {
   console.log("🔵 ========== AUTO-SAVE START ==========");
   console.log("🔵 Current isAutoSaving:", isAutoSaving);
@@ -1847,10 +1944,16 @@ const silentSaveToDatabase = useCallback(async () => {
       timestamp: new Date().toISOString()
     };
     
-    // Send to backend
-      const response = await fetch(`${BACKEND_URL}/api/save-project`, {  // ✅ Updated
+    // ========== ADD TOKEN HERE ==========
+    const token = localStorage.getItem("eaglecode_token");
+    
+    // Send to backend with Authorization header
+    const response = await fetch(`${BACKEND_URL}/api/save-project`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify(projectToSave)
     });
     
@@ -1861,7 +1964,7 @@ const silentSaveToDatabase = useCallback(async () => {
       
       // Mark this build as saved AND update throttle time
       lastSavedBuildId.current = currentBuildId;
-      setLastSaveTime(new Date());  // ← Update throttle time immediately
+      setLastSaveTime(new Date());
       setCurrentProjectName(actualProjectName);
       
       // Update saved projects list with the new/updated project

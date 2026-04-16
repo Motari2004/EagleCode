@@ -1,41 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { neon } from "@neondatabase/serverless";
 
-// This must be at the top level, outside any function
-export const dynamic = 'force-dynamic';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
 export async function POST(request: NextRequest) {
   const { userId, plan } = await request.json();
-
+  
   // Only allow in development
   if (process.env.NODE_ENV !== 'development') {
     return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   }
-
-  // Validate plan
+  
   const validPlans = ['free', 'pro', 'business'];
   if (!validPlans.includes(plan)) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
-
-  // Create Neon connection inside the handler
-  if (!process.env.DATABASE_URL) {
-    console.error("DATABASE_URL environment variable is not set");
-    return NextResponse.json({ error: "Database configuration error" }, { status: 500 });
-  }
-
-  const sql = neon(process.env.DATABASE_URL);
-
+  
   try {
-    await sql`
-      UPDATE user_credits
-      SET plan = ${plan}, updated_at = CURRENT_TIMESTAMP
-      WHERE user_id = ${userId}
-    `;
-
-    return NextResponse.json({ success: true, plan });
+    const response = await fetch(`${BACKEND_URL}/api/admin/upgrade`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, plan })
+    });
+    
+    const data = await response.json();
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("Failed to upgrade user:", error);
-    return NextResponse.json({ error: "Database error" }, { status: 500 });
+    console.error("Upgrade error:", error);
+    return NextResponse.json({ error: "Failed to upgrade user" }, { status: 500 });
   }
 }
