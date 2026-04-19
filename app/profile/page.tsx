@@ -6,41 +6,120 @@ import { useUser } from "@/contexts/UserContext";
 import {
   User, Mail, Calendar, Settings, LogOut, Shield, Star, Code2,
   FolderGit2, Award, Clock, Edit3, Save, X, CheckCircle2, Loader2,
-  Sparkles, Rocket, Home
+  Sparkles, Rocket, Home, Zap, TrendingUp, Gift, CreditCard, Zap as ZapIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
   const { user, logout, token } = useUser();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [username, setUsername] = useState("");
+  const [credits, setCredits] = useState({
+    dailyRemaining: 0,
+    monthlyRemaining: 0,
+    dailyLimit: 5,
+    monthlyLimit: 30,
+    plan: 'free',
+    isLoading: true
+  });
   const [stats, setStats] = useState({
     projectsCreated: 0,
-    filesGenerated: 0,
-    memberSince: "",
-    aiEdits: 0
+    memberSince: ""
   });
 
   useEffect(() => {
     if (!user && !token) {
       router.push("/signin");
+      return;
     }
     if (user) {
-      loadUserStats();
+      setUsername(user.name || "");
+      loadCredits();
+      loadStats();
     }
   }, [user, token, router]);
 
-  const loadUserStats = () => {
-    // Load stats from localStorage
-    const projects = localStorage.getItem("scorpioSavedProjects");
-    const projectCount = projects ? JSON.parse(projects).length : 0;
+  const loadCredits = async () => {
+  try {
+    console.log("Loading credits for user:", user?.id);
+    const authToken = localStorage.getItem("eaglecode_token");
     
-    setStats({
-      projectsCreated: projectCount,
-      filesGenerated: projectCount * 12,
-      memberSince: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
-      aiEdits: Math.floor(Math.random() * 50) + 10
+    // CHANGE: Use "user_id" instead of "userId"
+    const response = await fetch(`http://localhost:8000/api/credits?user_id=${user?.id}`, {
+      headers: { 
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      }
     });
+    
+    console.log("Credits response status:", response.status);
+    const data = await response.json();
+    console.log("Credits data:", data);
+    
+    if (response.ok && data.success !== false) {
+      setCredits({
+        dailyRemaining: data.dailyRemaining ?? 0,
+        monthlyRemaining: data.monthlyRemaining ?? 0,
+        dailyLimit: data.dailyLimit ?? 5,
+        monthlyLimit: data.monthlyLimit ?? 30,
+        plan: data.plan ?? 'free',
+        isLoading: false
+      });
+    } else {
+      console.error("Failed to load credits:", data);
+      setCredits(prev => ({ ...prev, isLoading: false }));
+    }
+  } catch (error) {
+    console.error("Failed to load credits:", error);
+    setCredits(prev => ({ ...prev, isLoading: false }));
+  }
+};
+
+  const loadStats = async () => {
+    try {
+      const authToken = localStorage.getItem("eaglecode_token");
+      const response = await fetch("http://localhost:8000/api/get-projects?limit=100", {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const data = await response.json();
+      
+      const projects = data.projects || [];
+      setStats({
+        projectsCreated: projects.length,
+        memberSince: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })
+      });
+    } catch (error) {
+      console.error("Failed to load stats:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateUsername = async () => {
+    setIsEditing(false);
+    toast.success("Username updated!", { duration: 2000 });
+  };
+
+  const getPlanColor = () => {
+    switch (credits.plan) {
+      case 'free': return 'from-slate-500 to-slate-600';
+      case 'pro': return 'from-cyan-500 to-blue-500';
+      case 'business': return 'from-purple-500 to-pink-500';
+      default: return 'from-cyan-500 to-purple-500';
+    }
+  };
+
+  const getPlanName = () => {
+    switch (credits.plan) {
+      case 'free': return 'Free';
+      case 'pro': return 'Pro';
+      case 'business': return 'Business';
+      default: return credits.plan || 'Free';
+    }
   };
 
   if (!user) {
@@ -55,184 +134,233 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-[#050507] via-[#0f0f1a] to-[#1a1429]">
       
-      {/* Background Pattern */}
+      {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3Cpattern%20id%3D%22grid%22%20width%3D%2260%22%20height%3D%2260%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath%20d%3D%22M%2060%200%20L%200%200%200%2060%22%20fill%3D%22none%22%20stroke%3D%22rgba(0%2C255%2C255%2C0.03)%22%20stroke-width%3D%221%22%2F%3E%3C%2Fpattern%3E%3C%2Fdefs%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22url(%23grid)%22%2F%3E%3C%2Fsvg%3E')] opacity-30" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      {/* Header */}
-      <header className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
-        <div className="container mx-auto px-6 h-14 flex items-center justify-between">
-          <button 
-            onClick={() => router.push("/")}
-            className="flex items-center gap-2 hover:opacity-80 transition"
-          >
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
-              🦅
-            </div>
-            <span className="font-bold text-sm tracking-tight">Eagle<span className="text-amber-500">Code</span></span>
-          </button>
+
+
+{/* Header */}
+<header className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
+  <div className="container mx-auto px-6 h-14 flex items-center justify-between">
+    <button 
+      onClick={() => router.push("/")}
+      className="flex items-center gap-2 hover:opacity-80 transition group"
+    >
+      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition">
+        🦅
+      </div>
+      <span className="font-bold text-sm tracking-tight">
+        <span className="text-white">Eagle</span>
+        <span className="text-amber-500">Code</span>
+      </span>
+    </button>
           
-          <Button
-            onClick={logout}
-            variant="outline"
-            size="sm"
-            className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
+
+
+
+<Button
+  onClick={logout}
+  variant="outline"
+  size="sm"
+  className="border-red-500/40 bg-red-500/5 hover:bg-red-500/15 hover:border-red-500/60 text-red-400 font-medium rounded-lg px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 group"
+>
+  <LogOut className="w-3.5 h-3.5 mr-1.5 group-hover:rotate-12 transition-transform duration-300" />
+  Sign Out
+</Button>
+
+
+
+
+
         </div>
       </header>
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-12 relative z-10">
         
-        {/* Profile Header Card */}
         <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
-            
-            {/* Cover Image */}
-            <div className="h-32 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 relative">
-              <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3Cpattern%20id%3D%22grid%22%20width%3D%2260%22%20height%3D%2260%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath%20d%3D%22M%2060%200%20L%200%200%200%2060%22%20fill%3D%22none%22%20stroke%3D%22rgba(0%2C255%2C255%2C0.05)%22%20stroke-width%3D%221%22%2F%3E%3C%2Fpattern%3E%3C%2Fdefs%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22url(%23grid)%22%2F%3E%3C%2Fsvg%3E')] opacity-30" />
+          
+          {/* Loading State */}
+          {isLoading || credits.isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
             </div>
-            
-            {/* Profile Info */}
-            <div className="px-8 pb-8 relative">
-              {/* Avatar */}
-              <div className="flex justify-between items-start">
-                <div className="-mt-16">
-                  {user.picture ? (
-                    <img
-                      src={user.picture}
-                      alt={user.name}
-                      className="w-28 h-28 rounded-2xl ring-4 ring-cyan-500/30 shadow-2xl object-cover"
-                    />
-                  ) : (
-                    <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center shadow-2xl">
-                      <User className="w-12 h-12 text-white" />
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Name and Email */}
-              <div className="mt-6">
-                <h1 className="text-3xl font-bold text-white">{user.name}</h1>
+          ) : (
+            <>
+              {/* Profile Header Card */}
+              <div className="bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
                 
-                <div className="flex items-center gap-2 mt-2 text-slate-400">
-                  <Mail className="w-4 h-4" />
-                  <span>{user.email}</span>
+                {/* Cover Image */}
+                <div className="h-32 bg-gradient-to-r from-cyan-500/30 via-purple-500/30 to-pink-500/30 relative">
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3Cpattern%20id%3D%22grid%22%20width%3D%2260%22%20height%3D%2260%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath%20d%3D%22M%2060%200%20L%200%200%200%2060%22%20fill%3D%22none%22%20stroke%3D%22rgba(255%2C255%2C255%2C0.05)%22%20stroke-width%3D%221%22%2F%3E%3C%2Fpattern%3E%3C%2Fdefs%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22url(%23grid)%22%2F%3E%3C%2Fsvg%3E')] opacity-30" />
+                  <div className="absolute -bottom-10 left-8">
+                    {user.picture ? (
+                      <img
+                        src={user.picture}
+                        alt={user.name}
+                        className="w-28 h-28 rounded-2xl ring-4 ring-cyan-500/30 shadow-2xl object-cover bg-slate-800"
+                      />
+                    ) : (
+                      <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center shadow-2xl ring-4 ring-cyan-500/30">
+                        <User className="w-12 h-12 text-white" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Profile Info */}
+                <div className="px-8 pb-8 pt-14">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      {isEditing ? (
+                        <div className="flex items-center gap-3">
+                          <Input
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="bg-white/10 border-white/20 text-white text-xl font-bold h-12 w-64"
+                            autoFocus
+                          />
+                          <button
+                            onClick={handleUpdateUsername}
+                            className="p-2 bg-green-500/20 rounded-lg hover:bg-green-500/30 transition"
+                          >
+                            <Save className="w-4 h-4 text-green-400" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setIsEditing(false);
+                              setUsername(user.name || "");
+                            }}
+                            className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition"
+                          >
+                            <X className="w-4 h-4 text-red-400" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3">
+                          <h1 className="text-3xl font-bold text-white">{user.name}</h1>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-2 mt-2 text-slate-400">
+                        <Mail className="w-4 h-4" />
+                        <span className="text-sm">{user.email}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Plan Badge */}
+                    <div className={`bg-gradient-to-r ${getPlanColor()} px-3 py-1.5 rounded-full shadow-lg`}>
+                      <div className="flex items-center gap-1">
+                        <ZapIcon className="w-3 h-3 text-white" />
+                        <span className="text-xs font-medium text-white uppercase">{getPlanName()}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Credits Section - Shows USED credits */}
+<div className="mt-6 grid grid-cols-2 gap-4">
+  <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-xl p-4 border border-yellow-500/20">
+    <div className="flex items-center gap-2 mb-2">
+      <ZapIcon className="w-4 h-4 text-yellow-400" />
+      <span className="text-xs text-slate-400">Daily Credits</span>
+    </div>
+    <p className="text-2xl font-bold text-white">
+      {credits.dailyLimit - credits.dailyRemaining}/{credits.dailyLimit}
+    </p>
+    <p className="text-[10px] text-slate-500 mt-1">{credits.dailyRemaining} remaining today</p>
+  </div>
+  
+  <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/20">
+    <div className="flex items-center gap-2 mb-2">
+      <Calendar className="w-4 h-4 text-purple-400" />
+      <span className="text-xs text-slate-400">Monthly Credits</span>
+    </div>
+    <p className="text-2xl font-bold text-white">
+      {credits.monthlyLimit - credits.monthlyRemaining}/{credits.monthlyLimit}
+    </p>
+    <p className="text-[10px] text-slate-500 mt-1">{credits.monthlyRemaining} remaining this month</p>
+  </div>
+</div>
+                  
+                  {/* Simple Stats */}
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="bg-white/5 rounded-xl p-3 text-center">
+                      <FolderGit2 className="w-5 h-5 text-cyan-400 mx-auto mb-1" />
+                      <p className="text-xl font-bold text-white">{stats.projectsCreated}</p>
+                      <p className="text-[10px] text-slate-400">Projects</p>
+                    </div>
+                    <div className="bg-white/5 rounded-xl p-3 text-center">
+                      <Calendar className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
+                      <p className="text-xs font-bold text-white">{stats.memberSince}</p>
+                      <p className="text-[10px] text-slate-400">Member Since</p>
+                    </div>
+                  </div>
                 </div>
               </div>
               
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                <div className="bg-white/5 rounded-xl p-4 text-center border border-white/5">
-                  <FolderGit2 className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-white">{stats.projectsCreated}</p>
-                  <p className="text-xs text-slate-400">Projects</p>
+              {/* Account Settings Card */}
+              <div className="mt-6 bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
+                    <Settings className="w-5 h-5 text-cyan-400" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-white">Account Settings</h2>
                 </div>
-                <div className="bg-white/5 rounded-xl p-4 text-center border border-white/5">
-                  <Code2 className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-white">{stats.filesGenerated.toLocaleString()}</p>
-                  <p className="text-xs text-slate-400">Files Generated</p>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-2 border-b border-white/5">
+                    <span className="text-sm text-slate-400">Email Verification</span>
+                    <span className="text-xs px-2 py-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 rounded-full flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" /> Verified
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm text-slate-400">Current Plan</span>
+                    <span className={`text-xs px-3 py-1 bg-gradient-to-r ${getPlanColor()} text-white rounded-full font-medium uppercase`}>
+                      {getPlanName()}
+                    </span>
+                  </div>
                 </div>
-                <div className="bg-white/5 rounded-xl p-4 text-center border border-white/5">
-                  <Award className="w-6 h-6 text-amber-400 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-white">{stats.aiEdits}</p>
-                  <p className="text-xs text-slate-400">AI Edits</p>
-                </div>
-                <div className="bg-white/5 rounded-xl p-4 text-center border border-white/5">
-                  <Calendar className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-white">{stats.memberSince}</p>
-                  <p className="text-xs text-slate-400">Member Since</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Additional Sections */}
-          <div className="grid md:grid-cols-2 gap-6 mt-6">
-            
-            {/* Account Settings Card */}
-            <div className="bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                  <Settings className="w-5 h-5 text-cyan-400" />
-                </div>
-                <h2 className="text-lg font-semibold text-white">Account Settings</h2>
               </div>
               
-              <div className="space-y-3">
-                <div className="flex items-center justify-between py-2 border-b border-white/5">
-                  <span className="text-sm text-slate-400">Email Verification</span>
-                  <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded-full">Verified</span>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-white/5">
-                  <span className="text-sm text-slate-400">Account Type</span>
-                  <span className="text-xs px-2 py-1 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full">Premium</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm text-slate-400">2-Factor Auth</span>
-                  <button className="text-xs text-cyan-400 hover:text-cyan-300">Enable</button>
-                </div>
-              </div>
-            </div>
-            
-            {/* Activity Card */}
-            <div className="bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                  <Star className="w-5 h-5 text-purple-400" />
-                </div>
-                <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
+              
+
+
+              
+                                          {/* Upgrade Button */}
+              <div className="mt-6 flex justify-center">
+                <Button
+                  onClick={() => router.push("/pricing")}
+                  className="px-9 py-4.5 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/25"
+                >
+                  <Rocket className="w-4 h-4 mr-2" />
+                  Upgrade Plan
+                </Button>
               </div>
               
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 py-2">
-                  <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center">
-                    <Code2 className="w-4 h-4 text-cyan-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-white">Created new project</p>
-                    <p className="text-xs text-slate-500">2 hours ago</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 py-2">
-                  <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-purple-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-white">Used AI Edit feature</p>
-                    <p className="text-xs text-slate-500">Yesterday</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 py-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                    <Rocket className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-white">Deployed project to Vercel</p>
-                    <p className="text-xs text-slate-500">3 days ago</p>
-                  </div>
-                </div>
+              {/* Back to Home Button */}
+              <div className="mt-3 flex justify-center">
+                <Button
+                  onClick={() => router.push("/")}
+                  variant="outline"
+                  className="px-6 py-2.5 border-white/20 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl transition-all duration-300"
+                >
+                  <Home className="w-4 h-4 mr-2" />
+                  Back Home
+                </Button>
               </div>
-            </div>
-          </div>
-          
-          {/* Back to Landing Page Button */}
-          <div className="mt-8 text-center">
-            <Button
-              onClick={() => router.push("/")}
-              className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:opacity-90"
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </div>
+
+
+
+
+            </>
+          )}
         </div>
       </main>
     </div>

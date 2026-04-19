@@ -403,7 +403,7 @@ const isSavingRef = useRef(false);
 const [isMobile, setIsMobile] = useState(false);
 
 
-const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
+
 
 
 
@@ -2325,26 +2325,8 @@ const isVercel = typeof window !== 'undefined' &&
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const generatePreview = useCallback(async () => {
   if (Object.keys(files).length <= 1) return;
-
-  // Add loading state
-  setIsGeneratingPreview(true);
 
   try {
     // Always use production backend
@@ -2352,6 +2334,12 @@ const generatePreview = useCallback(async () => {
     
     console.log(`📡 Generating preview using endpoint: ${endpoint}`);
 
+
+
+
+
+
+    
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2385,11 +2373,10 @@ const generatePreview = useCallback(async () => {
   } catch (error) {
     console.error("Preview generation failed:", error);
     toast.error("Failed to generate preview");
-  } finally {
-    // Hide loading state
-    setIsGeneratingPreview(false);
   }
 }, [files, currentProjectName, prompt, loadedFiles, setBuildFiles, isVercel]);
+
+
 
 
 
@@ -4189,97 +4176,38 @@ const CreditsInfoModal = () => {
             </div>
           </div>
 
-
-
-
-
-
-
-<div className="flex-1 relative overflow-hidden bg-[#020617]">
-  {/* Preview Generation Loading */}
-  {isGeneratingPreview && (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#020617] via-purple-900/20 to-[#020617] z-50">
-      <div className="relative z-20 flex flex-col items-center">
-        <div className="mb-4 flex items-end justify-center gap-1.5 h-16">
-          {[...Array(5)].map((_, i) => (
-            <div 
-              key={i} 
-              className="w-2 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full animate-pulse" 
-              style={{ 
-                height: '30px', 
-                animation: `wave 1.2s ease-in-out infinite`,
-                animationDelay: `${i * 0.1}s`
-              }} 
-            />
-          ))}
-        </div>
-        <h3 className="text-white font-bold text-xl mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Generating Preview
-        </h3>
-        <p className="text-slate-400 text-sm">Creating interactive preview...</p>
-      </div>
-    </div>
-  )}
-
-  {/* Loading State for Build */}
-  {(isBuilding || (!rawPreviewHtml && !loadedFiles) || (loadedFiles && !showPreviewDelayed)) && !isGeneratingPreview && (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#020617] via-purple-900/20 to-[#020617] z-40 overflow-hidden">
-      <div className="relative z-20 flex flex-col items-center">
-        {isBuilding ? (
-          <>
-            <div className="mb-8 flex items-end justify-center gap-1.5 h-20">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="w-2 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full" style={{ height: '40px', animation: `wave 1.2s ease-in-out infinite`, animationDelay: `${i * 0.1}s` }} />
-              ))}
-            </div>
-            <h3 className="text-white font-bold text-2xl mb-3 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Generating your website
-            </h3>
-          </>
-        ) : loadedFiles && !showPreviewDelayed ? (
-          <>
-            <div className="mb-8 flex items-end justify-center gap-1.5 h-20">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="w-2 bg-gradient-to-t from-cyan-500 to-blue-500 rounded-full" style={{ height: '40px', animation: `wave 1.2s ease-in-out infinite`, animationDelay: `${i * 0.1}s` }} />
-              ))}
-            </div>
-            <h3 className="text-white font-bold text-2xl mb-3 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              Loading Your Project
-            </h3>
-            <p className="text-slate-400 text-sm">Preparing your preview...</p>
-          </>
-        ) : null}
-      </div>
-    </div>
-  )}
-
-  {/* Preview iframe */}
-  {previewUrl && !isBuilding && showPreviewDelayed && !isGeneratingPreview && (
-    <iframe
-      key={previewKey}
-      ref={iframeRef}
-      src={previewUrl}
-      className="w-full h-full border-0 bg-[#020617] animate-in fade-in duration-700"
-      loading="eager"
-      sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-popups-to-escape-sandbox"
-      title="Preview"
-      onLoad={() => {
-        setPreviewError(null);
-        try {
-          const iframeWindow = iframeRef.current?.contentWindow;
-          if (iframeWindow) {
-            setTimeout(() => {
-              iframeWindow.postMessage({ type: 'PREVIEW_READY', path: window.location.pathname }, '*');
-            }, 100);
-          }
-        } catch (err) {
-          console.warn("Could not notify parent:", err);
-        }
-      }}
-      onError={() => setPreviewError("Failed to load preview")}
-    />
-  )}
-</div>
+          <div className="flex-1 relative overflow-hidden bg-[#020617]">
+            {/* Loading State */}
+            {(isBuilding || (!rawPreviewHtml && !loadedFiles) || (loadedFiles && !showPreviewDelayed)) && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#020617] via-purple-900/20 to-[#020617] z-40 overflow-hidden">
+                <div className="relative z-20 flex flex-col items-center">
+                  {isBuilding ? (
+                    <>
+                      <div className="mb-8 flex items-end justify-center gap-1.5 h-20">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="w-2 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full" style={{ height: '40px', animation: `wave 1.2s ease-in-out infinite`, animationDelay: `${i * 0.1}s` }} />
+                        ))}
+                      </div>
+                      <h3 className="text-white font-bold text-2xl mb-3 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        Generating your website
+                      </h3>
+                    </>
+                  ) : loadedFiles && !showPreviewDelayed ? (
+                    <>
+                      <div className="mb-8 flex items-end justify-center gap-1.5 h-20">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="w-2 bg-gradient-to-t from-cyan-500 to-blue-500 rounded-full" style={{ height: '40px', animation: `wave 1.2s ease-in-out infinite`, animationDelay: `${i * 0.1}s` }} />
+                        ))}
+                      </div>
+                      <h3 className="text-white font-bold text-2xl mb-3 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                        Loading Your Project
+                      </h3>
+                      <p className="text-slate-400 text-sm">Preparing your preview...</p>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            )}
 
 
 
@@ -4290,10 +4218,33 @@ const CreditsInfoModal = () => {
 
 
 
-
-
-
-
+            {/* Preview iframe */}
+            {previewUrl && !isBuilding && showPreviewDelayed && (
+              <iframe
+                key={previewKey}
+                ref={iframeRef}
+                src={previewUrl}
+                className="w-full h-full border-0 bg-[#020617] animate-in fade-in duration-700"
+                loading="eager"
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-popups-to-escape-sandbox"
+                title="Preview"
+                onLoad={() => {
+                  setPreviewError(null);
+                  try {
+                    const iframeWindow = iframeRef.current?.contentWindow;
+                    if (iframeWindow) {
+                      setTimeout(() => {
+                        iframeWindow.postMessage({ type: 'PREVIEW_READY', path: window.location.pathname }, '*');
+                      }, 100);
+                    }
+                  } catch (err) {
+                    console.warn("Could not notify parent:", err);
+                  }
+                }}
+                onError={() => setPreviewError("Failed to load preview")}
+              />
+            )}
+          </div>
         </div>
       )}
     </section>

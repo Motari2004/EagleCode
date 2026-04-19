@@ -69,7 +69,7 @@ export default function LandingPage() {
   const CACHE_DURATION = 3600000; // 1 hour cache (60 minutes * 60 seconds * 1000 milliseconds)
   const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null);
 
-  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
+
 
 
 
@@ -457,36 +457,30 @@ const refreshProjects = () => {
 
 
 
-const deleteProject = async (projectId: string, projectName: string) => {
-  // Remove from UI immediately (optimistic update)
-  setSavedProjects(prev => prev.filter(project => project.id !== projectId));
-  
-  // Clear cache
-  localStorage.removeItem("projectsCache");
-  projectsCache.current = null;
-  
-  // Show toast
-  toast.success(`"${projectName}" deleted`, {
-    duration: 1500,
-    position: "bottom-right",
-    icon: "💔"
-  });
-  
-  // Delete from database in background
-  try {
-    const token = localStorage.getItem("eaglecode_token");
-    await fetch(`${API_URL}/api/delete-project/${projectId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-  } catch (error) {
-    console.error('Delete error:', error);
-    loadSavedProjects(); // Re-sync if failed
-  }
-};
+
+  const deleteProject = async (projectId: string) => {
+    setShowDeleteConfirm(null);
+    
+    try {
+      const response = await fetch(`${API_URL}/api/delete-project/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setSavedProjects(prev => prev.filter(project => project.id !== projectId));
+      } else {
+        console.error('Failed to delete project:', data.message);
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error);
+    }
+  };
+
 
 
 
@@ -716,63 +710,79 @@ useEffect(() => {
 
 
 
-
-
-
-// WebSocket listener for real-time project updates from backend
+// Auto-refresh projects every 10 seconds (preserve cache, silent update - NO FLICKER)
 useEffect(() => {
-  let ws: WebSocket | null = null;
-  let reconnectTimeout: NodeJS.Timeout;
-  
-  const connectWebSocket = () => {
-    ws = new WebSocket('ws://localhost:8000/ws/projects');
+  const intervalId = setInterval(async () => {
+    console.log("🔄 Auto-refreshing projects (10s interval)...");
     
-    ws.onopen = () => {
-      console.log("🔌 WebSocket connected - listening for project updates");
-    };
+    const token = localStorage.getItem("eaglecode_token");
+    if (!token) return;
     
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "projects_updated") {
-          console.log("📡 Backend says: new project saved! Refreshing...");
-          localStorage.removeItem("projectsCache");
-          projectsCache.current = null;
-          loadSavedProjects();
-          toast.success(`New project "${data.project_name || 'created'}!"`, {
-            duration: 3000,
-            position: "bottom-right",
-            icon: "✨"
-          });
+    try {
+      // Fetch fresh data directly from API (cache untouched)
+      const response = await fetch(`${API_URL}/api/get-projects?limit=10`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      } catch (err) {
-        console.error("Failed to parse WebSocket message:", err);
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.projects) {
+        const freshProjects: SavedProject[] = data.projects.map((project: any) => ({
+          id: project.id,
+          name: project.name,
+          prompt: project.prompt || '',
+          files: project.files || {},
+          preview_html: project.preview_html || '',
+          timestamp: project.timestamp,
+          thumbnail_url: project.thumbnail_url || null
+        }));
+        
+        // Update state without causing flicker
+        setSavedProjects((prevProjects: SavedProject[]) => {
+          // Check if IDs are exactly the same (no changes)
+          const prevIds = prevProjects.map(p => p.id).join(',');
+          const newIds = freshProjects.map(p => p.id).join(',');
+          
+          // If IDs are the same, return previous state (no update = no flicker)
+          if (prevIds === newIds) {
+            return prevProjects;
+          }
+          
+          // Find new projects
+          const existingIds = new Set(prevProjects.map(p => p.id));
+          const newProjects = freshProjects.filter(p => !existingIds.has(p.id));
+          
+          if (newProjects.length > 0) {
+            console.log(`✨ ${newProjects.length} new project(s) found, adding silently...`);
+            const updatedProjects = [...newProjects, ...prevProjects];
+            const latest10 = updatedProjects.slice(0, 10);
+            saveToCache(latest10);
+            return latest10;
+          }
+          
+          // If projects were deleted, use fresh list
+          if (freshProjects.length !== prevProjects.length) {
+            console.log(`📊 Project count changed: ${prevProjects.length} -> ${freshProjects.length}`);
+            saveToCache(freshProjects);
+            return freshProjects;
+          }
+          
+          // No changes, return previous state
+          return prevProjects;
+        });
       }
-    };
-    
-    ws.onclose = () => {
-      console.log("🔌 WebSocket disconnected, reconnecting in 3 seconds...");
-      reconnectTimeout = setTimeout(connectWebSocket, 3000);
-    };
-    
-    ws.onerror = () => {
-      // SILENT - no console error
-      // Just close the connection
-      if (ws) ws.close();
-    };
-  };
-  
-  connectWebSocket();
-  
-  return () => {
-    if (ws) {
-      ws.close();
+    } catch (error) {
+      console.error("Auto-refresh failed:", error);
     }
-    if (reconnectTimeout) {
-      clearTimeout(reconnectTimeout);
-    }
-  };
+  }, 10000);
+  
+  return () => clearInterval(intervalId);
 }, []);
+
+
 
 
 
@@ -959,20 +969,14 @@ useEffect(() => {
         WebkitOverflowScrolling: 'touch'
       }}
     >
-
-
-
       {savedProjects.map((project, index) => (
         <ClientMotionDiv
           key={project.id}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: index * 0.03 }}
-          className={`flex-shrink-0 w-80 ${
-            deletingProjectId === project.id ? 'animate-glass-break' : ''
-          }`}
+          className="flex-shrink-0 w-80"
         >
-          
           <div 
             onClick={() => loadProject(project)}
             className={`group cursor-pointer relative bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/40 hover:shadow-xl hover:shadow-cyan-500/10 transition-all duration-300 ${
@@ -986,8 +990,6 @@ useEffect(() => {
                 <span className="text-xs text-cyan-400 font-medium">Loading...</span>
               </div>
             )}
-            
-          
             
 
 
@@ -1060,9 +1062,32 @@ useEffect(() => {
                     {project.name}
                   </h3>
                 </div>
-                
-                {/* Delete Button */}
                 <div className="relative ml-2">
+                  {showDeleteConfirm === project.id && (
+                    <div className="absolute right-0 top-full mt-1 bg-red-950/95 border border-red-500/30 rounded-lg p-2 z-50 min-w-[130px] shadow-xl">
+                      <p className="text-[10px] text-red-200 mb-2 text-center font-medium">Delete project?</p>
+                      <div className="flex gap-1 justify-center">
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            deleteProject(project.id); 
+                          }} 
+                          className="text-[10px] bg-red-500/50 hover:bg-red-500/70 text-white px-2 py-1 rounded transition"
+                        >
+                          Yes
+                        </button>
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            setShowDeleteConfirm(null); 
+                          }} 
+                          className="text-[10px] bg-gray-500/40 hover:bg-gray-500/60 text-gray-200 px-2 py-1 rounded transition"
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   <button 
                     onClick={(e) => { 
                       e.stopPropagation(); 
@@ -1070,70 +1095,8 @@ useEffect(() => {
                     }} 
                     className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition p-1"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3 h-3" />
                   </button>
-                  
-                  {/* Delete Modal - Centered on Screen */}
-                  {showDeleteConfirm === project.id && (
-                    <>
-                      {/* Backdrop */}
-                      <div 
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
-                        onClick={() => setShowDeleteConfirm(null)}
-                      />
-                      
-                      {/* Modal Content */}
-                      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-white/10 shadow-2xl p-5 w-72">
-                        <div className="text-center">
-                          {/* Icon */}
-                          <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-3">
-                            <Trash2 className="w-6 h-6 text-red-400" />
-                          </div>
-                          
-                          {/* Title */}
-                          <h3 className="text-base font-bold text-white mb-1">Delete Project?</h3>
-                          
-                          {/* Message */}
-                          <p className="text-xs text-gray-300 mb-4">
-                            Delete "<span className="text-red-400 font-medium">{project.name}</span>"?
-                          </p>
-                          
-                          {/* Buttons */}
-                          <div className="flex gap-2">
-                            <button 
-  onClick={(e) => { 
-    e.stopPropagation(); 
-    
-    // Start glass break animation
-    setDeletingProjectId(project.id);
-    
-    // Close modal immediately
-    setShowDeleteConfirm(null);
-    
-    // Delete AFTER animation completes (500ms)
-    setTimeout(() => {
-      deleteProject(project.id, project.name);
-      setDeletingProjectId(null);
-    }, 500); // Changed from 300 to 500
-  }} 
-  className="flex-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg font-medium transition"
->
-  Yes
-</button>
-                            <button 
-                              onClick={(e) => { 
-                                e.stopPropagation(); 
-                                setShowDeleteConfirm(null); 
-                              }} 
-                              className="flex-1 px-3 py-1.5 bg-gray-500/30 hover:bg-gray-500/50 text-white text-sm rounded-lg font-medium transition"
-                            >
-                              No
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
                 </div>
               </div>
               

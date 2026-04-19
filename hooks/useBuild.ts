@@ -41,6 +41,7 @@ export function useBuild() {
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const maxReconnectAttempts = 5;
 
+  
   // Cleanup function
   const cleanup = useCallback(() => {
     if (heartbeatIntervalRef.current) {
@@ -408,6 +409,13 @@ const handleWebSocketMessage = useCallback((event: MessageEvent) => {
         }));
         break;
         
+
+
+
+
+
+
+        
       case "file_complete":
         console.log(`File complete: ${data.file}`);
         
@@ -486,6 +494,16 @@ const handleWebSocketMessage = useCallback((event: MessageEvent) => {
         handleBuildComplete();
         break;
         
+
+
+
+
+
+
+
+
+
+        
       case "preview":
         console.log("📺 RECEIVED PREVIEW FROM BACKEND!");
         console.log("  - preview_type:", data.preview_type);
@@ -500,6 +518,40 @@ const handleWebSocketMessage = useCallback((event: MessageEvent) => {
           }
         }));
         break;
+
+
+
+
+
+
+
+
+
+      // ========== ADD THIS NEW CASE HERE ==========
+      case "preview_url":
+        console.log(`🔗 Received preview URL: ${data.url}`);
+        console.log(`📦 Preview size: ${data.size?.toLocaleString()} chars`);
+        setState(prev => ({
+          ...prev,
+          files: {
+            ...prev.files,
+            preview_html_url: data.url,
+            preview_html_size: data.size
+          }
+        }));
+        break;
+      // ===========================================
+
+
+
+
+
+
+
+
+
+
+
 
       case "error":
         console.log("Raw error data:", data);

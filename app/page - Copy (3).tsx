@@ -11,7 +11,6 @@ import {
   Store, PenTool, Music, Film, Heart, Globe, Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import ClientMotionDiv from "@/components/ClientMotionDiv";
 
@@ -29,7 +28,6 @@ interface SavedProject {
   files: Record<string, string>;
   preview_html: string;
   timestamp: string;
-  thumbnail_url?: string;  // ADD THIS LINE
 }
 
 interface TemplateProject {
@@ -69,7 +67,6 @@ export default function LandingPage() {
   const CACHE_DURATION = 3600000; // 1 hour cache (60 minutes * 60 seconds * 1000 milliseconds)
   const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null);
 
-  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
 
 
 
@@ -78,15 +75,14 @@ export default function LandingPage() {
 
 
 
-// Helper functions for cache
+
+
+ // Helper functions for cache
 const saveToCache = (projects: SavedProject[]) => {
-  // Only store latest 10 projects
-  const latest10 = projects.slice(0, 10);
   localStorage.setItem("projectsCache", JSON.stringify({
-    data: latest10,
+    data: projects,
     timestamp: Date.now()
   }));
-  console.log(`💾 Cached ${latest10.length} projects (latest 10)`);
 };
 
 const getFromCache = (): { data: SavedProject[]; timestamp: number } | null => {
@@ -97,9 +93,7 @@ const getFromCache = (): { data: SavedProject[]; timestamp: number } | null => {
     const parsed = JSON.parse(cached);
     // Check if cache is still valid
     if (Date.now() - parsed.timestamp < CACHE_DURATION) {
-      // Ensure only latest 10 are returned
-      const latest10 = parsed.data.slice(0, 10);
-      return { ...parsed, data: latest10 };
+      return parsed;
     }
   } catch (e) {
     console.error("Failed to parse cache:", e);
@@ -118,50 +112,26 @@ const getFromCache = (): { data: SavedProject[]; timestamp: number } | null => {
 
 
 
-const timeAgo = (timestamp: string) => {
-  const now = new Date();
-  // Parse the timestamp - ensure it's treated as UTC then convert to local
-  const then = new Date(timestamp);
-  
-  // If the timestamp has no timezone info, assume it's UTC
-  if (!timestamp.includes('Z') && !timestamp.includes('+')) {
-    // Add 'Z' to treat as UTC
-    const utcDate = new Date(timestamp + 'Z');
-    const diffSeconds = Math.floor((now.getTime() - utcDate.getTime()) / 1000);
-    
-    if (diffSeconds < 0) return "just now";
-    if (diffSeconds < 60) return `${diffSeconds}s ago`;
-    const minutes = Math.floor(diffSeconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}d ago`;
-    return `${Math.floor(days / 7)}w ago`;
-  }
-  
-  // Regular calculation for proper ISO strings
-  const diffSeconds = Math.floor((now.getTime() - then.getTime()) / 1000);
-  
-  if (diffSeconds < 0) return "just now";
-  if (diffSeconds < 60) return `${diffSeconds}s ago`;
-  const minutes = Math.floor(diffSeconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return `${Math.floor(days / 7)}w ago`;
-};
 
 
 
 
-
-
-
-
-
+  const timeAgo = (timestamp: string) => {
+    const now = new Date();
+    const then = new Date(timestamp);
+    const seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
+    let interval = Math.floor(seconds / 31536000);
+    if (interval >= 1) return `${interval}y`;
+    interval = Math.floor(seconds / 2592000);
+    if (interval >= 1) return `${interval}mo`;
+    interval = Math.floor(seconds / 86400);
+    if (interval >= 1) return `${interval}d`;
+    interval = Math.floor(seconds / 3600);
+    if (interval >= 1) return `${interval}h`;
+    interval = Math.floor(seconds / 60);
+    if (interval >= 1) return `${interval}m`;
+    return `${Math.floor(seconds)}s`;
+  };
 
   const templateProjects: TemplateProject[] = [
     {
@@ -169,7 +139,7 @@ const timeAgo = (timestamp: string) => {
       name: "SaaS Landing Page",
       description: "Conversion-focused with pricing",
       icon: <Rocket className="w-4 h-4" />,
-      prompt: "Build a SaaS website with deep indigo theme using Tailwind CSS.",
+      prompt: "Create a modern SaaS landing page with hero section, features grid, pricing plans, testimonials, and a CTA footer. Use Tailwind CSS with a deep indigo theme.",
       category: "Business",
       color: "from-blue-600 to-indigo-600",
       bgColor: "bg-blue-500/10",
@@ -182,7 +152,7 @@ const timeAgo = (timestamp: string) => {
       name: "E-Commerce Store",
       description: "Product grid & cart",
       icon: <ShoppingBag className="w-4 h-4" />,
-      prompt: "Build a complete e-commerce website with a modern, minimalist aesthetic.",
+      prompt: "Build an e-commerce store with product grid, product details page, and shopping cart. Use a minimalist aesthetic.",
       category: "E-Commerce",
       color: "from-emerald-600 to-teal-600",
       bgColor: "bg-emerald-500/10",
@@ -288,7 +258,9 @@ const faqItems = [
 
   
 
-  const API_URL = 'http://localhost:8000';
+  const API_URL = 'https://eaglecode2.onrender.com';
+
+
 
 
 
@@ -316,9 +288,7 @@ const loadSavedProjects = async () => {
   const cached = getFromCache();
   if (cached) {
     console.log("📦 Loading from localStorage cache (instant)");
-    // Only show latest 10 from cache
-    const latest10 = cached.data.slice(0, 10);
-    setSavedProjects(latest10);
+    setSavedProjects(cached.data);
     setIsLoadingProjects(false);
     return;
   }
@@ -327,8 +297,8 @@ const loadSavedProjects = async () => {
   setIsLoadingProjects(true);
   
   try {
-    // Fetch only latest 10 projects from backend
-    const response = await fetch(`${API_URL}/api/get-projects?limit=10`, {
+    // Remove user_id query param - backend will get user from token
+    const response = await fetch(`${API_URL}/api/get-projects`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -347,11 +317,10 @@ const loadSavedProjects = async () => {
       const projects: SavedProject[] = data.projects.map((project: any) => ({
         id: project.id,
         name: project.name,
-        prompt: project.prompt || '',
-        files: project.files || {},
-        preview_html: project.preview_html || '',
-        timestamp: project.timestamp,
-        thumbnail_url: project.thumbnail_url || null  // ← Change from thumbnail_base64
+        prompt: project.prompt?.slice(0, 80) || '',
+        files: {},
+        preview_html: '',
+        timestamp: project.timestamp
       }));
       
       // Sort by timestamp (newest first)
@@ -359,12 +328,9 @@ const loadSavedProjects = async () => {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
       
-      // Only keep latest 10
-      const latest10 = sortedProjects.slice(0, 10);
-      
-      console.log(`✅ Loaded ${latest10.length} projects (latest 10 out of ${sortedProjects.length} total)`);
-      saveToCache(latest10);
-      setSavedProjects(latest10);
+      console.log(`✅ Loaded ${sortedProjects.length} projects`);
+      saveToCache(sortedProjects);
+      setSavedProjects(sortedProjects);
     } else {
       console.log("No projects found");
       setSavedProjects([]);
@@ -389,34 +355,22 @@ const loadSavedProjects = async () => {
 
 
 
+
+
+
+
+
+
+
+
+// Replace your useEffect with this (no polling, only loads once):
 useEffect(() => {
-  const loadProjects = async () => {
-    // First, try to load from cache instantly
-    const cached = localStorage.getItem("projectsCache");
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        setSavedProjects(parsed.data);
-        console.log(`📦 Loaded ${parsed.data.length} projects from cache (instant!)`);
-        
-        // Still refresh in background to ensure latest
-        setTimeout(() => {
-          loadSavedProjects();
-        }, 100);
-        return;
-      } catch(e) {
-        console.error("Failed to parse cache:", e);
-      }
-    }
-    
-    // No cache or parse error, load from API
-    await loadSavedProjects();
-  };
-  
-  if (mounted) {
-    loadProjects();
-  }
-}, [mounted]);
+  if (!mounted) return;
+  loadSavedProjects();
+}, [mounted]); // Only runs once when component mounts
+
+
+
 
 
 
@@ -457,36 +411,30 @@ const refreshProjects = () => {
 
 
 
-const deleteProject = async (projectId: string, projectName: string) => {
-  // Remove from UI immediately (optimistic update)
-  setSavedProjects(prev => prev.filter(project => project.id !== projectId));
-  
-  // Clear cache
-  localStorage.removeItem("projectsCache");
-  projectsCache.current = null;
-  
-  // Show toast
-  toast.success(`"${projectName}" deleted`, {
-    duration: 1500,
-    position: "bottom-right",
-    icon: "💔"
-  });
-  
-  // Delete from database in background
-  try {
-    const token = localStorage.getItem("eaglecode_token");
-    await fetch(`${API_URL}/api/delete-project/${projectId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-  } catch (error) {
-    console.error('Delete error:', error);
-    loadSavedProjects(); // Re-sync if failed
-  }
-};
+
+  const deleteProject = async (projectId: string) => {
+    setShowDeleteConfirm(null);
+    
+    try {
+      const response = await fetch(`${API_URL}/api/delete-project/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setSavedProjects(prev => prev.filter(project => project.id !== projectId));
+      } else {
+        console.error('Failed to delete project:', data.message);
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error);
+    }
+  };
+
 
 
 
@@ -612,167 +560,43 @@ const loadTemplate = (template: TemplateProject) => {
 
 
 
-// Listen for real-time cache updates from builder
+
+// Listen for cache updates from other tabs (like when saving a new project)
 useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-        if (e.key === "projectsCache") {
-            console.log("🔄 Storage event detected - updating projects...");
-            
-            if (e.newValue) {
-                try {
-                    const newCache = JSON.parse(e.newValue);
-                    const newProjects = newCache.data || [];
-                    
-                    // Update the projects state immediately
-                    setSavedProjects(newProjects);
-                    console.log(`✅ Projects updated from storage: ${newProjects.length} projects`);
-                    
-                    // Show a subtle notification
-                    toast.success("New project added!", {
-                        duration: 2000,
-                        position: "bottom-right",
-                        icon: "✨"
-                    });
-                } catch (err) {
-                    console.error("Failed to parse storage event:", err);
-                    loadSavedProjects();
-                }
-            } else {
-                // Cache was cleared, reload from API
-                loadSavedProjects();
-            }
-        }
-    };
-    
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-}, []);
-
-
-
-
-
-
-
-
-// Check for refresh flag when component mounts
-useEffect(() => {
-    const needRefresh = sessionStorage.getItem("projectsNeedRefresh");
-    if (needRefresh === "true") {
-        console.log("🔄 Refresh flag detected on mount, clearing cache...");
-        sessionStorage.removeItem("projectsNeedRefresh");
-        localStorage.removeItem("projectsCache");
-        loadSavedProjects();
-        toast.success("Projects refreshed!", {
-            duration: 1500,
-            position: "bottom-right",
-            icon: "🔄"
-        });
-    }
-}, []); // Empty array - runs on every mount
-
-// Handle page restore from cache (back/forward navigation)
-useEffect(() => {
-    const handlePageShow = (event: PageTransitionEvent) => {
-        if (event.persisted) {
-            console.log("📄 Page restored from cache, refreshing projects...");
-            const needRefresh = sessionStorage.getItem("projectsNeedRefresh");
-            if (needRefresh === "true") {
-                sessionStorage.removeItem("projectsNeedRefresh");
-                localStorage.removeItem("projectsCache");
-            }
-            loadSavedProjects();
-        }
-    };
-    
-    window.addEventListener("pageshow", handlePageShow);
-    return () => window.removeEventListener("pageshow", handlePageShow);
-}, []);
-
-// Check when tab becomes visible
-useEffect(() => {
-    const handleVisibilityChange = () => {
-        if (!document.hidden) {
-            console.log("👁️ Tab visible, checking for new projects...");
-            const needRefresh = sessionStorage.getItem("projectsNeedRefresh");
-            if (needRefresh === "true") {
-                sessionStorage.removeItem("projectsNeedRefresh");
-                localStorage.removeItem("projectsCache");
-                loadSavedProjects();
-                toast.success("Projects updated!", { duration: 1500 });
-            }
-        }
-    };
-    
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-}, []);
-
-
-
-
-
-
-
-
-
-
-
-
-// WebSocket listener for real-time project updates from backend
-useEffect(() => {
-  let ws: WebSocket | null = null;
-  let reconnectTimeout: NodeJS.Timeout;
-  
-  const connectWebSocket = () => {
-    ws = new WebSocket('ws://localhost:8000/ws/projects');
-    
-    ws.onopen = () => {
-      console.log("🔌 WebSocket connected - listening for project updates");
-    };
-    
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "projects_updated") {
-          console.log("📡 Backend says: new project saved! Refreshing...");
-          localStorage.removeItem("projectsCache");
-          projectsCache.current = null;
-          loadSavedProjects();
-          toast.success(`New project "${data.project_name || 'created'}!"`, {
-            duration: 3000,
-            position: "bottom-right",
-            icon: "✨"
-          });
-        }
-      } catch (err) {
-        console.error("Failed to parse WebSocket message:", err);
-      }
-    };
-    
-    ws.onclose = () => {
-      console.log("🔌 WebSocket disconnected, reconnecting in 3 seconds...");
-      reconnectTimeout = setTimeout(connectWebSocket, 3000);
-    };
-    
-    ws.onerror = () => {
-      // SILENT - no console error
-      // Just close the connection
-      if (ws) ws.close();
-    };
-  };
-  
-  connectWebSocket();
-  
-  return () => {
-    if (ws) {
-      ws.close();
-    }
-    if (reconnectTimeout) {
-      clearTimeout(reconnectTimeout);
+  const handleStorageChange = (e: StorageEvent) => {
+    if (e.key === "projectsCache") {
+      console.log("🔄 Cache updated, reloading projects...");
+      loadSavedProjects();
     }
   };
+  
+  window.addEventListener("storage", handleStorageChange);
+  return () => window.removeEventListener("storage", handleStorageChange);
 }, []);
+
+// Refresh projects when user comes back to this tab
+useEffect(() => {
+  const handleVisibilityChange = () => {
+    if (!document.hidden) {
+      console.log("👁️ Tab visible, refreshing projects...");
+      loadSavedProjects();
+    }
+  };
+  
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+}, []);
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -959,20 +783,14 @@ useEffect(() => {
         WebkitOverflowScrolling: 'touch'
       }}
     >
-
-
-
       {savedProjects.map((project, index) => (
         <ClientMotionDiv
           key={project.id}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: index * 0.03 }}
-          className={`flex-shrink-0 w-80 ${
-            deletingProjectId === project.id ? 'animate-glass-break' : ''
-          }`}
+          className="flex-shrink-0 w-80"
         >
-          
           <div 
             onClick={() => loadProject(project)}
             className={`group cursor-pointer relative bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/40 hover:shadow-xl hover:shadow-cyan-500/10 transition-all duration-300 ${
@@ -987,71 +805,39 @@ useEffect(() => {
               </div>
             )}
             
-          
+            {/* Live Preview Thumbnail - Shows actual project */}
+            <div className="relative w-full h-44 bg-slate-900 overflow-hidden">
+              {project.preview_html ? (
+                <>
+                  <iframe
+                    srcDoc={project.preview_html}
+                    className="w-full h-full border-0"
+                    style={{ 
+                      width: '100%',
+                      height: '100%',
+                      transform: 'scale(0.85)',
+                      transformOrigin: 'top left',
+                      pointerEvents: 'none'
+                    }}
+                    sandbox="allow-same-origin allow-scripts"
+                    title={project.name}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                </>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+                  <div className="text-center">
+                    <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
+                      <Terminal className="w-6 h-6 text-slate-500" />
+                    </div>
+                    <p className="text-xs text-slate-500">Preview not available</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            </div>
             
-
-
-
-
-
-            
-                                                                        {/* Live Preview Thumbnail - Shows actual project */}
-                        <div className="relative w-full h-44 bg-slate-900 overflow-hidden">
-                        {project.thumbnail_url ? (
-                            <img 
-                                src={`http://localhost:8000${project.thumbnail_url}`}
-                                alt={project.name}
-                                className="w-full h-full object-cover object-top"
-                                loading="lazy"
-                            />
-                        ) : project.preview_html ? (
-                            <>
-                                <iframe
-                                    srcDoc={project.preview_html}
-                                    className="w-full h-full border-0"
-                                    style={{ 
-                                        width: '100%',
-                                        height: '100%',
-                                        transform: 'scale(0.85)',
-                                        transformOrigin: 'top left',
-                                        pointerEvents: 'none'
-                                    }}
-                                    sandbox="allow-same-origin allow-scripts"
-                                    title={project.name}
-                                />
-                                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                            </>
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
-                                <div className="text-center">
-                                    <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
-                                        <Terminal className="w-6 h-6 text-slate-500" />
-                                    </div>
-                                    <p className="text-xs text-slate-500">Preview not available</p>
-                                </div>
-                            </div>
-                        )}
-                        
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                        </div>
-            
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             {/* Project Info */}
             <div className="p-3">
               <div className="flex justify-between items-start mb-1">
@@ -1059,10 +845,36 @@ useEffect(() => {
                   <h3 className="font-medium text-sm text-white mb-0.5 truncate group-hover:text-cyan-400 transition-colors">
                     {project.name}
                   </h3>
+                  <p className="text-xs text-slate-400 line-clamp-1">
+                    {project.prompt?.slice(0, 50) || "No description"}
+                  </p>
                 </div>
-                
-                {/* Delete Button */}
                 <div className="relative ml-2">
+                  {showDeleteConfirm === project.id && (
+                    <div className="absolute right-0 top-full mt-1 bg-red-950/95 border border-red-500/30 rounded-lg p-2 z-50 min-w-[130px] shadow-xl">
+                      <p className="text-[10px] text-red-200 mb-2 text-center font-medium">Delete project?</p>
+                      <div className="flex gap-1 justify-center">
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            deleteProject(project.id); 
+                          }} 
+                          className="text-[10px] bg-red-500/50 hover:bg-red-500/70 text-white px-2 py-1 rounded transition"
+                        >
+                          Yes
+                        </button>
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            setShowDeleteConfirm(null); 
+                          }} 
+                          className="text-[10px] bg-gray-500/40 hover:bg-gray-500/60 text-gray-200 px-2 py-1 rounded transition"
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   <button 
                     onClick={(e) => { 
                       e.stopPropagation(); 
@@ -1070,70 +882,8 @@ useEffect(() => {
                     }} 
                     className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition p-1"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3 h-3" />
                   </button>
-                  
-                  {/* Delete Modal - Centered on Screen */}
-                  {showDeleteConfirm === project.id && (
-                    <>
-                      {/* Backdrop */}
-                      <div 
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
-                        onClick={() => setShowDeleteConfirm(null)}
-                      />
-                      
-                      {/* Modal Content */}
-                      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-white/10 shadow-2xl p-5 w-72">
-                        <div className="text-center">
-                          {/* Icon */}
-                          <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-3">
-                            <Trash2 className="w-6 h-6 text-red-400" />
-                          </div>
-                          
-                          {/* Title */}
-                          <h3 className="text-base font-bold text-white mb-1">Delete Project?</h3>
-                          
-                          {/* Message */}
-                          <p className="text-xs text-gray-300 mb-4">
-                            Delete "<span className="text-red-400 font-medium">{project.name}</span>"?
-                          </p>
-                          
-                          {/* Buttons */}
-                          <div className="flex gap-2">
-                            <button 
-  onClick={(e) => { 
-    e.stopPropagation(); 
-    
-    // Start glass break animation
-    setDeletingProjectId(project.id);
-    
-    // Close modal immediately
-    setShowDeleteConfirm(null);
-    
-    // Delete AFTER animation completes (500ms)
-    setTimeout(() => {
-      deleteProject(project.id, project.name);
-      setDeletingProjectId(null);
-    }, 500); // Changed from 300 to 500
-  }} 
-  className="flex-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg font-medium transition"
->
-  Yes
-</button>
-                            <button 
-                              onClick={(e) => { 
-                                e.stopPropagation(); 
-                                setShowDeleteConfirm(null); 
-                              }} 
-                              className="flex-1 px-3 py-1.5 bg-gray-500/30 hover:bg-gray-500/50 text-white text-sm rounded-lg font-medium transition"
-                            >
-                              No
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
                 </div>
               </div>
               
@@ -1153,25 +903,6 @@ useEffect(() => {
       ))}
     </div>
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
     {/* Scroll Hint */}
     {savedProjects.length > 3 && (
       <div className="flex justify-center mt-3">
@@ -1185,25 +916,6 @@ useEffect(() => {
   </ClientMotionDiv>
 )}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 {/* Loading State */}
 {isLoadingProjects && savedProjects.length === 0 && (
   <div className="mt-16 text-center py-12">
@@ -1211,20 +923,6 @@ useEffect(() => {
     <p className="text-sm text-slate-400">Loading your projects...</p>
   </div>
 )}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 {/* Empty State */}
 {!isLoadingProjects && savedProjects.length === 0 && (
@@ -1239,8 +937,9 @@ useEffect(() => {
       </p>
       <Button 
         onClick={handleGetStarted}
-        className="bg-gradient-to-r from-indigo-500 to-green-500 text-white"
+        className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white"
       >
+        <Sparkles className="w-4 h-4 mr-2" />
         Create Your First Project
       </Button>
     </div>

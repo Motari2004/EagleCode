@@ -69,7 +69,7 @@ export default function LandingPage() {
   const CACHE_DURATION = 3600000; // 1 hour cache (60 minutes * 60 seconds * 1000 milliseconds)
   const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null);
 
-  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
+
 
 
 
@@ -457,36 +457,30 @@ const refreshProjects = () => {
 
 
 
-const deleteProject = async (projectId: string, projectName: string) => {
-  // Remove from UI immediately (optimistic update)
-  setSavedProjects(prev => prev.filter(project => project.id !== projectId));
-  
-  // Clear cache
-  localStorage.removeItem("projectsCache");
-  projectsCache.current = null;
-  
-  // Show toast
-  toast.success(`"${projectName}" deleted`, {
-    duration: 1500,
-    position: "bottom-right",
-    icon: "💔"
-  });
-  
-  // Delete from database in background
-  try {
-    const token = localStorage.getItem("eaglecode_token");
-    await fetch(`${API_URL}/api/delete-project/${projectId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-  } catch (error) {
-    console.error('Delete error:', error);
-    loadSavedProjects(); // Re-sync if failed
-  }
-};
+
+  const deleteProject = async (projectId: string) => {
+    setShowDeleteConfirm(null);
+    
+    try {
+      const response = await fetch(`${API_URL}/api/delete-project/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setSavedProjects(prev => prev.filter(project => project.id !== projectId));
+      } else {
+        console.error('Failed to delete project:', data.message);
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error);
+    }
+  };
+
 
 
 
@@ -959,20 +953,14 @@ useEffect(() => {
         WebkitOverflowScrolling: 'touch'
       }}
     >
-
-
-
       {savedProjects.map((project, index) => (
         <ClientMotionDiv
           key={project.id}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: index * 0.03 }}
-          className={`flex-shrink-0 w-80 ${
-            deletingProjectId === project.id ? 'animate-glass-break' : ''
-          }`}
+          className="flex-shrink-0 w-80"
         >
-          
           <div 
             onClick={() => loadProject(project)}
             className={`group cursor-pointer relative bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/40 hover:shadow-xl hover:shadow-cyan-500/10 transition-all duration-300 ${
@@ -986,8 +974,6 @@ useEffect(() => {
                 <span className="text-xs text-cyan-400 font-medium">Loading...</span>
               </div>
             )}
-            
-          
             
 
 
@@ -1101,25 +1087,14 @@ useEffect(() => {
                           {/* Buttons */}
                           <div className="flex gap-2">
                             <button 
-  onClick={(e) => { 
-    e.stopPropagation(); 
-    
-    // Start glass break animation
-    setDeletingProjectId(project.id);
-    
-    // Close modal immediately
-    setShowDeleteConfirm(null);
-    
-    // Delete AFTER animation completes (500ms)
-    setTimeout(() => {
-      deleteProject(project.id, project.name);
-      setDeletingProjectId(null);
-    }, 500); // Changed from 300 to 500
-  }} 
-  className="flex-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg font-medium transition"
->
-  Yes
-</button>
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                deleteProject(project.id); 
+                              }} 
+                              className="flex-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg font-medium transition"
+                            >
+                              Yes
+                            </button>
                             <button 
                               onClick={(e) => { 
                                 e.stopPropagation(); 

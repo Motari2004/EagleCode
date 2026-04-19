@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
-import { CheckCircle2, Zap, Rocket, Users, ArrowRight, Crown, Star, Coffee, Sparkles, Building2, Mail } from "lucide-react";
+import { CheckCircle2, Zap, Rocket, Users, ArrowRight, Crown, Star, Coffee, Sparkles, Building2, Mail, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function PricingPage() {
@@ -11,36 +11,31 @@ export default function PricingPage() {
   const { user } = useUser();
   const [selectedPlan, setSelectedPlan] = useState<string>("pro");
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestPlan, setRequestPlan] = useState<string>("");
+  const [requestMessage, setRequestMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const plans = [
-
-
-
-
     {
-  id: "free",
-  name: "Free",
-  price: 0,
-  yearlyPrice: 0,
-  description: "Perfect for trying out EagleCode",
-  icon: <Star className="w-6 h-6" />,
-color: "from-emerald-500 to-emerald-600",
-textColor: "text-emerald-400",
-  buttonColor: "bg-white/10 hover:bg-white/20",
-  features: [
-    "5 credits per day",
-    "30 credits per month",
-    "Basic AI editing",
-    "Community support",
-    "Export to ZIP"
-  ]
-},
-
-
-
-
-
-
+      id: "free",
+      name: "Free",
+      price: 0,
+      yearlyPrice: 0,
+      description: "Perfect for trying out EagleCode",
+      icon: <Star className="w-6 h-6" />,
+      color: "from-emerald-500 to-emerald-600",
+      textColor: "text-emerald-400",
+      buttonColor: "bg-white/10 hover:bg-white/20",
+      features: [
+        "5 credits per day",
+        "30 credits per month",
+        "Basic AI editing",
+        "Community support",
+        "Export to ZIP"
+      ]
+    },
     {
       id: "pro",
       name: "Pro",
@@ -121,13 +116,50 @@ textColor: "text-emerald-400",
       return;
     }
     
-    if (planId === "custom") {
-      window.location.href = "mailto:sales@eaglecode.com?subject=Enterprise%20Plan%20Inquiry";
-      return;
-    }
+    // Show request modal for all paid plans
+    setRequestPlan(planId);
+    setShowRequestModal(true);
+  };
+
+  const submitUpgradeRequest = async () => {
+    if (!user) return;
     
-    // Here you would integrate Stripe checkout
-    console.log(`Upgrading to ${planId} plan`);
+    setIsSubmitting(true);
+    
+    try {
+      const token = localStorage.getItem("eaglecode_token");
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/api/request-upgrade`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          plan: requestPlan,
+          message: requestMessage || `User wants to upgrade to ${requestPlan.toUpperCase()} plan.`
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowRequestModal(false);
+          setShowSuccess(false);
+          setRequestMessage("");
+        }, 3000);
+      } else {
+        alert("Failed to send request. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error sending upgrade request:", error);
+      alert("Failed to send request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -138,18 +170,30 @@ textColor: "text-emerald-400",
         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3Cpattern%20id%3D%22grid%22%20width%3D%2260%22%20height%3D%2260%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath%20d%3D%22M%2060%200%20L%200%200%200%2060%22%20fill%3D%22none%22%20stroke%3D%22rgba(0%2C255%2C255%2C0.03)%22%20stroke-width%3D%221%22%2F%3E%3C%2Fpattern%3E%3C%2Fdefs%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22url(%23grid)%22%2F%3E%3C%2Fsvg%3E')] opacity-30" />
       </div>
 
-      {/* Header */}
-      <header className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
-        <div className="container mx-auto px-6 h-14 flex items-center justify-between">
-          <button 
-            onClick={() => router.push("/")}
-            className="flex items-center gap-2 hover:opacity-80 transition"
-          >
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
-              🦅
-            </div>
-            <span className="font-bold text-sm tracking-tight">Eagle<span className="text-amber-500">Code</span></span>
-          </button>
+
+
+
+
+{/* Header */}
+<header className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
+  <div className="container mx-auto px-6 h-14 flex items-center justify-between">
+    <button 
+      onClick={() => router.push("/")}
+      className="flex items-center gap-2 hover:opacity-80 transition"
+    >
+      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+        🦅
+      </div>
+      <span className="font-bold text-sm tracking-tight">
+        <span className="text-white">Eagle</span>
+        <span className="text-amber-500">Code</span>
+      </span>
+    </button>
+    
+
+
+
+
           
           {user ? (
             <Button
@@ -188,11 +232,9 @@ textColor: "text-emerald-400",
         {/* Hero Section */}
         <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 mb-4">
-  <span className="text-xs bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-semibold">
-    Start free, scale up
-  </span>
-</div>
+            <span className="text-xs bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-semibold">
+              Start free, scale up
+            </span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Choose the <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Perfect Plan</span> for You
@@ -228,7 +270,7 @@ textColor: "text-emerald-400",
           </div>
         </div>
 
-        {/* Pricing Cards - Grid with 4 columns on large screens */}
+        {/* Pricing Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {plans.map((plan) => (
             <div
@@ -248,16 +290,13 @@ textColor: "text-emerald-400",
               )}
               
               <div className="p-6">
-                {/* Icon */}
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-4 shadow-lg`}>
-  {plan.icon}
-</div>
+                  {plan.icon}
+                </div>
                 
-                {/* Name */}
                 <h3 className={`text-xl font-bold ${plan.textColor} mb-1`}>{plan.name}</h3>
                 <p className="text-sm text-slate-400 mb-4">{plan.description}</p>
                 
-                {/* Price */}
                 <div className="mb-4">
                   {plan.price !== null ? (
                     <>
@@ -281,7 +320,6 @@ textColor: "text-emerald-400",
                   )}
                 </div>
                 
-                {/* Features */}
                 <div className="space-y-2 mb-6">
                   {plan.features.slice(0, 6).map((feature, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-sm">
@@ -296,7 +334,6 @@ textColor: "text-emerald-400",
                   )}
                 </div>
                 
-                {/* Button */}
                 <button
                   onClick={() => handleUpgrade(plan.id)}
                   className={`w-full py-2.5 rounded-xl font-semibold transition-all duration-300 ${
@@ -311,7 +348,7 @@ textColor: "text-emerald-400",
                     ? "Current Plan" 
                     : plan.id === "custom" 
                     ? "Contact Sales →" 
-                    : `Upgrade to ${plan.name}`}
+                    : `Request ${plan.name}`}
                 </button>
               </div>
             </div>
@@ -323,49 +360,94 @@ textColor: "text-emerald-400",
           <p className="text-xs text-slate-500">
             Custom plans include dedicated support, SLAs, and custom integrations.{" "}
             <button
-              onClick={() => window.location.href = "mailto:sales@eaglecode.com"}
+              onClick={() => handleUpgrade("custom")}
               className="text-cyan-400 hover:text-cyan-300"
             >
-              Contact our sales team →
+              Request a custom plan →
             </button>
           </p>
         </div>
+      </main>
 
-        {/* FAQ Section */}
-        <div className="max-w-3xl mx-auto mt-16">
-          <h2 className="text-2xl font-bold text-center text-white mb-8">Frequently Asked Questions</h2>
-          <div className="space-y-4">
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <h4 className="font-semibold text-white mb-1">What happens when I run out of credits?</h4>
-              <p className="text-sm text-slate-400">You'll receive a notification and can either wait for your daily reset or upgrade to a paid plan for more credits.</p>
-            </div>
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <h4 className="font-semibold text-white mb-1">Can I cancel my subscription anytime?</h4>
-              <p className="text-sm text-slate-400">Yes, you can cancel anytime. Your Pro features will remain active until the end of your billing period.</p>
-            </div>
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <h4 className="font-semibold text-white mb-1">Do unused credits roll over?</h4>
-              <p className="text-sm text-slate-400">Pro and Business plans include rollover up to the plan limit. Free plan credits do not roll over.</p>
-            </div>
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <h4 className="font-semibold text-white mb-1">Need a custom plan for your organization?</h4>
-              <p className="text-sm text-slate-400">Contact our sales team for custom pricing, SSO, on-premise deployment, and dedicated support.</p>
-            </div>
+      {/* Upgrade Request Modal */}
+      {showRequestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowRequestModal(false)} />
+          
+          <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl max-w-md w-full p-6 border border-white/10 shadow-2xl animate-in fade-in zoom-in duration-200">
+            {showSuccess ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-8 h-8 text-green-500" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Request Sent!</h3>
+                <p className="text-slate-400">
+                  Your upgrade request has been sent to our team. We'll contact you within 24 hours with payment details.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 flex items-center justify-center">
+                    <Mail className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Request Upgrade</h3>
+                </div>
+                
+                <p className="text-slate-400 text-sm mb-4">
+                  You're requesting to upgrade to <span className="text-cyan-400 font-semibold">{requestPlan.toUpperCase()}</span> plan.
+                  Our team will contact you with payment instructions.
+                </p>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Additional Message (Optional)
+                  </label>
+                  <textarea
+                    value={requestMessage}
+                    onChange={(e) => setRequestMessage(e.target.value)}
+                    placeholder="Tell us about your needs or any questions..."
+                    className="w-full px-4 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 resize-none"
+                    rows={4}
+                  />
+                </div>
+                
+                <div className="bg-cyan-500/10 rounded-lg p-3 mb-4 border border-cyan-500/20">
+                  <p className="text-xs text-cyan-400">
+                    📧 We'll send payment instructions to your email: <strong>{user?.email}</strong>
+                  </p>
+                </div>
+                
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowRequestModal(false)}
+                    className="flex-1 px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={submitUpgradeRequest}
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:opacity-90 transition flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Send Request
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
-
-        {/* CTA Footer */}
-        <div className="mt-16 text-center">
-          <Button
-            onClick={() => router.push("/builder")}
-            className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-8 py-3 text-base"
-          >
-            Start Building for Free
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-          <p className="text-xs text-slate-500 mt-4">No credit card required. Free plan included.</p>
-        </div>
-      </main>
+      )}
     </div>
   );
 }

@@ -19,7 +19,7 @@ import {
   Send, Loader2, FileCode, FolderTree, Download,
   Terminal, Copy, Check, Globe, RefreshCw,
   Sparkles, Layers, Search, Code2, Activity, CheckCircle2,
-  Maximize2, Minimize2, X, AlertCircle, Folder, FolderOpen,  Rocket, Save, Trash2, Edit3, Target, Zap, Shield, Code, Star, Coffee, Clock,CheckCircle
+  Maximize2, Minimize2, X, AlertCircle, Folder, FolderOpen,  Rocket, Save, Trash2, Edit3, Target, Zap, Shield, Code, Star, Coffee, Clock
 } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
@@ -288,8 +288,7 @@ const [isProcessingAuth, setIsProcessingAuth] = useState(false);
 
 
 
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [showCreditsModal, setShowCreditsModal] = useState(false);
+
 
 
 
@@ -403,7 +402,7 @@ const isSavingRef = useRef(false);
 const [isMobile, setIsMobile] = useState(false);
 
 
-const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
+
 
 
 
@@ -422,7 +421,7 @@ const [credits, setCredits] = useState({
   isLoading: true
 });
 const [isCheckingCredits, setIsCheckingCredits] = useState(false);
-
+const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
 
 
@@ -2325,26 +2324,8 @@ const isVercel = typeof window !== 'undefined' &&
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const generatePreview = useCallback(async () => {
   if (Object.keys(files).length <= 1) return;
-
-  // Add loading state
-  setIsGeneratingPreview(true);
 
   try {
     // Always use production backend
@@ -2352,6 +2333,12 @@ const generatePreview = useCallback(async () => {
     
     console.log(`📡 Generating preview using endpoint: ${endpoint}`);
 
+
+
+
+
+
+    
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2385,11 +2372,10 @@ const generatePreview = useCallback(async () => {
   } catch (error) {
     console.error("Preview generation failed:", error);
     toast.error("Failed to generate preview");
-  } finally {
-    // Hide loading state
-    setIsGeneratingPreview(false);
   }
 }, [files, currentProjectName, prompt, loadedFiles, setBuildFiles, isVercel]);
+
+
 
 
 
@@ -3230,6 +3216,7 @@ if (options.platform === "vercel") {
 
 
 
+
 // Upgrade Modal Component - Shows correct message based on which limit is reached
 const UpgradeModal = () => {
   if (!showUpgradeModal) return null;
@@ -3240,11 +3227,13 @@ const UpgradeModal = () => {
   
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={() => setShowUpgradeModal(false)}
       />
       
+      {/* Modal */}
       <div className="relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-white/10 shadow-2xl max-w-sm w-full p-5">
         <button
           onClick={() => setShowUpgradeModal(false)}
@@ -3253,16 +3242,19 @@ const UpgradeModal = () => {
           <X size={18} />
         </button>
         
+        {/* Icon */}
         <div className={`w-14 h-14 rounded-full bg-gradient-to-r ${
           isMonthlyLimitReached ? 'from-red-500 to-red-700' : 'from-yellow-500 to-orange-500'
         } flex items-center justify-center mx-auto mb-3`}>
           <AlertCircle className="w-7 h-7 text-white" />
         </div>
         
+        {/* Title */}
         <h3 className="text-xl font-bold text-center text-white mb-2">
           {isMonthlyLimitReached ? "Monthly Limit Reached!" : "Daily Limit Reached!"}
         </h3>
         
+        {/* Message */}
         <div className="text-center mb-4">
           {isMonthlyLimitReached ? (
             <>
@@ -3280,6 +3272,7 @@ const UpgradeModal = () => {
         
         <div className="border-t border-white/10 my-3"></div>
         
+        {/* Options */}
         <div className="flex gap-3 mb-4">
           <div className="flex-1 bg-white/10 rounded-xl p-3 text-center">
             <Clock className="w-5 h-5 text-blue-400 mx-auto mb-2" />
@@ -3325,88 +3318,8 @@ const UpgradeModal = () => {
 
 
 
-// Credits Info Modal - Shows when user has credits
-const CreditsInfoModal = () => {
-  if (!showCreditsModal) return null;
-  
-  const remainingCredits = credits.dailyRemaining;
-  
-  const getUpgradeText = () => {
-    switch (credits.plan) {
-      case 'free': return 'Upgrade to Pro';
-      case 'pro': return 'Upgrade to Business';
-      case 'business': return 'Upgrade to Enterprise';
-      default: return 'Upgrade';
-    }
-  };
-  
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={() => setShowCreditsModal(false)}
-      />
-      
-      <div className="relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-white/10 shadow-2xl max-w-sm w-full p-5">
-        <button
-          onClick={() => setShowCreditsModal(false)}
-          className="absolute top-3 right-3 text-slate-400 hover:text-white transition"
-        >
-          <X size={18} />
-        </button>
-        
-        <div className="w-14 h-14 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center mx-auto mb-3">
-          <CheckCircle className="w-7 h-7 text-white" />
-        </div>
-        
-        <h3 className="text-xl font-bold text-center text-white mb-2">Your Credits</h3>
-        
-        <div className="text-center mb-4">
-          <p className="text-slate-300 text-sm mb-1">You have</p>
-          <p className="text-5xl font-bold text-green-400">{remainingCredits}</p>
-          <p className="text-slate-300 text-sm mt-1">credits remaining today</p>
-          <div className="mt-3 p-2 bg-white/5 rounded-lg">
-            <p className="text-xs text-slate-400">📅 Monthly: {credits.monthlyRemaining}/{credits.monthlyLimit}</p>
-            <p className="text-xs text-slate-400 mt-1">💎 Plan: <span className="capitalize text-yellow-400">{credits.plan}</span></p>
-          </div>
-        </div>
-        
-        <div className="border-t border-white/10 my-3"></div>
-        
-        <div className="flex gap-3 mb-4">
-          <div className="flex-1 bg-white/10 rounded-xl p-3 text-center">
-            <Clock className="w-5 h-5 text-blue-400 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-white">Close</p>
-            <p className="text-xs text-slate-400 mt-1">View your balance</p>
-          </div>
-          
-          <div className="flex-1 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-xl p-3 text-center border border-cyan-500/30">
-            <Zap className="w-5 h-5 text-yellow-400 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-white">{getUpgradeText()}</p>
-            <p className="text-xs text-cyan-400 mt-1">Get more credits</p>
-          </div>
-        </div>
-        
-        <button
-          onClick={() => {
-            setShowCreditsModal(false);
-            window.location.href = "/pricing";
-          }}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold text-base hover:opacity-90 transition-all duration-300"
-        >
-          {getUpgradeText()} 🚀
-        </button>
-        
-        <button
-          onClick={() => setShowCreditsModal(false)}
-          className="w-full py-2 text-sm text-slate-400 hover:text-white transition mt-2"
-        >
-          Maybe later
-        </button>
-      </div>
-    </div>
-  );
-};
+
+
 
 
 
@@ -3690,8 +3603,6 @@ const CreditsInfoModal = () => {
 
     {/* Header Buttons - All visible with names */}
     <div className="flex items-center gap-3 flex-shrink-0">
-
-
 
 
 
@@ -4189,97 +4100,38 @@ const CreditsInfoModal = () => {
             </div>
           </div>
 
-
-
-
-
-
-
-<div className="flex-1 relative overflow-hidden bg-[#020617]">
-  {/* Preview Generation Loading */}
-  {isGeneratingPreview && (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#020617] via-purple-900/20 to-[#020617] z-50">
-      <div className="relative z-20 flex flex-col items-center">
-        <div className="mb-4 flex items-end justify-center gap-1.5 h-16">
-          {[...Array(5)].map((_, i) => (
-            <div 
-              key={i} 
-              className="w-2 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full animate-pulse" 
-              style={{ 
-                height: '30px', 
-                animation: `wave 1.2s ease-in-out infinite`,
-                animationDelay: `${i * 0.1}s`
-              }} 
-            />
-          ))}
-        </div>
-        <h3 className="text-white font-bold text-xl mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Generating Preview
-        </h3>
-        <p className="text-slate-400 text-sm">Creating interactive preview...</p>
-      </div>
-    </div>
-  )}
-
-  {/* Loading State for Build */}
-  {(isBuilding || (!rawPreviewHtml && !loadedFiles) || (loadedFiles && !showPreviewDelayed)) && !isGeneratingPreview && (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#020617] via-purple-900/20 to-[#020617] z-40 overflow-hidden">
-      <div className="relative z-20 flex flex-col items-center">
-        {isBuilding ? (
-          <>
-            <div className="mb-8 flex items-end justify-center gap-1.5 h-20">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="w-2 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full" style={{ height: '40px', animation: `wave 1.2s ease-in-out infinite`, animationDelay: `${i * 0.1}s` }} />
-              ))}
-            </div>
-            <h3 className="text-white font-bold text-2xl mb-3 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Generating your website
-            </h3>
-          </>
-        ) : loadedFiles && !showPreviewDelayed ? (
-          <>
-            <div className="mb-8 flex items-end justify-center gap-1.5 h-20">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="w-2 bg-gradient-to-t from-cyan-500 to-blue-500 rounded-full" style={{ height: '40px', animation: `wave 1.2s ease-in-out infinite`, animationDelay: `${i * 0.1}s` }} />
-              ))}
-            </div>
-            <h3 className="text-white font-bold text-2xl mb-3 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              Loading Your Project
-            </h3>
-            <p className="text-slate-400 text-sm">Preparing your preview...</p>
-          </>
-        ) : null}
-      </div>
-    </div>
-  )}
-
-  {/* Preview iframe */}
-  {previewUrl && !isBuilding && showPreviewDelayed && !isGeneratingPreview && (
-    <iframe
-      key={previewKey}
-      ref={iframeRef}
-      src={previewUrl}
-      className="w-full h-full border-0 bg-[#020617] animate-in fade-in duration-700"
-      loading="eager"
-      sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-popups-to-escape-sandbox"
-      title="Preview"
-      onLoad={() => {
-        setPreviewError(null);
-        try {
-          const iframeWindow = iframeRef.current?.contentWindow;
-          if (iframeWindow) {
-            setTimeout(() => {
-              iframeWindow.postMessage({ type: 'PREVIEW_READY', path: window.location.pathname }, '*');
-            }, 100);
-          }
-        } catch (err) {
-          console.warn("Could not notify parent:", err);
-        }
-      }}
-      onError={() => setPreviewError("Failed to load preview")}
-    />
-  )}
-</div>
+          <div className="flex-1 relative overflow-hidden bg-[#020617]">
+            {/* Loading State */}
+            {(isBuilding || (!rawPreviewHtml && !loadedFiles) || (loadedFiles && !showPreviewDelayed)) && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#020617] via-purple-900/20 to-[#020617] z-40 overflow-hidden">
+                <div className="relative z-20 flex flex-col items-center">
+                  {isBuilding ? (
+                    <>
+                      <div className="mb-8 flex items-end justify-center gap-1.5 h-20">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="w-2 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full" style={{ height: '40px', animation: `wave 1.2s ease-in-out infinite`, animationDelay: `${i * 0.1}s` }} />
+                        ))}
+                      </div>
+                      <h3 className="text-white font-bold text-2xl mb-3 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        Generating your website
+                      </h3>
+                    </>
+                  ) : loadedFiles && !showPreviewDelayed ? (
+                    <>
+                      <div className="mb-8 flex items-end justify-center gap-1.5 h-20">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="w-2 bg-gradient-to-t from-cyan-500 to-blue-500 rounded-full" style={{ height: '40px', animation: `wave 1.2s ease-in-out infinite`, animationDelay: `${i * 0.1}s` }} />
+                        ))}
+                      </div>
+                      <h3 className="text-white font-bold text-2xl mb-3 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                        Loading Your Project
+                      </h3>
+                      <p className="text-slate-400 text-sm">Preparing your preview...</p>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            )}
 
 
 
@@ -4290,10 +4142,33 @@ const CreditsInfoModal = () => {
 
 
 
-
-
-
-
+            {/* Preview iframe */}
+            {previewUrl && !isBuilding && showPreviewDelayed && (
+              <iframe
+                key={previewKey}
+                ref={iframeRef}
+                src={previewUrl}
+                className="w-full h-full border-0 bg-[#020617] animate-in fade-in duration-700"
+                loading="eager"
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-popups-to-escape-sandbox"
+                title="Preview"
+                onLoad={() => {
+                  setPreviewError(null);
+                  try {
+                    const iframeWindow = iframeRef.current?.contentWindow;
+                    if (iframeWindow) {
+                      setTimeout(() => {
+                        iframeWindow.postMessage({ type: 'PREVIEW_READY', path: window.location.pathname }, '*');
+                      }, 100);
+                    }
+                  } catch (err) {
+                    console.warn("Could not notify parent:", err);
+                  }
+                }}
+                onError={() => setPreviewError("Failed to load preview")}
+              />
+            )}
+          </div>
         </div>
       )}
     </section>
