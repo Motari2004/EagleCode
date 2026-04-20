@@ -548,11 +548,6 @@ const handleWebSocketMessage = useCallback((event: MessageEvent) => {
 
 
 
-
-
-
-
-
       case "error":
         console.log("Raw error data:", data);
         const errorMsg = data.message || "AI Generation Failed";

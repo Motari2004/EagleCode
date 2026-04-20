@@ -27,10 +27,15 @@ interface SavedProject {
   name: string;
   prompt: string;
   files: Record<string, string>;
-  preview_html: string;
+  preview_html: string;  // Deprecated - keep for backward compatibility
+  preview_url?: string;   // NEW: Cloudinary URL for preview HTML
+  thumbnail_url?: string; // NEW: Cloudinary URL for thumbnail
+  files_url?: string;     // NEW: Cloudinary URL for ZIP download
   timestamp: string;
-  thumbnail_url?: string;  // ADD THIS LINE
+  project_type?: string;
 }
+
+
 
 interface TemplateProject {
   id: string;
@@ -297,7 +302,6 @@ const faqItems = [
 
 
 
-
 const loadSavedProjects = async () => {
   console.log("🔵 Starting loadSavedProjects...");
   
@@ -316,7 +320,6 @@ const loadSavedProjects = async () => {
   const cached = getFromCache();
   if (cached) {
     console.log("📦 Loading from localStorage cache (instant)");
-    // Only show latest 10 from cache
     const latest10 = cached.data.slice(0, 10);
     setSavedProjects(latest10);
     setIsLoadingProjects(false);
@@ -344,14 +347,18 @@ const loadSavedProjects = async () => {
     console.log("📊 Response data:", data);
     
     if (data.success && data.projects && data.projects.length > 0) {
+      // ✅ Updated to include all Cloudinary URLs
       const projects: SavedProject[] = data.projects.map((project: any) => ({
         id: project.id,
         name: project.name,
         prompt: project.prompt || '',
         files: project.files || {},
         preview_html: project.preview_html || '',
+        preview_url: project.preview_url || null,      // ✅ Cloudinary preview URL
+        thumbnail_url: project.thumbnail_url || null,  // ✅ Cloudinary thumbnail URL
+        files_url: project.files_url || null,          // ✅ Cloudinary ZIP URL
         timestamp: project.timestamp,
-        thumbnail_url: project.thumbnail_url || null  // ← Change from thumbnail_base64
+        project_type: project.project_type || 'general'
       }));
       
       // Sort by timestamp (newest first)
@@ -363,6 +370,9 @@ const loadSavedProjects = async () => {
       const latest10 = sortedProjects.slice(0, 10);
       
       console.log(`✅ Loaded ${latest10.length} projects (latest 10 out of ${sortedProjects.length} total)`);
+      console.log(`   📸 Thumbnails: ${latest10.filter(p => p.thumbnail_url).length} have thumbnails`);
+      console.log(`   🖼️ Previews: ${latest10.filter(p => p.preview_url).length} have previews`);
+      
       saveToCache(latest10);
       setSavedProjects(latest10);
     } else {
@@ -377,7 +387,6 @@ const loadSavedProjects = async () => {
     setIsLoadingProjects(false);
   }
 };
-
 
 
 
@@ -995,52 +1004,76 @@ useEffect(() => {
 
 
             
-                                                                        {/* Live Preview Thumbnail - Shows actual project */}
-                        <div className="relative w-full h-44 bg-slate-900 overflow-hidden">
-                        {project.thumbnail_url ? (
-                            <img 
-                                src={`http://localhost:8000${project.thumbnail_url}`}
-                                alt={project.name}
-                                className="w-full h-full object-cover object-top"
-                                loading="lazy"
-                            />
-                        ) : project.preview_html ? (
-                            <>
-                                <iframe
-                                    srcDoc={project.preview_html}
-                                    className="w-full h-full border-0"
-                                    style={{ 
-                                        width: '100%',
-                                        height: '100%',
-                                        transform: 'scale(0.85)',
-                                        transformOrigin: 'top left',
-                                        pointerEvents: 'none'
-                                    }}
-                                    sandbox="allow-same-origin allow-scripts"
-                                    title={project.name}
-                                />
-                                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                            </>
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
-                                <div className="text-center">
-                                    <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
-                                        <Terminal className="w-6 h-6 text-slate-500" />
-                                    </div>
-                                    <p className="text-xs text-slate-500">Preview not available</p>
-                                </div>
-                            </div>
-                        )}
-                        
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                        </div>
-            
-
-
-
-
-
-
+                                                                    {/* Live Preview Thumbnail - Shows actual project */}
+<div className="relative w-full h-44 bg-slate-900 overflow-hidden">
+  {project.thumbnail_url ? (
+    <img 
+      src={project.thumbnail_url}  // ✅ Direct Cloudinary URL (no localhost prefix needed)
+      alt={project.name}
+      className="w-full h-full object-cover object-top"
+      loading="lazy"
+      onError={(e) => {
+        console.log(`Failed to load thumbnail for ${project.name}`);
+        e.currentTarget.style.display = 'none';
+        // Fallback to preview if thumbnail fails
+        const parent = e.currentTarget.parentElement;
+        if (parent && project.preview_url) {
+          const iframe = document.createElement('iframe');
+          iframe.src = project.preview_url;
+          iframe.className = 'w-full h-full border-0';
+          iframe.style.transform = 'scale(0.85)';
+          iframe.style.transformOrigin = 'top left';
+          iframe.style.pointerEvents = 'none';
+          iframe.title = project.name;
+          parent.removeChild(e.currentTarget);
+          parent.appendChild(iframe);
+        }
+      }}
+    />
+  ) : project.preview_url ? (
+    <iframe
+      src={project.preview_url}  // ✅ Cloudinary preview URL
+      className="w-full h-full border-0"
+      style={{ 
+        width: '100%',
+        height: '100%',
+        transform: 'scale(0.85)',
+        transformOrigin: 'top left',
+        pointerEvents: 'none'
+      }}
+      sandbox="allow-same-origin allow-scripts"
+      title={project.name}
+    />
+  ) : project.preview_html ? (
+    <>
+      <iframe
+        srcDoc={project.preview_html}
+        className="w-full h-full border-0"
+        style={{ 
+          width: '100%',
+          height: '100%',
+          transform: 'scale(0.85)',
+          transformOrigin: 'top left',
+          pointerEvents: 'none'
+        }}
+        sandbox="allow-same-origin allow-scripts"
+        title={project.name}
+      />
+      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+    </>
+  ) : (
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+      <div className="text-center">
+        <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
+          <Terminal className="w-6 h-6 text-slate-500" />
+        </div>
+        <p className="text-xs text-slate-500">Preview not available</p>
+      </div>
+    </div>
+  )}
+  
+  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+</div>
 
 
 

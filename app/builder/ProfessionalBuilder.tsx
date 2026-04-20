@@ -32,12 +32,13 @@ interface SavedProject {
   name: string;
   prompt: string;
   files: Record<string, string>;
-  preview_html: string;
+  preview_html: string;  // Keep for backward compatibility, but will be deprecated
+  preview_url?: string;   // NEW: Cloudinary URL for preview HTML
+  thumbnail_url?: string; // NEW: Cloudinary URL for thumbnail (was thumbnail_base64)
+  files_url?: string;     // NEW: Cloudinary URL for ZIP file
   timestamp: string;
-  thumbnail_base64?: string;  // ADD THIS LINE
-  project_type?: string;  // ADD THIS LINE
+  project_type?: string;
 }
-
 
 
 
@@ -926,8 +927,6 @@ const saveProjectToDatabase = async (project: SavedProject) => {
 
 
 
-
-
 const loadProjectsFromDatabase = async () => {
   try {
     console.log("📚 Loading projects from database...");
@@ -963,12 +962,42 @@ const loadProjectsFromDatabase = async () => {
     console.log("📊 Projects response:", result);
     
     if (result.success && result.projects) {
-      const sorted = result.projects.sort((a: SavedProject, b: SavedProject) =>
+      // ✅ Add explicit type for the project parameter
+      const projects: SavedProject[] = result.projects.map((project: {
+        id: string;
+        name: string;
+        prompt: string;
+        files: Record<string, string>;
+        preview_html: string;
+        preview_url?: string;
+        thumbnail_url?: string;
+        files_url?: string;
+        timestamp: string;
+        project_type?: string;
+      }) => ({
+        id: project.id,
+        name: project.name,
+        prompt: project.prompt || '',
+        files: project.files || {},
+        preview_html: project.preview_html || '',
+        preview_url: project.preview_url || null,
+        thumbnail_url: project.thumbnail_url || null,
+        files_url: project.files_url || null,
+        timestamp: project.timestamp,
+        project_type: project.project_type || 'general'
+      }));
+      
+      // Sort by timestamp (newest first)
+      const sorted = projects.sort((a: SavedProject, b: SavedProject) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
+      
       setSavedProjects(sorted);
       savedProjectsRef.current = sorted;
       console.log(`✅ Loaded ${sorted.length} projects from database`);
+      console.log(`   📸 Thumbnails: ${sorted.filter((p: SavedProject) => p.thumbnail_url).length} have thumbnails`);
+      console.log(`   🖼️ Previews: ${sorted.filter((p: SavedProject) => p.preview_url).length} have previews`);
+      console.log(`   📦 ZIP files: ${sorted.filter((p: SavedProject) => p.files_url).length} have ZIP downloads`);
       return sorted;
     } else {
       console.log("No projects found or request failed");
@@ -983,7 +1012,6 @@ const loadProjectsFromDatabase = async () => {
     return [];
   }
 };
-
 
 
 
@@ -2673,6 +2701,21 @@ useEffect(() => {
     if (url) URL.revokeObjectURL(url);
   };
 }, [rawPreviewHtml]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
