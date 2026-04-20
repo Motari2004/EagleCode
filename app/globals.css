@@ -339,3 +339,53 @@
 .animate-glass-break {
   animation: glassBreak 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Base: hide scrollbar */
+html {
+  scrollbar-width: none; /* Firefox */
+}
+
+body {
+  margin: 0;
+}
+
+/* Webkit browsers (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* Track (background) */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Thumb (the moving bar) */
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+/* 🔥 Show ONLY on hover */
+body:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.25); /* cyan glow */
+}
+
+/* 🔥 Stronger when actively scrolling */
+body:active::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.5);
+}

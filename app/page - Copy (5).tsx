@@ -976,7 +976,7 @@ useEffect(() => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: index * 0.03 }}
-          className={`flex-shrink-0 w-64 sm:w-72 md:w-80 ${
+          className={`flex-shrink-0 w-80 ${
             deletingProjectId === project.id ? 'animate-glass-break' : ''
           }`}
         >
@@ -1004,7 +1004,7 @@ useEffect(() => {
 
             
                                                                     {/* Live Preview Thumbnail - Shows actual project */}
-<div className="relative w-full h-36 sm:h-40 md:h-44 bg-slate-900 overflow-hidden">
+<div className="relative w-full h-44 bg-slate-900 overflow-hidden">
   {project.thumbnail_url ? (
     <img 
       src={project.thumbnail_url}  // ✅ Direct Cloudinary URL (no localhost prefix needed)
@@ -1085,7 +1085,7 @@ useEffect(() => {
 
 
             {/* Project Info */}
-            <div className="p-2 sm:p-3">
+            <div className="p-3">
               <div className="flex justify-between items-start mb-1">
                 <div className="flex-1">
                   <h3 className="font-medium text-sm text-white mb-0.5 truncate group-hover:text-cyan-400 transition-colors">
