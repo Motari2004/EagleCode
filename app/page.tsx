@@ -734,7 +734,7 @@ useEffect(() => {
   let reconnectTimeout: NodeJS.Timeout;
   
   const connectWebSocket = () => {
-    ws = new WebSocket('ws://localhost:8000/ws/projects');
+    ws = new WebSocket('wss://eaglecode2-2.onrender.com/ws/projects');
     
     ws.onopen = () => {
       console.log("🔌 WebSocket connected - listening for project updates");
