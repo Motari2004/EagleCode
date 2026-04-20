@@ -227,7 +227,7 @@ export default function PricingPage() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-12 relative z-10">
+      <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10">
         
         {/* Hero Section */}
         <div className="text-center max-w-3xl mx-auto mb-12">
@@ -271,7 +271,7 @@ export default function PricingPage() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 max-w-7xl mx-auto">
           {plans.map((plan) => (
             <div
               key={plan.id}
