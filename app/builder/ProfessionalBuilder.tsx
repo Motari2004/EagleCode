@@ -1425,13 +1425,6 @@ useEffect(() => {
 
 
 
-
-
-
-
-
-
-
 // ========== Load project from sessionStorage when coming from landing page ==========
 useEffect(() => {
   if (mounted && !loadedFiles && !isBuilding) {
@@ -1441,57 +1434,116 @@ useEffect(() => {
         const project = JSON.parse(projectToLoad);
         console.log("📦 Loading project from landing page:", project.name);
         
-        setLoadedFiles(project.files);
-        setPrompt(project.prompt || "");
-        setCurrentProjectName(project.name);
-        
-        const fileKeys = Object.keys(project.files);
-        if (fileKeys.length > 0) {
-          const firstFile = fileKeys.find(f => f !== "preview_html") || fileKeys[0];
-          setActiveFile(firstFile);
-        }
-        
-        setViewMode("preview");
-        
-        // Check if we have saved preview
-        if (project.preview_html) {
-          // Use saved preview instantly
-          const updatedFiles = { ...project.files };
-          updatedFiles.preview_html = project.preview_html;
-          setLoadedFiles(updatedFiles);
-          setShowPreviewDelayed(true);
-          setPreviewKey(Date.now());
-          console.log("✅ Using saved preview - instant load!");
-          toast.success(`"${project.name}" loaded instantly!`, { duration: 3000 });
-        } else {
-          // Fallback: regenerate preview
-          console.log("⚠️ No saved preview, regenerating...");
-          setTimeout(async () => {
+        // ✅ Check if we have files_url (Cloudinary ZIP) or direct files
+        if (project.files_url) {
+          // Download and extract ZIP from Cloudinary
+          setIsLoadingProject(true);
+          
+          (async () => {
             try {
-              const response = await fetch(`${BACKEND_URL}/api/generate-preview`, {  // ✅ Updated
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  files: project.files,
-                  projectName: project.name || "Scorpio Project"
-                })
-              });
-
-              const result = await response.json();
+              const JSZip = (await import('jszip')).default;
               
-              if (result.success) {
-                const updatedFiles = { ...project.files };
-                updatedFiles.preview_html = result.preview_html;
-                setLoadedFiles(updatedFiles);
-                console.log("✅ Preview regenerated");
+              // Download ZIP from Cloudinary
+              const response = await fetch(project.files_url);
+              const zipBlob = await response.blob();
+              
+              // Extract files
+              const zip = await JSZip.loadAsync(zipBlob);
+              const extractedFiles: Record<string, string> = {};
+              
+              for (const [filename, file] of Object.entries(zip.files)) {
+                if (!file.dir) {
+                  const content = await file.async('string');
+                  extractedFiles[filename] = content;
+                }
               }
-            } catch (error) {
-              console.error("Failed to regenerate preview:", error);
+              
+              // Add preview URL if available
+              if (project.preview_url) {
+                extractedFiles['preview_url'] = project.preview_url;
+              }
+              
+              setLoadedFiles(extractedFiles);
+              setPrompt(project.prompt || "");
+              setCurrentProjectName(project.name);
+              
+              const fileKeys = Object.keys(extractedFiles);
+              if (fileKeys.length > 0) {
+                const firstFile = fileKeys.find(f => f !== "preview_url" && f !== "preview_html") || fileKeys[0];
+                setActiveFile(firstFile);
+              }
+              
+              // ✅ FIX: Fetch preview HTML from Cloudinary and create blob URL
+              if (project.preview_url) {
+                try {
+                  console.log("📥 Fetching preview from Cloudinary:", project.preview_url);
+                  
+                  // Add flag to force inline display
+                  let previewUrlWithFlag = project.preview_url;
+                  if (!previewUrlWithFlag.includes('fl_attachment')) {
+                    previewUrlWithFlag = previewUrlWithFlag + '?fl_attachment=false';
+                  }
+                  
+                  const previewResponse = await fetch(previewUrlWithFlag);
+                  if (previewResponse.ok) {
+                    const htmlContent = await previewResponse.text();
+                    const blob = new Blob([htmlContent], { type: 'text/html' });
+                    const blobUrl = URL.createObjectURL(blob);
+                    setPreviewUrl(blobUrl);
+                    setShowPreviewDelayed(true);
+                    setPreviewKey(Date.now());
+                    console.log("✅ Preview loaded and displayed");
+                  } else {
+                    console.error("Failed to fetch preview, status:", previewResponse.status);
+                    // Fallback: try without flag
+                    const fallbackResponse = await fetch(project.preview_url);
+                    if (fallbackResponse.ok) {
+                      const htmlContent = await fallbackResponse.text();
+                      const blob = new Blob([htmlContent], { type: 'text/html' });
+                      const blobUrl = URL.createObjectURL(blob);
+                      setPreviewUrl(blobUrl);
+                      setShowPreviewDelayed(true);
+                    }
+                  }
+                } catch (err) {
+                  console.error("Error fetching preview:", err);
+                }
+              }
+              
+              setViewMode("preview");
+              toast.success(`"${project.name}" loaded!`, { duration: 3000 });
+            } catch (err) {
+              console.error("Failed to load project ZIP:", err);
+              toast.error("Failed to load project files");
+            } finally {
+              setIsLoadingProject(false);
             }
-            
+          })();
+        } 
+        // Fallback for old projects with direct files
+        else if (project.files && typeof project.files === 'object') {
+          setLoadedFiles(project.files);
+          setPrompt(project.prompt || "");
+          setCurrentProjectName(project.name);
+          
+          const fileKeys = Object.keys(project.files);
+          if (fileKeys.length > 0) {
+            const firstFile = fileKeys.find(f => f !== "preview_html") || fileKeys[0];
+            setActiveFile(firstFile);
+          }
+          
+          setViewMode("preview");
+          
+          if (project.preview_html) {
             setShowPreviewDelayed(true);
             setPreviewKey(Date.now());
-          }, 500);
+          }
+          
+          toast.success(`"${project.name}" loaded!`, { duration: 3000 });
+        } 
+        else {
+          console.error("No files or files_url found in project");
+          toast.error("No project files found");
         }
         
         sessionStorage.removeItem("projectToLoad");
@@ -1502,11 +1554,6 @@ useEffect(() => {
     }
   }
 }, [mounted, loadedFiles, isBuilding]);
-
-
-
-
-
 
 
 
@@ -2670,13 +2717,23 @@ const previewHtml = useMemo(() => getPreviewHTML(rawPreviewHtml), [rawPreviewHtm
 
 
 
-
-
-// Create preview URL from HTML content - NO DEBOUNCE, immediate
+// Create preview URL from HTML content - ONLY as fallback when no preview_url
 useEffect(() => {
+  // ✅ Skip if we already have a Cloudinary preview URL
+  if (previewUrl && previewUrl.startsWith('https://res.cloudinary.com')) {
+    console.log("⏭️ Using Cloudinary preview URL, skipping blob creation");
+    return;
+  }
+  
+  // ✅ Also skip if we have a preview_url in files
+  if (files.preview_url) {
+    console.log("⏭️ files.preview_url exists, skipping blob creation");
+    return;
+  }
+  
   if (!rawPreviewHtml) return;
   
-  console.log("🎨 Creating preview from HTML, length:", rawPreviewHtml.length);
+  console.log("🎨 Creating preview from HTML (fallback), length:", rawPreviewHtml.length);
   console.log("Preview HTML first 200 chars:", rawPreviewHtml.substring(0, 200));
   
   // Clean up old URL
@@ -2700,7 +2757,7 @@ useEffect(() => {
   return () => {
     if (url) URL.revokeObjectURL(url);
   };
-}, [rawPreviewHtml]);
+}, [rawPreviewHtml, files.preview_url]);
 
 
 
@@ -2716,10 +2773,84 @@ useEffect(() => {
 
 
 
+// Set preview URL from Cloudinary when loading a saved project
+useEffect(() => {
+  const cloudinaryPreviewUrl = files.preview_url;
+  
+  if (cloudinaryPreviewUrl && typeof cloudinaryPreviewUrl === 'string') {
+    console.log("🔗 Setting preview URL from Cloudinary:", cloudinaryPreviewUrl);
+    
+    // Only update if different
+    if (previewUrl !== cloudinaryPreviewUrl) {
+      setPreviewUrl(cloudinaryPreviewUrl);
+      setShowPreviewDelayed(true);
+      setPreviewKey(Date.now());
+      setPreviewError(null);
+      console.log("✅ Preview URL set from Cloudinary");
+    }
+  }
+}, [files.preview_url]);
 
 
 
 
+
+
+
+
+
+
+// Handle preview URL from Cloudinary for saved projects
+useEffect(() => {
+  const cloudinaryUrl = files.preview_url;
+  
+  if (cloudinaryUrl && typeof cloudinaryUrl === 'string') {
+    console.log("🔗 Found Cloudinary preview URL:", cloudinaryUrl);
+    
+    // Add parameter to force inline display
+    let urlWithFlag = cloudinaryUrl;
+    if (!cloudinaryUrl.includes('fl_attachment')) {
+      urlWithFlag = cloudinaryUrl + (cloudinaryUrl.includes('?') ? '&' : '?') + 'fl_attachment=false';
+    }
+    
+    const fetchAndDisplayPreview = async () => {
+      try {
+        console.log("📥 Fetching preview from:", urlWithFlag);
+        const response = await fetch(urlWithFlag);
+        
+        if (response.ok) {
+          const htmlContent = await response.text();
+          console.log("✅ Preview HTML fetched, length:", htmlContent.length);
+          
+          // Clean up old blob URL
+          if (previewUrl && previewUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(previewUrl);
+          }
+          
+          const blob = new Blob([htmlContent], { type: 'text/html' });
+          const blobUrl = URL.createObjectURL(blob);
+          setPreviewUrl(blobUrl);
+          setShowPreviewDelayed(true);
+          setPreviewKey(Date.now());
+          setPreviewError(null);
+          console.log("✅ Preview displayed successfully");
+        } else {
+          console.error("Failed to fetch preview, status:", response.status);
+        }
+      } catch (err) {
+        console.error("Error fetching preview:", err);
+      }
+    };
+    
+    fetchAndDisplayPreview();
+    
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }
+}, [files.preview_url]);
 
 
 

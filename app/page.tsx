@@ -293,7 +293,7 @@ const faqItems = [
 
   
 
-  const API_URL = 'https://eaglecode2-2.onrender.com';
+  const API_URL = 'http://localhost:8000';
 
 
 
@@ -537,40 +537,39 @@ const handleGenerate = () => {
 
 
 
-
-
-
-
-
-
+// In LandingPage.tsx - store only references
 const loadProject = async (project: SavedProject) => {
-  setLoadingProjectId(project.id); // Show loading on this specific card
+  setLoadingProjectId(project.id);
   
   try {
-    console.log(`📂 Loading full project: ${project.name}`);
-    const response = await fetch(`${API_URL}/api/get-project/${project.id}`);
+    console.log(`📂 Loading project: ${project.name}`);
+    
+    const response = await fetch(`${API_URL}/api/get-project/${project.id}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem("eaglecode_token")}`,
+      }
+    });
     const data = await response.json();
     
     if (data.success) {
+      // ✅ Store ONLY metadata (no file contents)
       sessionStorage.setItem("projectToLoad", JSON.stringify({
         id: data.project.id,
         name: data.project.name,
         prompt: data.project.prompt,
-        files: data.files,
-        preview_html: data.project.preview_html,
+        files_url: data.project.files_url,      // URL to ZIP
+        preview_url: data.project.preview_url,  // URL to preview
+        thumbnail_url: data.project.thumbnail_url,
         timestamp: data.project.timestamp
       }));
+      
       router.push("/builder");
-    } else {
-      console.error("Failed to load project:", data.message);
-      setLoadingProjectId(null); // Clear loading on error
     }
   } catch (error) {
     console.error("Error loading project:", error);
-    setLoadingProjectId(null); // Clear loading on error
+    setLoadingProjectId(null);
   }
 };
-
 
 
 
