@@ -289,7 +289,7 @@ export default function PricingPage() {
                 </div>
               )}
               
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-4 shadow-lg`}>
                   {plan.icon}
                 </div>
@@ -320,8 +320,8 @@ export default function PricingPage() {
                   )}
                 </div>
                 
-                <div className="space-y-2 mb-6">
-                  {plan.features.slice(0, 6).map((feature, idx) => (
+                <div className="space-y-1.5 mb-4">
+                  {plan.features.slice(0, 4).map((feature, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-sm">
                       <CheckCircle2 size={14} className="text-green-400 flex-shrink-0" />
                       <span className="text-slate-300">{feature}</span>
