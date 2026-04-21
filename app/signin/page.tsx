@@ -23,7 +23,7 @@ export default function SignInPage() {
   useEffect(() => {
     const token = localStorage.getItem("eaglecode_token");
     if (token) {
-      router.push("/"); // ← Changed: redirect to landing page, not builder
+      router.push("/");
     }
   }, [router]);
 
@@ -31,7 +31,12 @@ export default function SignInPage() {
     setIsLoading(true);
     setError("");
     
+    // Use the same backend URL pattern as signup
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+    
+    // Use the SAME endpoint pattern as signup (just different path)
+    // Signup works with: /api/auth/google/signup
+    // Signin should use: /api/auth/google/signin
     window.location.href = `${backendUrl}/api/auth/google/signin`;
   };
 
