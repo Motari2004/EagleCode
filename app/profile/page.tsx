@@ -17,8 +17,10 @@ export default function ProfilePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [username, setUsername] = useState("");
   const [credits, setCredits] = useState({
+    
     dailyRemaining: 0,
     monthlyRemaining: 0,
     dailyLimit: 5,

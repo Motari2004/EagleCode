@@ -12,7 +12,7 @@ interface User {
 interface UserContextType {
   user: User | null;
   isLoading: boolean;
-  login: (userData: User) => void;
+  login: (userData: User, token: string) => void;  // ✅ Added token parameter
   logout: () => void;
   token: string | null;
 }
@@ -33,10 +33,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const storedToken = localStorage.getItem("eaglecode_token");
     const storedUser = localStorage.getItem("eaglecode_user");
     
+    console.log("🔐 UserContext init - storedToken:", !!storedToken);
+    console.log("🔐 UserContext init - storedUser:", !!storedUser);
+    
     if (storedToken && storedUser) {
       setToken(storedToken);
       try {
         setUser(JSON.parse(storedUser));
+        console.log("✅ User restored from localStorage");
       } catch (e) {
         console.error("Failed to parse stored user", e);
       }
@@ -44,16 +48,26 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = useCallback((userData: User) => {
-    // Prevent duplicate login
-    setUser(prevUser => {
-      if (prevUser?.id === userData.id) return prevUser;
-      return userData;
-    });
+  // ✅ Fixed login function - now accepts token parameter
+  const login = useCallback((userData: User, authToken: string) => {
+    console.log("🔐 Login called with user:", userData.email);
+    console.log("🔐 Token received:", !!authToken);
+    
+    // Save token to localStorage
+    if (authToken) {
+      localStorage.setItem("eaglecode_token", authToken);
+      setToken(authToken);
+    }
+    
+    // Save user data
     localStorage.setItem("eaglecode_user", JSON.stringify(userData));
+    setUser(userData);
+    
+    console.log("✅ User logged in and stored");
   }, []);
 
   const logout = useCallback(() => {
+    console.log("🔐 Logout called");
     setUser(null);
     setToken(null);
     localStorage.removeItem("eaglecode_token");

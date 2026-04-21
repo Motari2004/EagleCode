@@ -103,6 +103,12 @@ export default function OAuthCallbackContent() {
       return;
     }
 
+
+
+
+
+
+
     if (token && !hasProcessed.current) {
       hasProcessed.current = true;
       localStorage.setItem("eaglecode_token", token);
@@ -119,13 +125,21 @@ export default function OAuthCallbackContent() {
         localStorage.setItem("eaglecode_user", JSON.stringify(userData));
         
         if (!user) {
-          login(userData);
+          login(userData, token);
         }
       } catch (e) {
         console.error("Failed to decode token", e);
       }
       
       setStatus("success");
+
+
+
+
+
+
+
+      
       
       // Use window.location for more reliable redirect on Vercel
       setTimeout(() => {
