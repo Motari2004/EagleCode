@@ -1071,14 +1071,20 @@ useEffect(() => {
                 {/* Delete Button */}
                 <div className="relative ml-1">
                   <button 
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      setShowDeleteConfirm(project.id); 
-                    }} 
-                    className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition p-0.5"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+  onClick={(e) => { 
+    e.stopPropagation(); 
+    setShowDeleteConfirm(project.id); 
+  }} 
+  className={`
+    text-slate-500 hover:text-red-400 transition p-1
+    /* Always visible on mobile */
+    opacity-100
+    /* Only show on hover for desktop */
+    md:opacity-0 md:group-hover:opacity-100
+  `}
+>
+  <Trash2 className="w-3.5 h-3.5" />
+</button>
                   
                   {/* Delete Modal */}
                   {showDeleteConfirm === project.id && (
