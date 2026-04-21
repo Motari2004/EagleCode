@@ -43,101 +43,132 @@ export default function ProfilePage() {
     }
   }, [user, token, router]);
 
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
   const loadCredits = async () => {
-  try {
-    console.log("Loading credits for user:", user?.id);
-    const authToken = localStorage.getItem("eaglecode_token");
-    
-    if (!authToken) {
-      console.error("No auth token found");
-      setCredits(prev => ({ ...prev, isLoading: false }));
-      return;
-    }
-    
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://eaglecode2-2.onrender.com';
-    
-    // ADD CACHE BUSTER to prevent caching
-    const cacheBuster = Date.now();
-    
-    const response = await fetch(`${backendUrl}/api/credits?user_id=${user?.id}&_=${cacheBuster}`, {
-      headers: { 
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
-      }
-    });
-    
-    console.log("Credits response status:", response.status);
-    const data = await response.json();
-    console.log("Full credits data from API:", data);
-    
-    if (response.ok && data.success !== false) {
-      console.log("Plan from API:", data.plan);
-      console.log("Plan type:", typeof data.plan);
+    try {
+      console.log("Loading credits for user:", user?.id);
+      const authToken = localStorage.getItem("eaglecode_token");
       
-      setCredits({
-        dailyRemaining: data.dailyRemaining ?? 0,
-        monthlyRemaining: data.monthlyRemaining ?? 0,
-        dailyLimit: data.dailyLimit ?? 5,
-        monthlyLimit: data.monthlyLimit ?? 30,
-        plan: data.plan ?? 'free',
-        isLoading: false
+      if (!authToken) {
+        console.error("No auth token found");
+        setCredits(prev => ({ ...prev, isLoading: false }));
+        return;
+      }
+      
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://eaglecode2-2.onrender.com';
+      
+      const cacheBuster = Date.now();
+      
+      const response = await fetch(`${backendUrl}/api/credits?user_id=${user?.id}&_=${cacheBuster}`, {
+        headers: { 
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
       });
       
-      // Also store in localStorage for debugging
-      localStorage.setItem('user_plan', data.plan);
+      console.log("Credits response status:", response.status);
+      const data = await response.json();
+      console.log("Full credits data from API:", data);
       
-    } else {
-      console.error("Failed to load credits:", data);
+      if (response.ok && data.success !== false) {
+        console.log("Plan from API:", data.plan);
+        
+        setCredits({
+          dailyRemaining: data.dailyRemaining ?? 0,
+          monthlyRemaining: data.monthlyRemaining ?? 0,
+          dailyLimit: data.dailyLimit ?? 5,
+          monthlyLimit: data.monthlyLimit ?? 30,
+          plan: data.plan ?? 'free',
+          isLoading: false
+        });
+        
+        localStorage.setItem('user_plan', data.plan);
+        
+      } else {
+        console.error("Failed to load credits:", data);
+        setCredits(prev => ({ ...prev, isLoading: false }));
+      }
+    } catch (error) {
+      console.error("Failed to load credits:", error);
       setCredits(prev => ({ ...prev, isLoading: false }));
     }
-  } catch (error) {
-    console.error("Failed to load credits:", error);
-    setCredits(prev => ({ ...prev, isLoading: false }));
-  }
-};
+  };
 
-
-
-
-
-
-
-
-
-
-
-
+  // ✅ FIXED: Use backendUrl instead of hardcoded localhost
   const loadStats = async () => {
     try {
       const authToken = localStorage.getItem("eaglecode_token");
-      const response = await fetch("http://localhost:8000/api/get-projects?limit=100", {
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
-      const data = await response.json();
       
-      const projects = data.projects || [];
+      if (!authToken) {
+        console.error("No auth token found for stats");
+        setStats({
+          projectsCreated: 0,
+          memberSince: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://eaglecode2-2.onrender.com';
+      
+      console.log("📊 Fetching projects from:", `${backendUrl}/api/get-projects?limit=100`);
+      
+      const response = await fetch(`${backendUrl}/api/get-projects?limit=100`, {
+        headers: { 
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log("📊 Projects response status:", response.status);
+      
+      const data = await response.json();
+      console.log("📊 Projects data:", data);
+      
+      let projects = [];
+      if (data.success && data.projects) {
+        projects = data.projects;
+      } else if (Array.isArray(data)) {
+        projects = data;
+      } else if (data.projects && Array.isArray(data.projects)) {
+        projects = data.projects;
+      }
+      
+      console.log(`📊 Found ${projects.length} projects`);
+      
+      // Calculate member since from the oldest project or use current date
+      let memberSince = "";
+      if (projects.length > 0) {
+        const oldestProject = projects.reduce((oldest: any, p: any) => {
+          const pDate = new Date(p.timestamp);
+          const oldestDate = new Date(oldest.timestamp);
+          return pDate < oldestDate ? p : oldest;
+        }, projects[0]);
+        
+        if (oldestProject?.timestamp) {
+          memberSince = new Date(oldestProject.timestamp).toLocaleDateString("en-US", { 
+            month: "long", 
+            year: "numeric" 
+          });
+        }
+      }
+      
+      if (!memberSince) {
+        memberSince = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      }
+      
       setStats({
         projectsCreated: projects.length,
-        memberSince: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })
+        memberSince: memberSince
       });
+      
     } catch (error) {
       console.error("Failed to load stats:", error);
+      setStats({
+        projectsCreated: 0,
+        memberSince: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })
+      });
     } finally {
       setIsLoading(false);
     }
@@ -187,41 +218,31 @@ export default function ProfilePage() {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-
-
-{/* Header */}
-<header className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
-  <div className="container mx-auto px-6 h-14 flex items-center justify-between">
-    <button 
-      onClick={() => router.push("/")}
-      className="flex items-center gap-2 hover:opacity-80 transition group"
-    >
-      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition">
-        🦅
-      </div>
-      <span className="font-bold text-sm tracking-tight">
-        <span className="text-white">Eagle</span>
-        <span className="text-amber-500">Code</span>
-      </span>
-    </button>
+      {/* Header */}
+      <header className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
+        <div className="container mx-auto px-6 h-14 flex items-center justify-between">
+          <button 
+            onClick={() => router.push("/")}
+            className="flex items-center gap-2 hover:opacity-80 transition group"
+          >
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition">
+              🦅
+            </div>
+            <span className="font-bold text-sm tracking-tight">
+              <span className="text-white">Eagle</span>
+              <span className="text-amber-500">Code</span>
+            </span>
+          </button>
           
-
-
-
-<Button
-  onClick={logout}
-  variant="outline"
-  size="sm"
-  className="border-red-500/40 bg-red-500/5 hover:bg-red-500/15 hover:border-red-500/60 text-red-400 font-medium rounded-lg px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 group"
->
-  <LogOut className="w-3.5 h-3.5 mr-1.5 group-hover:rotate-12 transition-transform duration-300" />
-  Sign Out
-</Button>
-
-
-
-
-
+          <Button
+            onClick={logout}
+            variant="outline"
+            size="sm"
+            className="border-red-500/40 bg-red-500/5 hover:bg-red-500/15 hover:border-red-500/60 text-red-400 font-medium rounded-lg px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 group"
+          >
+            <LogOut className="w-3.5 h-3.5 mr-1.5 group-hover:rotate-12 transition-transform duration-300" />
+            Sign Out
+          </Button>
         </div>
       </header>
 
@@ -307,30 +328,30 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   
-                  {/* Credits Section - Shows USED credits */}
-<div className="mt-6 grid grid-cols-2 gap-4">
-  <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-xl p-4 border border-yellow-500/20">
-    <div className="flex items-center gap-2 mb-2">
-      <ZapIcon className="w-4 h-4 text-yellow-400" />
-      <span className="text-xs text-slate-400">Daily Credits</span>
-    </div>
-    <p className="text-2xl font-bold text-white">
-      {credits.dailyLimit - credits.dailyRemaining}/{credits.dailyLimit}
-    </p>
-    <p className="text-[10px] text-slate-500 mt-1">{credits.dailyRemaining} remaining today</p>
-  </div>
-  
-  <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/20">
-    <div className="flex items-center gap-2 mb-2">
-      <Calendar className="w-4 h-4 text-purple-400" />
-      <span className="text-xs text-slate-400">Monthly Credits</span>
-    </div>
-    <p className="text-2xl font-bold text-white">
-      {credits.monthlyLimit - credits.monthlyRemaining}/{credits.monthlyLimit}
-    </p>
-    <p className="text-[10px] text-slate-500 mt-1">{credits.monthlyRemaining} remaining this month</p>
-  </div>
-</div>
+                  {/* Credits Section */}
+                  <div className="mt-6 grid grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-xl p-4 border border-yellow-500/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ZapIcon className="w-4 h-4 text-yellow-400" />
+                        <span className="text-xs text-slate-400">Daily Credits</span>
+                      </div>
+                      <p className="text-2xl font-bold text-white">
+                        {credits.dailyLimit - credits.dailyRemaining}/{credits.dailyLimit}
+                      </p>
+                      <p className="text-[10px] text-slate-500 mt-1">{credits.dailyRemaining} remaining today</p>
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="w-4 h-4 text-purple-400" />
+                        <span className="text-xs text-slate-400">Monthly Credits</span>
+                      </div>
+                      <p className="text-2xl font-bold text-white">
+                        {credits.monthlyLimit - credits.monthlyRemaining}/{credits.monthlyLimit}
+                      </p>
+                      <p className="text-[10px] text-slate-500 mt-1">{credits.monthlyRemaining} remaining this month</p>
+                    </div>
+                  </div>
                   
                   {/* Simple Stats */}
                   <div className="grid grid-cols-2 gap-4 mt-4">
@@ -373,11 +394,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               
-              
-
-
-              
-                                          {/* Upgrade Button */}
+              {/* Upgrade Button */}
               <div className="mt-6 flex justify-center">
                 <Button
                   onClick={() => router.push("/pricing")}
@@ -399,9 +416,6 @@ export default function ProfilePage() {
                   Back Home
                 </Button>
               </div>
-
-
-
 
             </>
           )}
