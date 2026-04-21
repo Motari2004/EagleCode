@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Shield, Crown, RefreshCw, Zap, Users, Star, Mail, CheckCircle, XCircle, MessageSquare, Clock, Menu, X } from "lucide-react";
+import { Shield, Crown, RefreshCw, Zap, Users, Star, Mail, CheckCircle, XCircle, MessageSquare, Clock, Menu, X, Trash2, Image, Eye, Download } from "lucide-react";
 import { toast } from "sonner";
 
 interface User {
@@ -26,6 +26,9 @@ interface UpgradeRequest {
   status: string;
   admin_notes: string;
   created_at: string;
+  payment_screenshot_url?: string;
+  payment_amount?: string;
+  payment_date?: string;
 }
 
 export default function AdminPanel() {
@@ -36,8 +39,10 @@ export default function AdminPanel() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState<"users" | "requests">("requests");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://eaglecode2-2.onrender.com';
-
+  const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
+  const [deletingRequest, setDeletingRequest] = useState<string | null>(null);
+  
+  const backendUrl = 'http://localhost:8000';
   const token = typeof window !== 'undefined' ? localStorage.getItem("eaglecode_token") : null;
 
   useEffect(() => {
@@ -148,6 +153,30 @@ export default function AdminPanel() {
     }
   };
 
+  // ✅ NEW: Delete request function
+  const deleteRequest = async (requestId: string) => {
+    setDeletingRequest(requestId);
+    try {
+      const response = await fetch(`${backendUrl}/api/admin/delete-request/${requestId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success("Request deleted successfully!");
+        await loadUpgradeRequests();
+      } else {
+        toast.error("Failed to delete request");
+      }
+    } catch (error) {
+      toast.error("Failed to delete request");
+    } finally {
+      setDeletingRequest(null);
+    }
+  };
+
   const getPlanBadge = (plan: string) => {
     switch(plan) {
       case "pro":
@@ -226,7 +255,7 @@ EagleCode Team`;
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header - Mobile Friendly */}
+        {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
@@ -236,7 +265,7 @@ EagleCode Team`;
           <p className="text-xs sm:text-sm text-gray-400">Manage users, plans, and upgrade requests</p>
         </div>
 
-        {/* Stats - Responsive Grid */}
+        {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <div className="bg-white/5 rounded-xl p-3 sm:p-6 border border-white/10">
             <div className="flex items-center gap-2 sm:gap-3">
@@ -276,99 +305,80 @@ EagleCode Team`;
           </div>
         </div>
 
-
-
-
-
-
-
-
-
-{/* Mobile Tabs Dropdown - Styled */}
-<div className="sm:hidden mb-4">
-  <button
-    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-    className="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-cyan-500/30 transition-all duration-300"
-  >
-    <div className="flex items-center gap-2">
-      {activeTab === "requests" ? (
-        <Mail className="w-4 h-4 text-cyan-400" />
-      ) : (
-        <Users className="w-4 h-4 text-cyan-400" />
-      )}
-      <span className="text-white font-medium">
-        {activeTab === "requests" ? "Upgrade Requests" : "Users Management"}
-      </span>
-      {activeTab === "requests" && upgradeRequests.filter(r => r.status === "pending").length > 0 && (
-        <span className="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 rounded-full text-[10px] font-bold">
-          {upgradeRequests.filter(r => r.status === "pending").length}
-        </span>
-      )}
-    </div>
-    <div className={`transition-transform duration-300 ${mobileMenuOpen ? 'rotate-180' : ''}`}>
-      {mobileMenuOpen ? (
-        <X size={18} className="text-cyan-400" />
-      ) : (
-        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      )}
-    </div>
-  </button>
-  
-  {mobileMenuOpen && (
-    <div className="mt-2 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-      <button
-        onClick={() => {
-          setActiveTab("requests");
-          setMobileMenuOpen(false);
-        }}
-        className={`w-full px-4 py-3 text-left transition-all duration-200 flex items-center gap-3 ${
-          activeTab === "requests" 
-            ? "bg-gradient-to-r from-cyan-500/20 to-transparent text-cyan-400 border-l-2 border-cyan-400" 
-            : "text-gray-300 hover:bg-white/10"
-        }`}
-      >
-        <Mail className={`w-4 h-4 ${activeTab === "requests" ? "text-cyan-400" : "text-gray-500"}`} />
-        <span className="flex-1 text-sm font-medium">Upgrade Requests</span>
-        {upgradeRequests.filter(r => r.status === "pending").length > 0 && (
-          <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 rounded-full text-[10px] font-bold">
-            {upgradeRequests.filter(r => r.status === "pending").length}
-          </span>
-        )}
-      </button>
-      
-      <button
-        onClick={() => {
-          setActiveTab("users");
-          setMobileMenuOpen(false);
-        }}
-        className={`w-full px-4 py-3 text-left transition-all duration-200 flex items-center gap-3 border-t border-white/10 ${
-          activeTab === "users" 
-            ? "bg-gradient-to-r from-cyan-500/20 to-transparent text-cyan-400 border-l-2 border-cyan-400" 
-            : "text-gray-300 hover:bg-white/10"
-        }`}
-      >
-        <Users className={`w-4 h-4 ${activeTab === "users" ? "text-cyan-400" : "text-gray-500"}`} />
-        <span className="flex-1 text-sm font-medium">Users Management</span>
-        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-[10px] font-bold">
-          {users.length}
-        </span>
-      </button>
-    </div>
-  )}
-</div>
-
-
-
-
-
-
-
-
-
-
-
+        {/* Mobile Tabs Dropdown */}
+        <div className="sm:hidden mb-4">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-cyan-500/30 transition-all duration-300"
+          >
+            <div className="flex items-center gap-2">
+              {activeTab === "requests" ? (
+                <Mail className="w-4 h-4 text-cyan-400" />
+              ) : (
+                <Users className="w-4 h-4 text-cyan-400" />
+              )}
+              <span className="text-white font-medium">
+                {activeTab === "requests" ? "Upgrade Requests" : "Users Management"}
+              </span>
+              {activeTab === "requests" && upgradeRequests.filter(r => r.status === "pending").length > 0 && (
+                <span className="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 rounded-full text-[10px] font-bold">
+                  {upgradeRequests.filter(r => r.status === "pending").length}
+                </span>
+              )}
+            </div>
+            <div className={`transition-transform duration-300 ${mobileMenuOpen ? 'rotate-180' : ''}`}>
+              {mobileMenuOpen ? (
+                <X size={18} className="text-cyan-400" />
+              ) : (
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              )}
+            </div>
+          </button>
+          
+          {mobileMenuOpen && (
+            <div className="mt-2 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <button
+                onClick={() => {
+                  setActiveTab("requests");
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full px-4 py-3 text-left transition-all duration-200 flex items-center gap-3 ${
+                  activeTab === "requests" 
+                    ? "bg-gradient-to-r from-cyan-500/20 to-transparent text-cyan-400 border-l-2 border-cyan-400" 
+                    : "text-gray-300 hover:bg-white/10"
+                }`}
+              >
+                <Mail className={`w-4 h-4 ${activeTab === "requests" ? "text-cyan-400" : "text-gray-500"}`} />
+                <span className="flex-1 text-sm font-medium">Upgrade Requests</span>
+                {upgradeRequests.filter(r => r.status === "pending").length > 0 && (
+                  <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 rounded-full text-[10px] font-bold">
+                    {upgradeRequests.filter(r => r.status === "pending").length}
+                  </span>
+                )}
+              </button>
+              
+              <button
+                onClick={() => {
+                  setActiveTab("users");
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full px-4 py-3 text-left transition-all duration-200 flex items-center gap-3 border-t border-white/10 ${
+                  activeTab === "users" 
+                    ? "bg-gradient-to-r from-cyan-500/20 to-transparent text-cyan-400 border-l-2 border-cyan-400" 
+                    : "text-gray-300 hover:bg-white/10"
+                }`}
+              >
+                <Users className={`w-4 h-4 ${activeTab === "users" ? "text-cyan-400" : "text-gray-500"}`} />
+                <span className="flex-1 text-sm font-medium">Users Management</span>
+                <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-[10px] font-bold">
+                  {users.length}
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Desktop Tabs */}
         <div className="hidden sm:flex gap-2 mb-6 border-b border-white/10">
@@ -396,7 +406,7 @@ EagleCode Team`;
           </button>
         </div>
 
-        {/* Upgrade Requests Tab - Mobile Friendly Cards */}
+        {/* Upgrade Requests Tab */}
         {activeTab === "requests" && (
           <div className="space-y-3 sm:space-y-4">
             {upgradeRequests.length === 0 ? (
@@ -407,20 +417,60 @@ EagleCode Team`;
             ) : (
               upgradeRequests.map((req) => (
                 <div key={req.id} className="bg-white/5 rounded-xl border border-white/10 p-4 sm:p-6">
-                  {/* Header */}
+                  {/* Header with Delete Button */}
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
-                    <div>
+                    <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-2 mb-1 sm:mb-2">
                         <h3 className="text-base sm:text-lg font-semibold text-white">{req.user_name || req.user_email}</h3>
                         {getRequestStatusBadge(req.status)}
                       </div>
                       <p className="text-xs sm:text-sm text-gray-400 break-all">{req.user_email}</p>
                     </div>
-                    <div className="text-left sm:text-right">
-                      <p className="text-[10px] sm:text-sm text-gray-500">{new Date(req.created_at).toLocaleString()}</p>
-                      <p className="text-[10px] sm:text-xs text-cyan-400 mt-1">Requested: {req.requested_plan.toUpperCase()}</p>
+                    <div className="flex items-center gap-2">
+                      <div className="text-left sm:text-right">
+                        <p className="text-[10px] sm:text-sm text-gray-500">{new Date(req.created_at).toLocaleString()}</p>
+                        <p className="text-[10px] sm:text-xs text-cyan-400 mt-1">Requested: {req.requested_plan.toUpperCase()}</p>
+                      </div>
+                      {/* ✅ DELETE BUTTON */}
+                      <button
+                        onClick={() => deleteRequest(req.id)}
+                        disabled={deletingRequest === req.id}
+                        className="p-1.5 sm:p-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition text-red-400"
+                        title="Delete Request"
+                      >
+                        {deletingRequest === req.id ? (
+                          <RefreshCw size={14} className="animate-spin" />
+                        ) : (
+                          <Trash2 size={14} className="sm:w-4 sm:h-4" />
+                        )}
+                      </button>
                     </div>
                   </div>
+
+                  {/* Payment Info - NEW SECTION */}
+                  {(req.payment_amount || req.payment_date) && (
+                    <div className="bg-green-500/10 rounded-lg p-2 sm:p-3 mb-3 sm:mb-4 border border-green-500/20">
+                      <p className="text-[10px] sm:text-xs text-green-400 mb-1">💰 Payment Details:</p>
+                      <div className="flex flex-wrap gap-3 text-xs sm:text-sm text-gray-300">
+                        {req.payment_amount && <span>Amount: {req.payment_amount}</span>}
+                        {req.payment_date && <span>Date: {new Date(req.payment_date).toLocaleString()}</span>}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Payment Screenshot - NEW */}
+                  {req.payment_screenshot_url && (
+                    <div className="bg-cyan-500/10 rounded-lg p-2 sm:p-3 mb-3 sm:mb-4 border border-cyan-500/20">
+                      <p className="text-[10px] sm:text-xs text-cyan-400 mb-2">📸 Payment Screenshot:</p>
+                      <button
+                        onClick={() => setSelectedScreenshot(req.payment_screenshot_url!)}
+                        className="flex items-center gap-2 px-3 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 rounded-lg text-cyan-400 text-xs sm:text-sm transition"
+                      >
+                        <Eye size={14} />
+                        View Screenshot
+                      </button>
+                    </div>
+                  )}
 
                   {/* Message */}
                   {req.message && (
@@ -437,73 +487,50 @@ EagleCode Team`;
                     </div>
                   )}
 
-
-
-
-
-
-
-
-
-
-                  {/* Action Buttons - Horizontal wrapping on all devices */}
-<div className="flex flex-wrap gap-2 sm:gap-3">
-  <button
-    onClick={() => sendPaymentEmail(req.user_email, req.requested_plan, req.user_name)}
-    className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-cyan-500/20 hover:bg-cyan-500/30 rounded-lg text-cyan-400 text-[11px] sm:text-sm transition whitespace-nowrap"
-  >
-    <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
-    <span>Send Email</span>
-  </button>
-  
-  <button
-    onClick={() => updateRequestStatus(req.id, "contacted", "Contacted via email with payment details")}
-    className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg text-blue-400 text-[11px] sm:text-sm transition whitespace-nowrap"
-  >
-    <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
-    <span>Contacted</span>
-  </button>
-  
-  <button
-    onClick={() => {
-      upgradeUser(req.user_id, req.requested_plan);
-      updateRequestStatus(req.id, "approved", `Account upgraded to ${req.requested_plan} plan`);
-    }}
-    className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-green-500/20 hover:bg-green-500/30 rounded-lg text-green-400 text-[11px] sm:text-sm transition whitespace-nowrap"
-  >
-    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-    <span>Approve</span>
-  </button>
-  
-  <button
-    onClick={() => updateRequestStatus(req.id, "rejected", "Request rejected")}
-    className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-red-400 text-[11px] sm:text-sm transition whitespace-nowrap"
-  >
-    <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-    <span>Reject</span>
-  </button>
-</div>
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap gap-2 sm:gap-3">
+                    <button
+                      onClick={() => sendPaymentEmail(req.user_email, req.requested_plan, req.user_name)}
+                      className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-cyan-500/20 hover:bg-cyan-500/30 rounded-lg text-cyan-400 text-[11px] sm:text-sm transition whitespace-nowrap"
+                    >
+                      <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span>Send Email</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => updateRequestStatus(req.id, "contacted", "Contacted via email with payment details")}
+                      className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg text-blue-400 text-[11px] sm:text-sm transition whitespace-nowrap"
+                    >
+                      <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span>Contacted</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        upgradeUser(req.user_id, req.requested_plan);
+                        updateRequestStatus(req.id, "approved", `Account upgraded to ${req.requested_plan} plan`);
+                      }}
+                      className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-green-500/20 hover:bg-green-500/30 rounded-lg text-green-400 text-[11px] sm:text-sm transition whitespace-nowrap"
+                    >
+                      <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span>Approve</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => updateRequestStatus(req.id, "rejected", "Request rejected")}
+                      className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-red-400 text-[11px] sm:text-sm transition whitespace-nowrap"
+                    >
+                      <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span>Reject</span>
+                    </button>
+                  </div>
                 </div>
               ))
             )}
           </div>
         )}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        {/* Users Management Tab - Horizontal Scroll on Mobile */}
+        {/* Users Management Tab */}
         {activeTab === "users" && (
           <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
             <div className="overflow-x-auto">
@@ -581,6 +608,42 @@ EagleCode Team`;
           </div>
         )}
       </div>
+
+      {/* Screenshot Modal */}
+      {selectedScreenshot && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
+          onClick={() => setSelectedScreenshot(null)}
+        >
+          <div 
+            className="relative max-w-3xl max-h-[90vh] bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-white/20 shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedScreenshot(null)}
+              className="absolute top-3 right-3 p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white transition z-10"
+            >
+              <X size={20} />
+            </button>
+            <img 
+              src={selectedScreenshot} 
+              alt="Payment Screenshot" 
+              className="max-w-full max-h-[85vh] object-contain"
+            />
+            <div className="p-3 bg-slate-900/90 border-t border-white/10 flex justify-between items-center">
+              <p className="text-xs text-gray-400">Payment Proof Screenshot</p>
+              <a 
+                href={selectedScreenshot} 
+                download="payment-screenshot.png"
+                className="flex items-center gap-1 px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 rounded-lg text-cyan-400 text-xs transition"
+              >
+                <Download size={14} />
+                Download
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

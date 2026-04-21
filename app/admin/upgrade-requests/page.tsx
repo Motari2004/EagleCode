@@ -5,6 +5,7 @@ import { Mail, CheckCircle, XCircle, Phone, MessageSquare, ExternalLink, Loader2
 
 interface UpgradeRequest {
   id: string;
+  user_id: string;
   user_email: string;
   user_name: string;
   requested_plan: string;
@@ -12,6 +13,9 @@ interface UpgradeRequest {
   status: string;
   admin_notes: string;
   created_at: string;
+  payment_screenshot_url?: string; // ✅ NEW: URL to uploaded screenshot
+  payment_amount?: string; // ✅ NEW: Payment amount
+  payment_date?: string; // ✅ NEW: Payment date
 }
 
 export default function UpgradeRequestsPage() {
