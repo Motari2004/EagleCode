@@ -923,33 +923,32 @@ useEffect(() => {
 
 
 
-
- {/* Recent Projects - Live Preview Thumbnails */}
+{/* Recent Projects - REDUCED HEIGHT VERSION */}
 {!isLoadingProjects && savedProjects.length > 0 && (
-  <ClientMotionDiv initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-16 text-left">
-    <div className="flex items-center justify-between mb-6">
+  <ClientMotionDiv initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-12 text-left">
+    <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
-        <div className="w-1 h-5 bg-cyan-500 rounded-full" />
-        <h2 className="text-sm font-semibold text-slate-300">Recent Projects</h2>
-        <span className="text-xs text-slate-500">({savedProjects.length})</span>
+        <div className="w-1 h-4 bg-cyan-500 rounded-full" />
+        <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Recent Projects</h2>
+        <span className="text-[10px] text-slate-500">({savedProjects.length})</span>
       </div>
       {savedProjects.length > 3 && (
         <div className="flex gap-1">
           <button 
             onClick={() => {
               const container = document.getElementById('projects-scroll');
-              if (container) container.scrollBy({ left: -340, behavior: 'smooth' });
+              if (container) container.scrollBy({ left: -280, behavior: 'smooth' });
             }}
-            className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white transition flex items-center justify-center"
+            className="w-6 h-6 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white transition flex items-center justify-center text-xs"
           >
             ←
           </button>
           <button 
             onClick={() => {
               const container = document.getElementById('projects-scroll');
-              if (container) container.scrollBy({ left: 340, behavior: 'smooth' });
+              if (container) container.scrollBy({ left: 280, behavior: 'smooth' });
             }}
-            className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white transition flex items-center justify-center"
+            className="w-6 h-6 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white transition flex items-center justify-center text-xs"
           >
             →
           </button>
@@ -957,207 +956,167 @@ useEffect(() => {
       )}
     </div>
 
-    {/* Horizontal Scroll Container with Live Previews */}
+    {/* Horizontal Scroll Container - REDUCED HEIGHT CARDS */}
     <div 
       id="projects-scroll"
-      className="flex overflow-x-auto gap-4 pb-4 scrollbar-thin scrollbar-thumb-cyan-500/20 scrollbar-track-transparent"
+      className="flex overflow-x-auto gap-3 pb-3"
       style={{ 
         scrollbarWidth: 'thin',
         overscrollBehaviorX: 'contain',
         WebkitOverflowScrolling: 'touch'
       }}
     >
-
-
-
       {savedProjects.map((project, index) => (
         <ClientMotionDiv
           key={project.id}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: index * 0.03 }}
-          className={`flex-shrink-0 w-64 sm:w-72 md:w-80 ${
+          className={`flex-shrink-0 w-56 sm:w-64 ${
             deletingProjectId === project.id ? 'animate-glass-break' : ''
           }`}
         >
-          
           <div 
             onClick={() => loadProject(project)}
-            className={`group cursor-pointer relative bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/40 hover:shadow-xl hover:shadow-cyan-500/10 transition-all duration-300 ${
+            className={`group cursor-pointer relative bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/40 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 ${
               loadingProjectId === project.id ? 'opacity-50' : ''
             }`}
           >
             {/* Loading Overlay */}
             {loadingProjectId === project.id && (
               <div className="absolute inset-0 bg-black/80 rounded-xl flex flex-col items-center justify-center z-20 backdrop-blur-sm">
-                <Loader2 className="w-6 h-6 animate-spin text-cyan-400 mb-2" />
-                <span className="text-xs text-cyan-400 font-medium">Loading...</span>
+                <Loader2 className="w-5 h-5 animate-spin text-cyan-400 mb-1" />
+                <span className="text-[10px] text-cyan-400 font-medium">Loading...</span>
               </div>
             )}
             
-          
-            
+            {/* Thumbnail - REDUCED HEIGHT (h-28 instead of h-36) */}
+            <div className="relative w-full h-28 bg-slate-900 overflow-hidden">
+              {project.thumbnail_url ? (
+                <img 
+                  src={project.thumbnail_url}
+                  alt={project.name}
+                  className="w-full h-full object-cover object-top"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const parent = e.currentTarget.parentElement;
+                    if (parent && project.preview_url) {
+                      const iframe = document.createElement('iframe');
+                      iframe.src = project.preview_url;
+                      iframe.className = 'w-full h-full border-0';
+                      iframe.style.transform = 'scale(0.85)';
+                      iframe.style.transformOrigin = 'top left';
+                      iframe.style.pointerEvents = 'none';
+                      iframe.title = project.name;
+                      parent.removeChild(e.currentTarget);
+                      parent.appendChild(iframe);
+                    }
+                  }}
+                />
+              ) : project.preview_url ? (
+                <iframe
+                  src={project.preview_url}
+                  className="w-full h-full border-0"
+                  style={{ 
+                    width: '100%',
+                    height: '100%',
+                    transform: 'scale(0.85)',
+                    transformOrigin: 'top left',
+                    pointerEvents: 'none'
+                  }}
+                  sandbox="allow-same-origin allow-scripts"
+                  title={project.name}
+                />
+              ) : project.preview_html ? (
+                <>
+                  <iframe
+                    srcDoc={project.preview_html}
+                    className="w-full h-full border-0"
+                    style={{ 
+                      width: '100%',
+                      height: '100%',
+                      transform: 'scale(0.85)',
+                      transformOrigin: 'top left',
+                      pointerEvents: 'none'
+                    }}
+                    sandbox="allow-same-origin allow-scripts"
+                    title={project.name}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                </>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+                  <div className="text-center">
+                    <div className="w-8 h-8 mx-auto mb-1 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
+                      <Terminal className="w-4 h-4 text-slate-500" />
+                    </div>
+                    <p className="text-[10px] text-slate-500">No preview</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            </div>
 
-
-
-
-
-            
-                                                                    {/* Live Preview Thumbnail - Shows actual project */}
-<div className="relative w-full h-36 sm:h-40 md:h-44 bg-slate-900 overflow-hidden">
-  {project.thumbnail_url ? (
-    <img 
-      src={project.thumbnail_url}  // ✅ Direct Cloudinary URL (no localhost prefix needed)
-      alt={project.name}
-      className="w-full h-full object-cover object-top"
-      loading="lazy"
-      onError={(e) => {
-        console.log(`Failed to load thumbnail for ${project.name}`);
-        e.currentTarget.style.display = 'none';
-        // Fallback to preview if thumbnail fails
-        const parent = e.currentTarget.parentElement;
-        if (parent && project.preview_url) {
-          const iframe = document.createElement('iframe');
-          iframe.src = project.preview_url;
-          iframe.className = 'w-full h-full border-0';
-          iframe.style.transform = 'scale(0.85)';
-          iframe.style.transformOrigin = 'top left';
-          iframe.style.pointerEvents = 'none';
-          iframe.title = project.name;
-          parent.removeChild(e.currentTarget);
-          parent.appendChild(iframe);
-        }
-      }}
-    />
-  ) : project.preview_url ? (
-    <iframe
-      src={project.preview_url}  // ✅ Cloudinary preview URL
-      className="w-full h-full border-0"
-      style={{ 
-        width: '100%',
-        height: '100%',
-        transform: 'scale(0.85)',
-        transformOrigin: 'top left',
-        pointerEvents: 'none'
-      }}
-      sandbox="allow-same-origin allow-scripts"
-      title={project.name}
-    />
-  ) : project.preview_html ? (
-    <>
-      <iframe
-        srcDoc={project.preview_html}
-        className="w-full h-full border-0"
-        style={{ 
-          width: '100%',
-          height: '100%',
-          transform: 'scale(0.85)',
-          transformOrigin: 'top left',
-          pointerEvents: 'none'
-        }}
-        sandbox="allow-same-origin allow-scripts"
-        title={project.name}
-      />
-      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-    </>
-  ) : (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
-      <div className="text-center">
-        <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
-          <Terminal className="w-6 h-6 text-slate-500" />
-        </div>
-        <p className="text-xs text-slate-500">Preview not available</p>
-      </div>
-    </div>
-  )}
-  
-  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-</div>
-
-
-
-
-
-
-
-
-
-
-
-            {/* Project Info */}
-            <div className="p-2 sm:p-3">
-              <div className="flex justify-between items-start mb-1">
-                <div className="flex-1">
-                  <h3 className="font-medium text-sm text-white mb-0.5 truncate group-hover:text-cyan-400 transition-colors">
+            {/* Project Info - REDUCED PADDING */}
+            <div className="p-2">
+              <div className="flex justify-between items-start">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-xs text-white truncate group-hover:text-cyan-400 transition-colors">
                     {project.name}
                   </h3>
                 </div>
                 
                 {/* Delete Button */}
-                <div className="relative ml-2">
+                <div className="relative ml-1">
                   <button 
                     onClick={(e) => { 
                       e.stopPropagation(); 
                       setShowDeleteConfirm(project.id); 
                     }} 
-                    className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition p-1"
+                    className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition p-0.5"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3 h-3" />
                   </button>
                   
-                  {/* Delete Modal - Centered on Screen */}
+                  {/* Delete Modal */}
                   {showDeleteConfirm === project.id && (
                     <>
-                      {/* Backdrop */}
                       <div 
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
                         onClick={() => setShowDeleteConfirm(null)}
                       />
-                      
-                      {/* Modal Content */}
-                      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-white/10 shadow-2xl p-5 w-72">
+                      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-white/10 shadow-2xl p-4 w-64">
                         <div className="text-center">
-                          {/* Icon */}
-                          <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-3">
-                            <Trash2 className="w-6 h-6 text-red-400" />
+                          <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-2">
+                            <Trash2 className="w-5 h-5 text-red-400" />
                           </div>
-                          
-                          {/* Title */}
-                          <h3 className="text-base font-bold text-white mb-1">Delete Project?</h3>
-                          
-                          {/* Message */}
-                          <p className="text-xs text-gray-300 mb-4">
+                          <h3 className="text-sm font-bold text-white mb-1">Delete Project?</h3>
+                          <p className="text-[11px] text-gray-300 mb-3">
                             Delete "<span className="text-red-400 font-medium">{project.name}</span>"?
                           </p>
-                          
-                          {/* Buttons */}
                           <div className="flex gap-2">
                             <button 
-  onClick={(e) => { 
-    e.stopPropagation(); 
-    
-    // Start glass break animation
-    setDeletingProjectId(project.id);
-    
-    // Close modal immediately
-    setShowDeleteConfirm(null);
-    
-    // Delete AFTER animation completes (500ms)
-    setTimeout(() => {
-      deleteProject(project.id, project.name);
-      setDeletingProjectId(null);
-    }, 500); // Changed from 300 to 500
-  }} 
-  className="flex-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg font-medium transition"
->
-  Yes
-</button>
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                setDeletingProjectId(project.id);
+                                setShowDeleteConfirm(null);
+                                setTimeout(() => {
+                                  deleteProject(project.id, project.name);
+                                  setDeletingProjectId(null);
+                                }, 500);
+                              }} 
+                              className="flex-1 px-2 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded-lg font-medium transition"
+                            >
+                              Yes
+                            </button>
                             <button 
                               onClick={(e) => { 
                                 e.stopPropagation(); 
                                 setShowDeleteConfirm(null); 
                               }} 
-                              className="flex-1 px-3 py-1.5 bg-gray-500/30 hover:bg-gray-500/50 text-white text-sm rounded-lg font-medium transition"
+                              className="flex-1 px-2 py-1 bg-gray-500/30 hover:bg-gray-500/50 text-white text-xs rounded-lg font-medium transition"
                             >
                               No
                             </button>
@@ -1169,14 +1128,14 @@ useEffect(() => {
                 </div>
               </div>
               
-              <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/10">
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-                  <Clock className="w-2.5 h-2.5" />
+              <div className="flex items-center justify-between mt-1 pt-1 border-t border-white/10">
+                <div className="flex items-center gap-1 text-[9px] text-slate-500">
+                  <Clock className="w-2 h-2" />
                   <span>{timeAgo(project.timestamp)}</span>
                 </div>
-                <div className="flex items-center gap-1 text-[10px] text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-0.5 text-[9px] text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity">
                   <span>Open</span>
-                  <ArrowRight className="w-2.5 h-2.5" />
+                  <ArrowRight className="w-2 h-2" />
                 </div>
               </div>
             </div>
@@ -1185,32 +1144,13 @@ useEffect(() => {
       ))}
     </div>
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    {/* Scroll Hint */}
+    {/* Scroll Hint - SMALLER */}
     {savedProjects.length > 3 && (
-      <div className="flex justify-center mt-3">
-        <div className="text-[10px] text-slate-500 animate-pulse flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full">
-          <span className="text-cyan-400">←</span>
-          <span>Scroll to see {savedProjects.length} projects</span>
-          <span className="text-cyan-400">→</span>
+      <div className="flex justify-center mt-2">
+        <div className="text-[9px] text-slate-500 animate-pulse flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-full">
+          <span className="text-cyan-400 text-[10px]">←</span>
+          <span>Scroll {savedProjects.length} projects</span>
+          <span className="text-cyan-400 text-[10px]">→</span>
         </div>
       </div>
     )}
@@ -1297,36 +1237,27 @@ useEffect(() => {
 
 
 
-
-{/* Templates Section */}
-<div className="mt-16 text-left">
-  <div className="flex items-center gap-2 mb-6">
-    <div className="w-1 h-5 bg-cyan-500 rounded-full" />
-    <h2 className="text-sm font-semibold text-slate-300">Templates</h2>
+{/* Templates Section - TIGHTER GRID */}
+<div className="mt-12 text-left">
+  <div className="flex items-center gap-2 mb-4">
+    <div className="w-1 h-4 bg-cyan-500 rounded-full" />
+    <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Templates</h2>
   </div>
   
-  {/* FORCED GRID - Will NOT stack vertically */}
-  <div style={{ 
-    display: 'grid', 
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '1rem',
-    width: '100%'
-  }} 
-  className="sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
     {templateProjects.map((template) => (
       <div
         key={template.id}
         onClick={() => loadTemplate(template)}
-        style={{ display: 'flex', flexDirection: 'column' }}
-        className={`group bg-gradient-to-br ${template.bgColor} border ${template.borderColor} rounded-xl p-4 hover:${template.hoverBorder} hover:bg-white/10 transition-all cursor-pointer backdrop-blur-sm`}
+        className={`group bg-gradient-to-br ${template.bgColor} border ${template.borderColor} rounded-lg p-2.5 hover:${template.hoverBorder} hover:bg-white/10 transition-all cursor-pointer backdrop-blur-sm`}
       >
-        <div className={`mb-3 w-10 h-10 rounded-lg bg-gradient-to-br ${template.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+        <div className={`mb-2 w-7 h-7 rounded-lg bg-gradient-to-br ${template.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
           {template.icon}
         </div>
-        <h3 className="font-semibold text-sm text-white mb-1">{template.name}</h3>
-        <p className="text-xs text-slate-400 mb-3">{template.description}</p>
-        <div className={`flex items-center gap-1 text-[10px] ${template.iconColor} opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1`}>
-          Use Template <ArrowRight className="w-3 h-3" />
+        <h3 className="font-semibold text-[11px] text-white mb-0.5 truncate">{template.name}</h3>
+        <p className="text-[9px] text-slate-400 mb-1.5 line-clamp-1">{template.description}</p>
+        <div className={`flex items-center gap-0.5 text-[8px] ${template.iconColor} opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-0.5`}>
+          Use <ArrowRight className="w-2 h-2" />
         </div>
       </div>
     ))}
@@ -1338,50 +1269,36 @@ useEffect(() => {
 
 
 
-
-
-{/* Features Section */}
-<div className="mt-16">
-  <div className="flex items-center gap-2 mb-6">
-    <div className="w-1 h-5 bg-gradient-to-b from-violet-500 to-fuchsia-500 rounded-full" />
-    <h2 className="text-sm font-semibold text-slate-300">Features</h2>
+{/* Features Section - TIGHTER */}
+<div className="mt-12">
+  <div className="flex items-center gap-2 mb-4">
+    <div className="w-1 h-4 bg-gradient-to-b from-violet-500 to-fuchsia-500 rounded-full" />
+    <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Features</h2>
   </div>
   
-  <div style={{ 
-    display: 'grid', 
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '1rem',
-    width: '100%'
-  }} 
-  className="sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
     {features.map((feature, i) => (
-      <div key={i} style={{ display: 'flex', flexDirection: 'column' }}>
-        <ClientMotionDiv
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.05 }}
-          className="h-full"
-        >
-          <div className="group bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-2xl p-4 sm:p-6 text-center hover:border-violet-500/40 hover:bg-white/5 transition-all duration-300 backdrop-blur-sm h-full">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 flex items-center justify-center text-violet-400 mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300 group-hover:shadow-xl group-hover:shadow-violet-500/20">
-              {feature.icon}
-            </div>
-            
-            <h3 className="font-semibold text-sm sm:text-base text-white mb-1 sm:mb-2 group-hover:text-violet-400 transition-colors">
-              {feature.title}
-            </h3>
-            
-            <p className="text-xs sm:text-sm text-slate-400 group-hover:text-slate-300 transition-colors leading-relaxed">
-              {feature.description}
-            </p>
+      <ClientMotionDiv
+        key={i}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: i * 0.05 }}
+      >
+        <div className="group bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl p-3 text-center hover:border-violet-500/40 hover:bg-white/5 transition-all duration-300 backdrop-blur-sm">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 flex items-center justify-center text-violet-400 mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
+            {feature.icon}
           </div>
-        </ClientMotionDiv>
-      </div>
+          <h3 className="font-semibold text-xs text-white mb-0.5 group-hover:text-violet-400 transition-colors">
+            {feature.title}
+          </h3>
+          <p className="text-[10px] text-slate-400 group-hover:text-slate-300 transition-colors leading-relaxed">
+            {feature.description}
+          </p>
+        </div>
+      </ClientMotionDiv>
     ))}
   </div>
 </div>
-
-
 
 
 

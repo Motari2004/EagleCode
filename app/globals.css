@@ -389,3 +389,84 @@ body:hover::-webkit-scrollbar-thumb {
 body:active::-webkit-scrollbar-thumb {
   background: rgba(0, 255, 255, 0.5);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ========== SMOOTH SCROLLING FOR PROJECTS ========== */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Projects scroll container - smooth momentum scrolling */
+#projects-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(6, 182, 212, 0.3) transparent;
+}
+
+#projects-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+#projects-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#projects-scroll::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.3);
+  border-radius: 10px;
+}
+
+#projects-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.5);
+}
+
+/* Touch-friendly scrolling for mobile */
+@media (hover: none) and (pointer: coarse) {
+  #projects-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  
+  #projects-scroll > div {
+    scroll-snap-align: start;
+  }
+}
+
+/* Prevent accidental page scroll while dragging projects */
+#projects-scroll:active {
+  cursor: grabbing;
+}
+
+/* Reduced motion preference support */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  
+  #projects-scroll {
+    scroll-behavior: auto;
+  }
+}
