@@ -212,20 +212,15 @@ export default function PricingPage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-12 relative z-10">
         
-        {/* Hero Section - Compact */}
-        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-3">
-            <span className="text-[10px] sm:text-xs bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-semibold">
-              Start free, scale up
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
-            Choose the <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Perfect Plan</span>
-          </h1>
-          <p className="text-xs sm:text-base text-slate-400">
-            Start free and upgrade when you need more.
-          </p>
-        </div>
+{/* Hero Section - Compact */}
+<div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
+  <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
+    Choose the <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Perfect Plan</span>
+  </h1>
+  <p className="text-xs sm:text-base text-slate-400">
+    Start free and upgrade when you need more.
+  </p>
+</div>
 
         {/* Billing Toggle - Compact */}
         <div className="flex justify-center mb-8 sm:mb-12">
