@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Shield, Crown, RefreshCw, Zap, Users, Star, Mail, CheckCircle, XCircle, MessageSquare, Clock, Menu, X, Trash2, Image, Eye, Download } from "lucide-react";
+import { Shield, Crown, RefreshCw, Zap, Users, Star, Mail, CheckCircle, XCircle, MessageSquare, Clock, Menu, X, Trash2, Image, Eye, Download,Link } from "lucide-react";
 import { toast } from "sonner";
 
 interface User {
@@ -29,6 +29,8 @@ interface UpgradeRequest {
   payment_screenshot_url?: string;
   payment_amount?: string;
   payment_date?: string;
+  email_sent?: boolean;  // ✅ NEW
+  email_sent_at?: string;  // ✅ NEW
 }
 
 export default function AdminPanel() {
@@ -202,13 +204,28 @@ export default function AdminPanel() {
     }
   };
 
-  const sendPaymentEmail = (email: string, plan: string, userName: string) => {
-    const subject = `EagleCode Upgrade Request - ${plan.toUpperCase()} Plan`;
-    const body = `Hi ${userName || email.split('@')[0]},
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  const sendPaymentEmail = async (email: string, plan: string, userName: string, requestId: string) => {
+  const subject = `EagleCode Upgrade Request - ${plan.toUpperCase()} Plan`;
+  const uploadLink = `${window.location.origin}/upload-proof?request_id=${requestId}&plan=${plan}`;
+  
+  const body = `Hi ${userName || email.split('@')[0]},
 
 Thank you for your interest in upgrading to the ${plan.toUpperCase()} plan!
 
-Payment Options:
+💰 Payment Options:
 
 🏦 Bank Transfer:
    Bank: Example Bank
@@ -223,15 +240,60 @@ Payment Options:
    USDT (TRC20): TX8sVgZxXyZ1234567890ABCDEF
    Bitcoin: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
 
-After payment, send proof to: payments@eaglecode.com
+📸 AFTER MAKING PAYMENT, UPLOAD YOUR PROOF HERE:
+${uploadLink}
 
-We'll upgrade your account within 2 hours of payment confirmation.
+We'll upgrade your account within 2 hours of receiving your payment proof.
 
 Best regards,
 EagleCode Team`;
 
+  // First, mark email as sent in database
+  try {
+    console.log("📧 Marking email as sent for request:", requestId);
+    
+    const response = await fetch(`${backendUrl}/api/admin/send-payment-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ request_id: requestId })
+    });
+    
+    const data = await response.json();
+    console.log("📧 API Response:", data);
+    
+    if (response.ok && data.success) {
+      console.log("✅ Email marked as sent in database");
+      toast.success("Email status updated!");
+      await loadUpgradeRequests(); // Refresh the list
+      
+      // Then open email client
+      window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    } else {
+      console.error("❌ Failed to mark email as sent:", data);
+      toast.error("Failed to update email status");
+      // Still open email even if status update fails
+      window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+  } catch (error) {
+    console.error("❌ Error marking email as sent:", error);
+    toast.error("Failed to update email status");
+    // Still open email
     window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  };
+  }
+};
+
+
+
+
+
+
+
+
+
+
 
   if (!isAdmin) {
     return (
@@ -421,9 +483,53 @@ EagleCode Team`;
                   {/* Header with Delete Button */}
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
                     <div className="flex-1">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                      
                       <div className="flex flex-wrap items-center gap-2 mb-1 sm:mb-2">
                         <h3 className="text-base sm:text-lg font-semibold text-white">{req.user_name || req.user_email}</h3>
                         {getRequestStatusBadge(req.status)}
+
+
+
+
+
+
+
+                      {/* Email Status Badge */}
+  {req.email_sent ? (
+    <span className="px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full text-[10px] flex items-center gap-1">
+      <Mail size={10} />
+      Email Sent
+    </span>
+  ) : (
+    <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full text-[10px] flex items-center gap-1">
+      <Clock size={10} />
+      Email Not Sent
+    </span>
+  )}
+
+
+
+
+
+
+
+
+
+
                       </div>
                       <p className="text-xs sm:text-sm text-gray-400 break-all">{req.user_email}</p>
                     </div>
@@ -448,30 +554,69 @@ EagleCode Team`;
                     </div>
                   </div>
 
-                  {/* Payment Info - NEW SECTION */}
-                  {(req.payment_amount || req.payment_date) && (
-                    <div className="bg-green-500/10 rounded-lg p-2 sm:p-3 mb-3 sm:mb-4 border border-green-500/20">
-                      <p className="text-[10px] sm:text-xs text-green-400 mb-1">💰 Payment Details:</p>
-                      <div className="flex flex-wrap gap-3 text-xs sm:text-sm text-gray-300">
-                        {req.payment_amount && <span>Amount: {req.payment_amount}</span>}
-                        {req.payment_date && <span>Date: {new Date(req.payment_date).toLocaleString()}</span>}
-                      </div>
-                    </div>
-                  )}
 
-                  {/* Payment Screenshot - NEW */}
-                  {req.payment_screenshot_url && (
-                    <div className="bg-cyan-500/10 rounded-lg p-2 sm:p-3 mb-3 sm:mb-4 border border-cyan-500/20">
-                      <p className="text-[10px] sm:text-xs text-cyan-400 mb-2">📸 Payment Screenshot:</p>
-                      <button
-                        onClick={() => setSelectedScreenshot(req.payment_screenshot_url!)}
-                        className="flex items-center gap-2 px-3 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 rounded-lg text-cyan-400 text-xs sm:text-sm transition"
-                      >
-                        <Eye size={14} />
-                        View Screenshot
-                      </button>
-                    </div>
-                  )}
+
+
+
+
+                  {/* Payment Screenshot - Styled based on availability */}
+<div className="mb-3 sm:mb-4">
+  {req.payment_screenshot_url ? (
+    // ✅ Screenshot UPLOADED - Green/Success style
+    <div className="flex items-center justify-between bg-green-500/10 rounded-lg p-2 sm:p-3 border border-green-500/30">
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+          <CheckCircle className="w-4 h-4 text-green-400" />
+        </div>
+        <div>
+          <p className="text-xs font-medium text-green-400">Screenshot Received</p>
+          <p className="text-[10px] text-green-400/70">Payment proof uploaded</p>
+        </div>
+      </div>
+      <button
+        onClick={() => setSelectedScreenshot(req.payment_screenshot_url!)}
+        className="flex items-center gap-2 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 rounded-lg text-green-400 text-xs sm:text-sm transition group"
+      >
+        <Eye size={14} className="group-hover:scale-110 transition" />
+        <span>View Screenshot</span>
+      </button>
+    </div>
+  ) : (
+    // ⏳ Screenshot NOT YET UPLOADED - Warning/Yellow style
+    <div className="flex items-center justify-between bg-yellow-500/10 rounded-lg p-2 sm:p-3 border border-yellow-500/30">
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
+          <Clock className="w-4 h-4 text-yellow-400" />
+        </div>
+        <div>
+          <p className="text-xs font-medium text-yellow-400">Awaiting Screenshot</p>
+          <p className="text-[10px] text-yellow-400/70">User hasn't uploaded payment proof yet</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => {
+            const uploadLink = `${window.location.origin}/upload-proof?request_id=${req.id}&plan=${req.requested_plan}`;
+            navigator.clipboard.writeText(uploadLink);
+            toast.success("Upload link copied to clipboard!");
+          }}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-yellow-500/20 hover:bg-yellow-500/30 rounded-lg text-yellow-400 text-xs transition"
+        >
+          <Link size={12} />
+          <span>Copy Link</span>
+        </button>
+        <span className="text-[10px] text-yellow-400/50">Waiting for upload</span>
+      </div>
+    </div>
+  )}
+</div>
+
+
+
+
+
+
+
 
                   {/* Message */}
                   {req.message && (
@@ -488,43 +633,72 @@ EagleCode Team`;
                     </div>
                   )}
 
+
+
+
+
                   {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-2 sm:gap-3">
-                    <button
-                      onClick={() => sendPaymentEmail(req.user_email, req.requested_plan, req.user_name)}
-                      className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-cyan-500/20 hover:bg-cyan-500/30 rounded-lg text-cyan-400 text-[11px] sm:text-sm transition whitespace-nowrap"
-                    >
-                      <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span>Send Email</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => updateRequestStatus(req.id, "contacted", "Contacted via email with payment details")}
-                      className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg text-blue-400 text-[11px] sm:text-sm transition whitespace-nowrap"
-                    >
-                      <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span>Contacted</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        upgradeUser(req.user_id, req.requested_plan);
-                        updateRequestStatus(req.id, "approved", `Account upgraded to ${req.requested_plan} plan`);
-                      }}
-                      className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-green-500/20 hover:bg-green-500/30 rounded-lg text-green-400 text-[11px] sm:text-sm transition whitespace-nowrap"
-                    >
-                      <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span>Approve</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => updateRequestStatus(req.id, "rejected", "Request rejected")}
-                      className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-red-400 text-[11px] sm:text-sm transition whitespace-nowrap"
-                    >
-                      <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span>Reject</span>
-                    </button>
-                  </div>
+<div className="flex flex-wrap gap-2 sm:gap-3">
+  {/* Send Email Button - Changes based on email_sent status */}
+  <button
+    onClick={() => sendPaymentEmail(req.user_email, req.requested_plan, req.user_name, req.id)}
+    disabled={req.email_sent}
+    className={`flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-sm transition whitespace-nowrap ${
+      req.email_sent
+        ? "bg-green-500/20 text-green-400 cursor-default opacity-70"
+        : "bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400"
+    }`}
+  >
+    {req.email_sent ? (
+      <>
+        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+        <span>Email Sent</span>
+      </>
+    ) : (
+      <>
+        <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
+        <span>Send Email</span>
+      </>
+    )}
+  </button>
+
+  <button
+    onClick={() => updateRequestStatus(req.id, "contacted", "Contacted via email with payment details")}
+    className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg text-blue-400 text-[11px] sm:text-sm transition whitespace-nowrap"
+  >
+    <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
+    <span>Contacted</span>
+  </button>
+  
+  <button
+    onClick={() => {
+      upgradeUser(req.user_id, req.requested_plan);
+      updateRequestStatus(req.id, "approved", `Account upgraded to ${req.requested_plan} plan`);
+    }}
+    className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-green-500/20 hover:bg-green-500/30 rounded-lg text-green-400 text-[11px] sm:text-sm transition whitespace-nowrap"
+  >
+    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+    <span>Approve</span>
+  </button>
+  
+  <button
+    onClick={() => updateRequestStatus(req.id, "rejected", "Request rejected")}
+    className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-red-400 text-[11px] sm:text-sm transition whitespace-nowrap"
+  >
+    <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+    <span>Reject</span>
+  </button>
+</div>
+
+
+
+
+
+
+
+
+
+
                 </div>
               ))
             )}

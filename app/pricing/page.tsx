@@ -369,6 +369,18 @@ export default function PricingPage() {
         </div>
       </main>
 
+
+
+
+
+
+
+
+
+
+
+
+
       {/* Upgrade Request Modal */}
       {showRequestModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
