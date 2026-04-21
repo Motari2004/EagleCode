@@ -326,16 +326,6 @@ export default function ProfilePage() {
 
 
 
-
-                    {/* Plan Badge - Fixed for mobile */}
-<div className={`bg-gradient-to-r ${getPlanColor()} px-2 sm:px-3 py-1 rounded-full shadow-lg flex-shrink-0`}>
-  <div className="flex items-center gap-1">
-    <ZapIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
-    <span className="text-[10px] sm:text-xs font-medium text-white uppercase whitespace-nowrap">
-      {getPlanName() === 'Business' ? 'Biz' : getPlanName()}
-    </span>
-  </div>
-</div>
                   </div>
                   
 
