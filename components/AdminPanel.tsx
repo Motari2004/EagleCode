@@ -35,6 +35,7 @@ export default function AdminPanel() {
   const [upgrading, setUpgrading] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState<"users" | "requests">("requests");
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://eaglecode2-2.onrender.com';
 
   const token = typeof window !== 'undefined' ? localStorage.getItem("eaglecode_token") : null;
 
@@ -44,7 +45,7 @@ export default function AdminPanel() {
 
   const checkAdminAndLoadData = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/admin/users", {
+      const response = await fetch(`${backendUrl}/api/admin/users`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       
@@ -65,7 +66,7 @@ export default function AdminPanel() {
 
   const loadUpgradeRequests = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/admin/upgrade-requests", {
+      const response = await fetch(`${backendUrl}/api/admin/upgrade-requests`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const data = await response.json();
@@ -80,7 +81,7 @@ export default function AdminPanel() {
   const upgradeUser = async (userId: string, newPlan: string) => {
     setUpgrading(userId);
     try {
-      const response = await fetch("http://localhost:8000/api/admin/upgrade-user", {
+      const response = await fetch(`${backendUrl}/api/admin/upgrade-user`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -106,7 +107,7 @@ export default function AdminPanel() {
 
   const resetCredits = async (userId: string) => {
     try {
-      const response = await fetch("http://localhost:8000/api/admin/reset-credits", {
+      const response = await fetch(`${backendUrl}/api/admin/reset-credits`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -128,7 +129,7 @@ export default function AdminPanel() {
 
   const updateRequestStatus = async (requestId: string, status: string, notes?: string) => {
     try {
-      const response = await fetch("http://localhost:8000/api/admin/update-request-status", {
+      const response = await fetch(`${backendUrl}/api/admin/update-request-status`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
