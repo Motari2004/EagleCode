@@ -867,10 +867,10 @@ useEffect(() => {
         {/* Hero Section */}
         <div className="py-16 text-center">
           <ClientMotionDiv initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4">
-              Code is now <br />
-              <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Conversational.</span>
-            </h1>
+<h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-3">
+  Code is now <br />
+  <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Conversational.</span>
+</h1>
             <p className="text-base text-slate-400 max-w-xl mx-auto mb-8">
               Transform natural language into production-ready Next.js architectures. Zero boilerplate, absolute precision.
             </p>
