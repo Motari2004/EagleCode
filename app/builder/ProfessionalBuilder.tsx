@@ -3697,170 +3697,122 @@ const CreditsInfoModal = () => {
 
 
     {/* Dynamic Input Area - AI-Powered Editing - Scrollable on mobile */}
-    <div className="relative flex-1 group min-w-[200px] sm:min-w-[300px]">
-      {isEditMode && (loadedFiles || Object.keys(buildFiles).length > 1) ? (
-        <div className="flex gap-2">
-          <div className="relative flex-1 min-w-[200px]">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-lg">
-              🦂
-            </div>
-            <Input
-              className="bg-amber-500/10 border-amber-500/30 h-11 text-sm focus:ring-1 focus:ring-amber-500/50 pl-10 pr-12 rounded-xl transition-all text-white placeholder:text-gray-400 w-full"
-              placeholder="Describe what you want to change..."
-              value={editPrompt}
-              onChange={(e) => setEditPrompt(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && applyIntelligentEdit()}
-              autoFocus
-            />
-
-
-
-
-
-
-
-            <Button
-              onClick={applyIntelligentEdit}
-              disabled={isEditingProject}
-              className="absolute right-1.5 top-1.5 h-8 w-9 flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full p-0 transition-transform duration-200 active:scale-90 shadow-lg shadow-amber-500/40"
-            >
-              {isEditingProject ? (
-                <Loader2 className="animate-spin h-5 w-5" />
-              ) : (
-                <ArrowRight size={40} />
-              )}
-            </Button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            
-          </div>
-          <Button
-            onClick={() => {
-              setIsEditMode(false);
-              setEditPrompt("");
-            }}
-            variant="outline"
-            className="h-11 border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl px-4 text-gray-300 hover:text-white transition-all duration-300 flex-shrink-0"
-          >
-            Cancel
-          </Button>
+<div className="relative flex-1 group min-w-[180px] sm:min-w-[2px]">
+  {isEditMode && (loadedFiles || Object.keys(buildFiles).length > 1) ? (
+    <div className="flex gap-2">
+      <div className="relative flex-1 min-w-[180px]">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-lg">
+          🦂
         </div>
-      ) : (
-        <div className="relative">
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-purple-400 transition-colors">
-            <Search size={16} />
-          </div>
-          <Input
-            className="bg-white/5 border-white/10 h-11 text-sm focus:ring-1 focus:ring-purple-500/50 pl-10 pr-12 rounded-xl transition-all text-white placeholder:text-gray-500 backdrop-blur-sm w-full"
-            placeholder={loadedFiles ? "Click 'Edit' to modify this project with AI" : "Describe your app or what to change..."}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-
-
-
-
-
-
-            onKeyDown={async (e) => {
-  if (e.key === "Enter" && !loadedFiles) {
-    console.log("🔘 Enter key pressed");
-    
-    // Set loading state immediately
-    setIsCheckingCredits(true);
-    
-    let creditsNeeded = 2;
-    if (prompt.length > 500) creditsNeeded = 3;
-    if (prompt.length > 1000) creditsNeeded = 5;
-    
-    const hasCredits = await checkAndDeductCredits(creditsNeeded, "AI Generation");
-    
-    setIsCheckingCredits(false);
-    
-    if (hasCredits) {
-      startBuild(prompt);
-    }
-  }
-}}
-
-
-
-            disabled={!!loadedFiles}
-          />
-
-
-
-
-
-
-
-
-
-
-
-
-          <Button
-  onClick={async () => {
-    console.log("🔘 Generate button clicked");
-    console.log("loadedFiles:", loadedFiles);
-    console.log("prompt length:", prompt.length);
-    
-    if (!loadedFiles) {
-      // Set loading state immediately
-      setIsCheckingCredits(true);
-      
-      let creditsNeeded = 2;
-      if (prompt.length > 500) creditsNeeded = 3;
-      if (prompt.length > 1000) creditsNeeded = 5;
-      
-      console.log("💰 Credits needed:", creditsNeeded);
-      console.log("💰 Calling checkAndDeductCredits...");
-      
-      const hasCredits = await checkAndDeductCredits(creditsNeeded, "AI Generation");
-      
-      setIsCheckingCredits(false);
-      
-      console.log("💰 Has credits:", hasCredits);
-      
-      if (hasCredits) {
-        console.log("🚀 Starting build...");
-        startBuild(prompt);
-      } else {
-        console.log("❌ No credits, build cancelled");
-      }
-    } else {
-      console.log("⚠️ loadedFiles is true, skipping generation");
-    }
-  }}
-  disabled={isBuilding || !!loadedFiles || isCheckingCredits}
-  className="absolute right-1.5 top-1.5 h-8 w-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg p-0 transition-all active:scale-90 shadow-lg shadow-purple-500/25"
->
-  {isBuilding || isCheckingCredits ? <Loader2 className="animate-spin h-4 w-4" /> : <Send size={16} />}
-</Button>
-
-
-
-
-
-
-
-
-
-        </div>
-      )}
+        <Input
+          className="bg-amber-500/10 border-amber-500/30 h-9 text-sm focus:ring-1 focus:ring-amber-500/50 pl-9 pr-10 rounded-xl transition-all text-white placeholder:text-gray-400 w-full"
+          placeholder="Describe what you want to change..."
+          value={editPrompt}
+          onChange={(e) => setEditPrompt(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && applyIntelligentEdit()}
+          autoFocus
+        />
+        <Button
+          onClick={applyIntelligentEdit}
+          disabled={isEditingProject}
+          className="absolute right-1.5 top-1 h-7 w-7 flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full p-0 transition-transform duration-200 active:scale-90 shadow-lg shadow-amber-500/40"
+        >
+          {isEditingProject ? (
+            <Loader2 className="animate-spin h-3.5 w-3.5" />
+          ) : (
+            <ArrowRight size={14} />
+          )}
+        </Button>
+      </div>
+      <Button
+        onClick={() => {
+          setIsEditMode(false);
+          setEditPrompt("");
+        }}
+        variant="outline"
+        className="h-9 border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-xl px-4 text-gray-300 hover:text-white transition-all duration-300 flex-shrink-0 text-sm"
+      >
+        Cancel
+      </Button>
     </div>
+  ) : (
+    <div className="relative">
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-purple-400 transition-colors">
+        <Search size={15} />
+      </div>
+      <Input
+        className="bg-white/5 border-white/10 h-9 text-sm focus:ring-1 focus:ring-purple-500/50 pl-9 pr-10 rounded-xl transition-all text-white placeholder:text-gray-500 backdrop-blur-sm w-full"
+        placeholder={loadedFiles ? "Click 'Edit' to modify this project with AI" : "Describe your app or what to change..."}
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        onKeyDown={async (e) => {
+          if (e.key === "Enter" && !loadedFiles) {
+            console.log("🔘 Enter key pressed");
+            
+            // Set loading state immediately
+            setIsCheckingCredits(true);
+            
+            let creditsNeeded = 2;
+            if (prompt.length > 500) creditsNeeded = 3;
+            if (prompt.length > 1000) creditsNeeded = 5;
+            
+            const hasCredits = await checkAndDeductCredits(creditsNeeded, "AI Generation");
+            
+            setIsCheckingCredits(false);
+            
+            if (hasCredits) {
+              startBuild(prompt);
+            }
+          }
+        }}
+        disabled={!!loadedFiles}
+      />
+      <Button
+        onClick={async () => {
+          console.log("🔘 Generate button clicked");
+          console.log("loadedFiles:", loadedFiles);
+          console.log("prompt length:", prompt.length);
+          
+          if (!loadedFiles) {
+            // Set loading state immediately
+            setIsCheckingCredits(true);
+            
+            let creditsNeeded = 2;
+            if (prompt.length > 500) creditsNeeded = 3;
+            if (prompt.length > 1000) creditsNeeded = 5;
+            
+            console.log("💰 Credits needed:", creditsNeeded);
+            console.log("💰 Calling checkAndDeductCredits...");
+            
+            const hasCredits = await checkAndDeductCredits(creditsNeeded, "AI Generation");
+            
+            setIsCheckingCredits(false);
+            
+            console.log("💰 Has credits:", hasCredits);
+            
+            if (hasCredits) {
+              console.log("🚀 Starting build...");
+              startBuild(prompt);
+            } else {
+              console.log("❌ No credits, build cancelled");
+            }
+          } else {
+            console.log("⚠️ loadedFiles is true, skipping generation");
+          }
+        }}
+        disabled={isBuilding || !!loadedFiles || isCheckingCredits}
+        className="absolute right-1.5 top-1 h-7 w-7 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg p-0 transition-all active:scale-90 shadow-lg shadow-purple-500/25"
+      >
+        {isBuilding || isCheckingCredits ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : <Send size={14} />}
+      </Button>
+    </div>
+  )}
+</div>
+
+
+
+
+
 
     {/* Header Buttons - All visible with names */}
     <div className="flex items-center gap-3 flex-shrink-0">

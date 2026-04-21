@@ -41,7 +41,7 @@ export default function BuilderPage() {
 
           {/* Loading Text */}
           <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 bg-clip-text text-transparent">
-            Scorpio Builder
+            EagleCode Builder
           </h2>
 
           {/* Progress Bar - ONE TIME, NO REPEAT */}
