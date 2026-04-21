@@ -1,13 +1,15 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Upload, CheckCircle2, Loader2, ArrowLeft } from "lucide-react";
+import { Upload, CheckCircle2, Loader2, ArrowLeft, X } from "lucide-react";
 
-export default function UploadProofPage() {
+// Component that uses useSearchParams
+function UploadProofContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useUser();
@@ -18,6 +20,7 @@ export default function UploadProofPage() {
   
   const requestId = searchParams.get("request_id");
   const plan = searchParams.get("plan");
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
   useEffect(() => {
     if (!requestId) {
@@ -35,61 +38,52 @@ export default function UploadProofPage() {
     }
   };
 
-
-
-
-
-
-
-  // In app/upload-proof/page.tsx
-const handleUpload = async () => {
-  if (!screenshot) {
-    toast.error("Please select a screenshot");
-    return;
-  }
-
-  setIsUploading(true);
-
-  try {
-    const token = localStorage.getItem("eaglecode_token");
-    const formData = new FormData();
-    formData.append("request_id", requestId!);
-    formData.append("payment_screenshot", screenshot);
-    if (user) {
-      formData.append("user_id", user.id);
+  const handleUpload = async () => {
+    if (!screenshot) {
+      toast.error("Please select a screenshot");
+      return;
     }
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-    const response = await fetch(`${backendUrl}/api/upload-payment-proof`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      },
-      body: formData,
-    });
+    setIsUploading(true);
 
-    const data = await response.json();
-    console.log("Upload response:", data); // ✅ Add this to debug
+    try {
+      const token = localStorage.getItem("eaglecode_token");
+      const formData = new FormData();
+      formData.append("request_id", requestId!);
+      formData.append("payment_screenshot", screenshot);
+      if (user) {
+        formData.append("user_id", user.id);
+      }
 
-    if (data.success) {
-      setIsSuccess(true);
-      toast.success("Payment proof uploaded! Admin will review it.");
-      setTimeout(() => {
-        router.push("/");
-      }, 3000);
-    } else {
-      toast.error(data.message || "Upload failed");
+      const response = await fetch(`${backendUrl}/api/upload-payment-proof`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setIsSuccess(true);
+        toast.success("Payment proof uploaded! Admin will review it.");
+        setTimeout(() => {
+          router.push("/");
+        }, 3000);
+      } else {
+        toast.error(data.message || "Upload failed");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload screenshot");
+    } finally {
+      setIsUploading(false);
     }
-  } catch (error) {
-    console.error("Upload error:", error);
-    toast.error("Failed to upload screenshot");
-  } finally {
-    setIsUploading(false);
-  }
-};
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-black p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black p-4">
       <div className="max-w-md w-full">
         <button
           onClick={() => router.back()}
@@ -133,7 +127,18 @@ const handleUpload = async () => {
                   />
                   <label htmlFor="screenshot-upload" className="cursor-pointer block">
                     {preview ? (
-                      <img src={preview} alt="Preview" className="max-h-48 mx-auto rounded-lg" />
+                      <div className="relative">
+                        <img src={preview} alt="Preview" className="max-h-48 mx-auto rounded-lg" />
+                        <button
+                          onClick={() => {
+                            setScreenshot(null);
+                            setPreview(null);
+                          }}
+                          className="absolute top-2 right-2 p-1 bg-red-500/80 rounded-full"
+                        >
+                          <X size={16} className="text-white" />
+                        </button>
+                      </div>
                     ) : (
                       <div className="flex flex-col items-center gap-2">
                         <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center">
@@ -170,5 +175,18 @@ const handleUpload = async () => {
         </div>
       </div>
     </div>
+  );
+}
+
+// Main page with Suspense boundary
+export default function UploadProofPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-purple-500 border-t-transparent"></div>
+      </div>
+    }>
+      <UploadProofContent />
+    </Suspense>
   );
 }
