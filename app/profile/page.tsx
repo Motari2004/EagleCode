@@ -319,14 +319,31 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     
-                    {/* Plan Badge */}
-                    <div className={`bg-gradient-to-r ${getPlanColor()} px-3 py-1.5 rounded-full shadow-lg`}>
-                      <div className="flex items-center gap-1">
-                        <ZapIcon className="w-3 h-3 text-white" />
-                        <span className="text-xs font-medium text-white uppercase">{getPlanName()}</span>
-                      </div>
-                    </div>
+
+
+
+
+
+
+
+
+                    {/* Plan Badge - Fixed for mobile */}
+<div className={`bg-gradient-to-r ${getPlanColor()} px-2 sm:px-3 py-1 rounded-full shadow-lg flex-shrink-0`}>
+  <div className="flex items-center gap-1">
+    <ZapIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
+    <span className="text-[10px] sm:text-xs font-medium text-white uppercase whitespace-nowrap">
+      {getPlanName() === 'Business' ? 'Biz' : getPlanName()}
+    </span>
+  </div>
+</div>
                   </div>
+                  
+
+
+
+
+
+
                   
                   {/* Credits Section */}
                   <div className="mt-6 grid grid-cols-2 gap-4">
