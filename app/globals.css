@@ -564,3 +564,19 @@ html {
   width: 200%;
   height: 200%;
 }
+
+
+
+
+
+/* Fix for mobile browser address bar white flash */
+html {
+  height: -webkit-fill-available;
+}
+
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  background: linear-gradient(135deg, #050507 0%, #0f0f1a 50%, #1a1429 100%);
+  background-attachment: fixed;
+}
