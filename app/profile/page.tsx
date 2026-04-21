@@ -43,24 +43,53 @@ export default function ProfilePage() {
     }
   }, [user, token, router]);
 
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
   const loadCredits = async () => {
   try {
     console.log("Loading credits for user:", user?.id);
     const authToken = localStorage.getItem("eaglecode_token");
     
-    // CHANGE: Use "user_id" instead of "userId"
-    const response = await fetch(`http://localhost:8000/api/credits?user_id=${user?.id}`, {
+    if (!authToken) {
+      console.error("No auth token found");
+      setCredits(prev => ({ ...prev, isLoading: false }));
+      return;
+    }
+    
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://eaglecode2-2.onrender.com';
+    
+    // ADD CACHE BUSTER to prevent caching
+    const cacheBuster = Date.now();
+    
+    const response = await fetch(`${backendUrl}/api/credits?user_id=${user?.id}&_=${cacheBuster}`, {
       headers: { 
         'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
       }
     });
     
     console.log("Credits response status:", response.status);
     const data = await response.json();
-    console.log("Credits data:", data);
+    console.log("Full credits data from API:", data);
     
     if (response.ok && data.success !== false) {
+      console.log("Plan from API:", data.plan);
+      console.log("Plan type:", typeof data.plan);
+      
       setCredits({
         dailyRemaining: data.dailyRemaining ?? 0,
         monthlyRemaining: data.monthlyRemaining ?? 0,
@@ -69,6 +98,10 @@ export default function ProfilePage() {
         plan: data.plan ?? 'free',
         isLoading: false
       });
+      
+      // Also store in localStorage for debugging
+      localStorage.setItem('user_plan', data.plan);
+      
     } else {
       console.error("Failed to load credits:", data);
       setCredits(prev => ({ ...prev, isLoading: false }));
@@ -78,6 +111,17 @@ export default function ProfilePage() {
     setCredits(prev => ({ ...prev, isLoading: false }));
   }
 };
+
+
+
+
+
+
+
+
+
+
+
 
   const loadStats = async () => {
     try {
