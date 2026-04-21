@@ -276,40 +276,99 @@ EagleCode Team`;
           </div>
         </div>
 
-        {/* Mobile Tabs Dropdown */}
-        <div className="sm:hidden mb-4">
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-white/5 rounded-xl border border-white/10"
-          >
-            <span className="text-white font-medium">
-              {activeTab === "requests" ? "📧 Upgrade Requests" : "👥 Users Management"}
-            </span>
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-          {mobileMenuOpen && (
-            <div className="mt-2 bg-white/5 rounded-xl border border-white/10 overflow-hidden">
-              <button
-                onClick={() => {
-                  setActiveTab("requests");
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full px-4 py-3 text-left text-gray-300 hover:bg-white/10 transition"
-              >
-                📧 Upgrade Requests ({upgradeRequests.filter(r => r.status === "pending").length})
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab("users");
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full px-4 py-3 text-left text-gray-300 hover:bg-white/10 transition border-t border-white/10"
-              >
-                👥 Users Management
-              </button>
-            </div>
-          )}
-        </div>
+
+
+
+
+
+
+
+
+{/* Mobile Tabs Dropdown - Styled */}
+<div className="sm:hidden mb-4">
+  <button
+    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+    className="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-cyan-500/30 transition-all duration-300"
+  >
+    <div className="flex items-center gap-2">
+      {activeTab === "requests" ? (
+        <Mail className="w-4 h-4 text-cyan-400" />
+      ) : (
+        <Users className="w-4 h-4 text-cyan-400" />
+      )}
+      <span className="text-white font-medium">
+        {activeTab === "requests" ? "Upgrade Requests" : "Users Management"}
+      </span>
+      {activeTab === "requests" && upgradeRequests.filter(r => r.status === "pending").length > 0 && (
+        <span className="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 rounded-full text-[10px] font-bold">
+          {upgradeRequests.filter(r => r.status === "pending").length}
+        </span>
+      )}
+    </div>
+    <div className={`transition-transform duration-300 ${mobileMenuOpen ? 'rotate-180' : ''}`}>
+      {mobileMenuOpen ? (
+        <X size={18} className="text-cyan-400" />
+      ) : (
+        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      )}
+    </div>
+  </button>
+  
+  {mobileMenuOpen && (
+    <div className="mt-2 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+      <button
+        onClick={() => {
+          setActiveTab("requests");
+          setMobileMenuOpen(false);
+        }}
+        className={`w-full px-4 py-3 text-left transition-all duration-200 flex items-center gap-3 ${
+          activeTab === "requests" 
+            ? "bg-gradient-to-r from-cyan-500/20 to-transparent text-cyan-400 border-l-2 border-cyan-400" 
+            : "text-gray-300 hover:bg-white/10"
+        }`}
+      >
+        <Mail className={`w-4 h-4 ${activeTab === "requests" ? "text-cyan-400" : "text-gray-500"}`} />
+        <span className="flex-1 text-sm font-medium">Upgrade Requests</span>
+        {upgradeRequests.filter(r => r.status === "pending").length > 0 && (
+          <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 rounded-full text-[10px] font-bold">
+            {upgradeRequests.filter(r => r.status === "pending").length}
+          </span>
+        )}
+      </button>
+      
+      <button
+        onClick={() => {
+          setActiveTab("users");
+          setMobileMenuOpen(false);
+        }}
+        className={`w-full px-4 py-3 text-left transition-all duration-200 flex items-center gap-3 border-t border-white/10 ${
+          activeTab === "users" 
+            ? "bg-gradient-to-r from-cyan-500/20 to-transparent text-cyan-400 border-l-2 border-cyan-400" 
+            : "text-gray-300 hover:bg-white/10"
+        }`}
+      >
+        <Users className={`w-4 h-4 ${activeTab === "users" ? "text-cyan-400" : "text-gray-500"}`} />
+        <span className="flex-1 text-sm font-medium">Users Management</span>
+        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-[10px] font-bold">
+          {users.length}
+        </span>
+      </button>
+    </div>
+  )}
+</div>
+
+
+
+
+
+
+
+
+
+
+
 
         {/* Desktop Tabs */}
         <div className="hidden sm:flex gap-2 mb-6 border-b border-white/10">
