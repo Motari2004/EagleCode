@@ -42,7 +42,8 @@ export default function AdminPanel() {
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const [deletingRequest, setDeletingRequest] = useState<string | null>(null);
   
-  const backendUrl = 'http://localhost:8000';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://eaglecode2-2.onrender.com';
+  
   const token = typeof window !== 'undefined' ? localStorage.getItem("eaglecode_token") : null;
 
   useEffect(() => {
