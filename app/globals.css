@@ -575,13 +575,13 @@ html {
 /* Fix for mobile browser address bar white flash */
 html {
   height: -webkit-fill-available;
-  background-color: #010102;
+  background-color: #363647;
 }
 
 body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
-  background: linear-gradient(135deg, #5656ec 0%, #1f1f4e 50%, #1a1429 100%);
+  background: linear-gradient(135deg, #050507 0%, #0f0f1a 50%, #1a1429 100%);
   background-attachment: fixed;
 }
 
