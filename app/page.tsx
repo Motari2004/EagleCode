@@ -1396,8 +1396,7 @@ useEffect(() => {
 
 
 
-
-    {/* CTA Footer - Compact Container with Content */}
+{/* CTA Footer - Compact Container with Content */}
 <div className="mt-8 mb-12 flex justify-center">
   <ClientMotionDiv 
     initial={{ opacity: 0, y: 20 }} 
@@ -1405,8 +1404,6 @@ useEffect(() => {
     transition={{ duration: 0.5 }}
     className="w-full max-w-2xl mx-auto bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-cyan-500/10 border border-cyan-500/20 rounded-xl py-4 px-5 text-center"
   >
-
-    
     {/* Heading */}
     <h2 className="text-base sm:text-lg font-bold mb-1">
       Ready to build{" "}
@@ -1420,70 +1417,46 @@ useEffect(() => {
       Start generating production-ready code in seconds. No setup, no hassle.
     </p>
     
-
-
-
-
-    
-    {/* Buttons Container */}
-    <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-3">
-
+    {/* Buttons Container - Side by side on ALL devices */}
+    <div className="flex flex-row items-center justify-center gap-2 sm:gap-3 mb-3">
+      <Button 
+        onClick={handleGetStarted} 
+        className="bg-transparent border-2 border-cyan-500 text-cyan-400 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-purple-500 hover:text-white hover:border-transparent rounded-lg px-4 sm:px-5 py-1.5 text-xs font-medium transition-all duration-300 whitespace-nowrap"
+      >
+        Get Started
+        <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
+      </Button>
       
-<Button 
-  onClick={handleGetStarted} 
-  className="bg-transparent border-2 border-cyan-500 text-cyan-400 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-purple-500 hover:text-white hover:border-transparent rounded-lg px-5 py-1.5 text-xs font-medium transition-all duration-300"
->
-  Get Started
-  <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
-</Button>
-      
-
-
-
-
-
-
-<button
-  onClick={() => router.push("/pricing")}
-  className="group relative overflow-hidden flex items-center gap-1.5 px-5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 hover:border-amber-500/60 text-xs font-medium text-amber-400 hover:text-white transition-all duration-300"
->
-  <span className="relative z-10 flex items-center gap-1.5">
-    View Pricing
-    <DollarSign className="w-3 h-3 group-hover:translate-x-0.5 group-hover:scale-110 transition-all duration-300" />
-  </span>
-  {/* Shine effect */}
-  <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent" />
-</button>
-
-
-
-
+      <button
+        onClick={() => router.push("/pricing")}
+        className="group relative overflow-hidden flex items-center gap-1.5 px-4 sm:px-5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 hover:border-amber-500/60 text-xs font-medium text-amber-400 hover:text-white transition-all duration-300 whitespace-nowrap"
+      >
+        <span className="relative z-10 flex items-center gap-1.5">
+          View Pricing
+          <DollarSign className="w-3 h-3 group-hover:translate-x-0.5 group-hover:scale-110 transition-all duration-300" />
+        </span>
+        {/* Shine effect */}
+        <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent" />
+      </button>
     </div>
     
-
-
-
-
     {/* Trust Badges */}
     <div className="flex flex-wrap items-center justify-center gap-3 pt-2 border-t border-white/10">
       <div className="flex items-center gap-1">
         <CheckCircle className="w-2.5 h-2.5 text-emerald-400" />
-        <span className="text-[15px] text-slate-500">No credit card</span>
+        <span className="text-[10px] sm:text-xs text-slate-500">No credit card</span>
       </div>
       <div className="flex items-center gap-1">
         <Zap className="w-2.5 h-2.5 text-cyan-400" />
-        <span className="text-[15px] text-slate-500">5 free credits/day</span>
+        <span className="text-[10px] sm:text-xs text-slate-500">5 free credits/day</span>
       </div>
       <div className="flex items-center gap-1">
         <Rocket className="w-2.5 h-2.5 text-purple-400" />
-        <span className="text-[15px] text-slate-500">Instant deploy</span>
+        <span className="text-[10px] sm:text-xs text-slate-500">Instant deploy</span>
       </div>
     </div>
   </ClientMotionDiv>
 </div>
-
-
-
 
 
 

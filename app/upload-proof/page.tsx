@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "@/contexts/UserContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Upload, CheckCircle2, Loader2, ArrowLeft, X, Clock,ArrowRight } from "lucide-react";
+import { Upload, CheckCircle2, Loader2, ArrowLeft, X, Clock, ArrowRight } from "lucide-react";
 
 // Component that uses useSearchParams
 function UploadProofContent() {
@@ -17,7 +17,7 @@ function UploadProofContent() {
   const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [countdown, setCountdown] = useState(6);
+  const [countdown, setCountdown] = useState(20); // Changed to 20 seconds
   
   const requestId = searchParams.get("request_id");
   const plan = searchParams.get("plan");
@@ -81,8 +81,8 @@ function UploadProofContent() {
 
       if (data.success) {
         setIsSuccess(true);
-        setCountdown(6);
-        toast.success("Payment proof uploaded! Redirecting in 6 seconds...", {
+        setCountdown(20); // Changed to 20 seconds
+        toast.success("Payment proof uploaded! Redirecting in 20 seconds...", {
           duration: 5000,
         });
       } else {
@@ -134,13 +134,9 @@ function UploadProofContent() {
                   </p>
                 </div>
                 
-                <div className="bg-yellow-500/10 rounded-lg p-3 border border-yellow-500/20">
-                  <p className="text-xs text-yellow-400 text-center">
-                    ⚡ You will receive an email confirmation once your account is upgraded.
-                  </p>
-                </div>
+
                 
-                {/* Countdown timer */}
+                {/* Countdown timer - 10 seconds */}
                 <div className="mt-4 pt-3 border-t border-white/10">
                   <p className="text-xs text-slate-500 text-center">
                     Redirecting to home in <span className="text-cyan-400 font-bold text-sm">{countdown}</span> seconds...
@@ -148,7 +144,7 @@ function UploadProofContent() {
                   <div className="w-full bg-white/10 rounded-full h-1 mt-2 overflow-hidden">
                     <div 
                       className="bg-gradient-to-r from-cyan-500 to-purple-500 h-full rounded-full transition-all duration-1000"
-                      style={{ width: `${(countdown / 6) * 100}%` }}
+                      style={{ width: `${(countdown / 20) * 100}%` }} // Changed to divide by 20
                     />
                   </div>
                 </div>
