@@ -24,13 +24,13 @@ export default function PricingPage() {
       price: 0,
       yearlyPrice: 0,
       description: "Perfect for trying out EagleCode",
-      icon: <Star className="w-6 h-6" />,
+      icon: <Star className="w-5 h-5" />,
       color: "from-emerald-500 to-emerald-600",
       textColor: "text-emerald-400",
       buttonColor: "bg-white/10 hover:bg-white/20",
       features: [
-        "5 credits per day",
-        "30 credits per month",
+        "5 credits/day",
+        "30 credits/month",
         "Basic AI editing",
         "Community support",
         "Export to ZIP"
@@ -42,21 +42,19 @@ export default function PricingPage() {
       price: 19,
       yearlyPrice: 190,
       description: "For professional developers",
-      icon: <Zap className="w-6 h-6" />,
+      icon: <Zap className="w-5 h-5" />,
       color: "from-cyan-500 to-purple-500",
       textColor: "text-cyan-400",
       buttonColor: "bg-gradient-to-r from-cyan-500 to-purple-500 hover:opacity-90",
       popular: true,
       features: [
-        "15 credits per day",
-        "120 credits per month",
+        "15 credits/day",
+        "120 credits/month",
         "Unlimited projects",
         "Advanced AI editing",
         "Email support (24h)",
-        "Credits rollover (up to 240)",
-        "One-click deployment",
-        "Custom domains (3)",
-        "Export to ZIP"
+        "Credits rollover",
+        "One-click deployment"
       ]
     },
     {
@@ -65,20 +63,18 @@ export default function PricingPage() {
       price: 49,
       yearlyPrice: 490,
       description: "For teams and agencies",
-      icon: <Rocket className="w-6 h-6" />,
+      icon: <Rocket className="w-5 h-5" />,
       color: "from-purple-500 to-pink-500",
       textColor: "text-purple-400",
       buttonColor: "bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90",
       features: [
-        "40 credits per day",
-        "350 credits per month",
+        "40 credits/day",
+        "350 credits/month",
         "Unlimited projects",
         "Everything in Pro",
         "Priority support (4h)",
         "Analytics dashboard",
-        "API access",
-        "Credits rollover (up to 700)",
-        "Team collaboration"
+        "API access"
       ]
     },
     {
@@ -87,7 +83,7 @@ export default function PricingPage() {
       price: null,
       yearlyPrice: null,
       description: "For large organizations",
-      icon: <Building2 className="w-6 h-6" />,
+      icon: <Building2 className="w-5 h-5" />,
       color: "from-amber-500 to-orange-500",
       textColor: "text-amber-400",
       buttonColor: "bg-white/10 hover:bg-white/20",
@@ -97,10 +93,7 @@ export default function PricingPage() {
         "Dedicated support",
         "SSO/SAML",
         "On-premise option",
-        "SLA guarantee",
-        "Phone support",
-        "Custom integrations",
-        "Training sessions"
+        "SLA guarantee"
       ]
     }
   ];
@@ -116,7 +109,6 @@ export default function PricingPage() {
       return;
     }
     
-    // Show request modal for all paid plans
     setRequestPlan(planId);
     setShowRequestModal(true);
   };
@@ -170,30 +162,21 @@ export default function PricingPage() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3Cpattern%20id%3D%22grid%22%20width%3D%2260%22%20height%3D%2260%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath%20d%3D%22M%2060%200%20L%200%200%200%2060%22%20fill%3D%22none%22%20stroke%3D%22rgba(0%2C255%2C255%2C0.03)%22%20stroke-width%3D%221%22%2F%3E%3C%2Fpattern%3E%3C%2Fdefs%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22url(%23grid)%22%2F%3E%3C%2Fsvg%3E')] opacity-30" />
       </div>
 
-
-
-
-
-{/* Header */}
-<header className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
-  <div className="container mx-auto px-6 h-14 flex items-center justify-between">
-    <button 
-      onClick={() => router.push("/")}
-      className="flex items-center gap-2 hover:opacity-80 transition"
-    >
-      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
-        🦅
-      </div>
-      <span className="font-bold text-sm tracking-tight">
-        <span className="text-white">Eagle</span>
-        <span className="text-amber-500">Code</span>
-      </span>
-    </button>
-    
-
-
-
-
+      {/* Header */}
+      <header className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
+        <div className="container mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <button 
+            onClick={() => router.push("/")}
+            className="flex items-center gap-2 hover:opacity-80 transition"
+          >
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+              🦅
+            </div>
+            <span className="font-bold text-sm tracking-tight">
+              <span className="text-white">Eagle</span>
+              <span className="text-amber-500">Code</span>
+            </span>
+          </button>
           
           {user ? (
             <Button
@@ -205,7 +188,7 @@ export default function PricingPage() {
               <ArrowRight className="w-3 h-3 ml-1" />
             </Button>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Button
                 onClick={() => router.push("/signin")}
                 variant="outline"
@@ -227,29 +210,29 @@ export default function PricingPage() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10">
+      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-12 relative z-10">
         
-        {/* Hero Section */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-4">
-            <span className="text-xs bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-semibold">
+        {/* Hero Section - Compact */}
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-3">
+            <span className="text-[10px] sm:text-xs bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-semibold">
               Start free, scale up
             </span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Choose the <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Perfect Plan</span> for You
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
+            Choose the <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Perfect Plan</span>
           </h1>
-          <p className="text-slate-400 text-lg">
-            Start free and upgrade when you need more. All plans include core features.
+          <p className="text-xs sm:text-base text-slate-400">
+            Start free and upgrade when you need more.
           </p>
         </div>
 
-        {/* Billing Toggle */}
-        <div className="flex justify-center mb-12">
+        {/* Billing Toggle - Compact */}
+        <div className="flex justify-center mb-8 sm:mb-12">
           <div className="bg-white/5 rounded-xl p-1 flex gap-1">
             <button
               onClick={() => setBillingCycle("monthly")}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                 billingCycle === "monthly"
                   ? "bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg"
                   : "text-slate-400 hover:text-white"
@@ -259,96 +242,96 @@ export default function PricingPage() {
             </button>
             <button
               onClick={() => setBillingCycle("yearly")}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                 billingCycle === "yearly"
                   ? "bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg"
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              Yearly <span className="text-xs text-green-400 ml-1">Save 17%</span>
+              Yearly <span className="text-[9px] sm:text-xs text-green-400 ml-0.5 sm:ml-1">Save 17%</span>
             </button>
           </div>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 max-w-7xl mx-auto">
+        {/* Pricing Cards - More Compact */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 max-w-7xl mx-auto">
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`relative rounded-2xl transition-all duration-300 ${
+              className={`relative rounded-xl transition-all duration-300 ${
                 plan.popular
-                  ? "bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-2 border-cyan-500/50 shadow-xl shadow-cyan-500/10 scale-105 md:scale-105"
+                  ? "bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-cyan-500/50 shadow-lg shadow-cyan-500/10"
                   : "bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-white/20"
               }`}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="px-3 py-1 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-xs font-semibold shadow-lg">
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2">
+                  <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-[8px] sm:text-xs font-semibold shadow-lg whitespace-nowrap">
                     Most Popular
                   </span>
                 </div>
               )}
               
-              <div className="p-4 sm:p-6">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-4 shadow-lg`}>
+              <div className="p-3 sm:p-5">
+                <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-2 sm:mb-3 shadow-lg`}>
                   {plan.icon}
                 </div>
                 
-                <h3 className={`text-xl font-bold ${plan.textColor} mb-1`}>{plan.name}</h3>
-                <p className="text-sm text-slate-400 mb-4">{plan.description}</p>
+                <h3 className={`text-base sm:text-xl font-bold ${plan.textColor} mb-0.5`}>{plan.name}</h3>
+                <p className="text-[10px] sm:text-sm text-slate-400 mb-2 sm:mb-3">{plan.description}</p>
                 
-                <div className="mb-4">
+                <div className="mb-2 sm:mb-3">
                   {plan.price !== null ? (
                     <>
-                      <span className="text-4xl font-bold text-white">
+                      <span className="text-xl sm:text-3xl font-bold text-white">
                         ${billingCycle === "monthly" ? plan.price : plan.yearlyPrice}
                       </span>
-                      <span className="text-slate-400 ml-1">
-                        /{billingCycle === "monthly" ? "month" : "year"}
+                      <span className="text-[10px] sm:text-sm text-slate-400 ml-0.5">
+                        /{billingCycle === "monthly" ? "mo" : "yr"}
                       </span>
                       {billingCycle === "yearly" && plan.price > 0 && (
-                        <p className="text-xs text-green-400 mt-1">
-                          Save ${plan.price * 12 - plan.yearlyPrice}/year
+                        <p className="text-[8px] sm:text-xs text-green-400 mt-0.5">
+                          Save ${plan.price * 12 - plan.yearlyPrice}/yr
                         </p>
                       )}
                     </>
                   ) : (
                     <>
-                      <span className="text-2xl font-bold text-white">Custom</span>
-                      <span className="text-slate-400 ml-1">pricing</span>
+                      <span className="text-lg sm:text-2xl font-bold text-white">Custom</span>
+                      <span className="text-[10px] sm:text-sm text-slate-400 ml-0.5">pricing</span>
                     </>
                   )}
                 </div>
                 
-                <div className="space-y-1.5 mb-4">
+                <div className="space-y-1 mb-2 sm:mb-3">
                   {plan.features.slice(0, 4).map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 size={14} className="text-green-400 flex-shrink-0" />
+                    <div key={idx} className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-sm">
+                      <CheckCircle2 size={10} className="sm:w-3.5 sm:h-3.5 text-green-400 flex-shrink-0" />
                       <span className="text-slate-300">{feature}</span>
                     </div>
                   ))}
-                  {plan.features.length > 6 && (
-                    <div className="flex items-center gap-2 text-sm text-slate-400">
-                      <span>+{plan.features.length - 6} more features</span>
+                  {plan.features.length > 5 && (
+                    <div className="flex items-center gap-1 text-[9px] sm:text-xs text-slate-400">
+                      <span>+{plan.features.length - 4} more</span>
                     </div>
                   )}
                 </div>
                 
                 <button
                   onClick={() => handleUpgrade(plan.id)}
-                  className={`w-full py-2.5 rounded-xl font-semibold transition-all duration-300 ${
+                  className={`w-full py-1.5 sm:py-2 rounded-lg font-semibold transition-all duration-300 text-xs sm:text-sm ${
                     plan.id === "free"
                       ? "bg-white/10 text-white hover:bg-white/20"
                       : plan.id === "custom"
                       ? "bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                      : plan.buttonColor + " text-white shadow-lg"
+                      : plan.buttonColor + " text-white shadow-md"
                   }`}
                 >
                   {plan.id === "free" 
-                    ? "Current Plan" 
+                    ? "Current" 
                     : plan.id === "custom" 
-                    ? "Contact Sales →" 
-                    : `Request ${plan.name}`}
+                    ? "Contact →" 
+                    : `Request ${plan.name === "Pro" ? "Pro" : plan.name === "Business" ? "Biz" : plan.name}`}
                 </button>
               </div>
             </div>
@@ -356,30 +339,18 @@ export default function PricingPage() {
         </div>
 
         {/* Custom Plan Note */}
-        <div className="text-center mt-8">
-          <p className="text-xs text-slate-500">
+        <div className="text-center mt-6 sm:mt-8">
+          <p className="text-[10px] sm:text-xs text-slate-500">
             Custom plans include dedicated support, SLAs, and custom integrations.{" "}
             <button
               onClick={() => handleUpgrade("custom")}
               className="text-cyan-400 hover:text-cyan-300"
             >
-              Request a custom plan →
+              Request →
             </button>
           </p>
         </div>
       </main>
-
-
-
-
-
-
-
-
-
-
-
-
 
       {/* Upgrade Request Modal */}
       {showRequestModal && (
@@ -407,26 +378,25 @@ export default function PricingPage() {
                 </div>
                 
                 <p className="text-slate-400 text-sm mb-4">
-                  You're requesting to upgrade to <span className="text-cyan-400 font-semibold">{requestPlan.toUpperCase()}</span> plan.
-                  Our team will contact you with payment instructions.
+                  Requesting <span className="text-cyan-400 font-semibold">{requestPlan.toUpperCase()}</span> plan.
                 </p>
                 
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Additional Message (Optional)
+                    Message (Optional)
                   </label>
                   <textarea
                     value={requestMessage}
                     onChange={(e) => setRequestMessage(e.target.value)}
-                    placeholder="Tell us about your needs or any questions..."
+                    placeholder="Tell us about your needs..."
                     className="w-full px-4 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 resize-none"
-                    rows={4}
+                    rows={3}
                   />
                 </div>
                 
                 <div className="bg-cyan-500/10 rounded-lg p-3 mb-4 border border-cyan-500/20">
                   <p className="text-xs text-cyan-400">
-                    📧 We'll send payment instructions to your email: <strong>{user?.email}</strong>
+                    📧 Payment instructions to: <strong>{user?.email}</strong>
                   </p>
                 </div>
                 
@@ -450,7 +420,7 @@ export default function PricingPage() {
                     ) : (
                       <>
                         <Send className="w-4 h-4" />
-                        Send Request
+                        Send
                       </>
                     )}
                   </button>
