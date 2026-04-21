@@ -437,48 +437,71 @@ EagleCode Team`;
                     </div>
                   )}
 
-                  {/* Action Buttons - Vertical on mobile, horizontal on desktop */}
-                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                    <button
-                      onClick={() => sendPaymentEmail(req.user_email, req.requested_plan, req.user_name)}
-                      className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 rounded-lg text-cyan-400 text-xs sm:text-sm transition"
-                    >
-                      <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
-                      Send Email
-                    </button>
-                    
-                    <button
-                      onClick={() => updateRequestStatus(req.id, "contacted", "Contacted via email with payment details")}
-                      className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg text-blue-400 text-xs sm:text-sm transition"
-                    >
-                      <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
-                      Contacted
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        upgradeUser(req.user_id, req.requested_plan);
-                        updateRequestStatus(req.id, "approved", `Account upgraded to ${req.requested_plan} plan`);
-                      }}
-                      className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-green-500/20 hover:bg-green-500/30 rounded-lg text-green-400 text-xs sm:text-sm transition"
-                    >
-                      <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                      Approve
-                    </button>
-                    
-                    <button
-                      onClick={() => updateRequestStatus(req.id, "rejected", "Request rejected")}
-                      className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-red-400 text-xs sm:text-sm transition"
-                    >
-                      <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                      Reject
-                    </button>
-                  </div>
+
+
+
+
+
+
+
+
+
+                  {/* Action Buttons - Horizontal wrapping on all devices */}
+<div className="flex flex-wrap gap-2 sm:gap-3">
+  <button
+    onClick={() => sendPaymentEmail(req.user_email, req.requested_plan, req.user_name)}
+    className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-cyan-500/20 hover:bg-cyan-500/30 rounded-lg text-cyan-400 text-[11px] sm:text-sm transition whitespace-nowrap"
+  >
+    <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
+    <span>Send Email</span>
+  </button>
+  
+  <button
+    onClick={() => updateRequestStatus(req.id, "contacted", "Contacted via email with payment details")}
+    className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg text-blue-400 text-[11px] sm:text-sm transition whitespace-nowrap"
+  >
+    <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
+    <span>Contacted</span>
+  </button>
+  
+  <button
+    onClick={() => {
+      upgradeUser(req.user_id, req.requested_plan);
+      updateRequestStatus(req.id, "approved", `Account upgraded to ${req.requested_plan} plan`);
+    }}
+    className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-green-500/20 hover:bg-green-500/30 rounded-lg text-green-400 text-[11px] sm:text-sm transition whitespace-nowrap"
+  >
+    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+    <span>Approve</span>
+  </button>
+  
+  <button
+    onClick={() => updateRequestStatus(req.id, "rejected", "Request rejected")}
+    className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-red-400 text-[11px] sm:text-sm transition whitespace-nowrap"
+  >
+    <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+    <span>Reject</span>
+  </button>
+</div>
                 </div>
               ))
             )}
           </div>
         )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         {/* Users Management Tab - Horizontal Scroll on Mobile */}
         {activeTab === "users" && (
