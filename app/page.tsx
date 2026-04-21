@@ -1428,16 +1428,16 @@ useEffect(() => {
       </Button>
       
       <button
-        onClick={() => router.push("/pricing")}
-        className="group relative overflow-hidden flex items-center gap-1.5 px-4 sm:px-5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 hover:border-amber-500/60 text-xs font-medium text-amber-400 hover:text-white transition-all duration-300 whitespace-nowrap"
-      >
-        <span className="relative z-10 flex items-center gap-1.5">
-          View Pricing
-          <DollarSign className="w-3 h-3 group-hover:translate-x-0.5 group-hover:scale-110 transition-all duration-300" />
-        </span>
-        {/* Shine effect */}
-        <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent" />
-      </button>
+  onClick={() => router.push("/pricing")}
+  className="ripple-btn group relative overflow-hidden flex items-center gap-1.5 px-4 sm:px-5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 hover:border-amber-500/60 text-xs font-medium text-amber-400 hover:text-white transition-all duration-300 whitespace-nowrap active:scale-95"
+>
+  <span className="relative z-10 flex items-center gap-1.5">
+    View Pricing
+    <DollarSign className="w-3 h-3 group-hover:translate-x-0.5 group-hover:scale-110 transition-all duration-300" />
+  </span>
+  {/* Shine effect */}
+  <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent" />
+</button>
     </div>
     
     {/* Trust Badges */}

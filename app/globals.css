@@ -535,3 +535,32 @@ html {
 .animate-float-delayed {
   animation: float-delayed 10s ease-in-out infinite;
 }
+
+
+
+
+
+
+
+.ripple-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-effect:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.ripple-effect:active:after {
+  width: 200%;
+  height: 200%;
+}
