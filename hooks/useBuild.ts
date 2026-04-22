@@ -615,8 +615,9 @@ const setupWebSocket = useCallback((prompt: string): Promise<WebSocket> => {
 
 const getWebSocketUrl = () => {
   if (isProduction) {
+
     // Use the CORRECT backend URL (without -1)
-    return 'wss://eaglecode2.onrender.com/ws/build';
+    return 'wss://eaglecode2-2.onrender.com/ws/build';
   }
   // Local development
   return 'ws://localhost:8000/ws/build';

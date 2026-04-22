@@ -2423,7 +2423,7 @@ const generatePreview = useCallback(async () => {
 
   try {
     // Always use production backend
-    const endpoint = 'https://eaglecode2.onrender.com/api/generate-preview';
+    const endpoint = 'https://eaglecode2-2.onrender.com/api/generate-preview';
     
     console.log(`📡 Generating preview using endpoint: ${endpoint}`);
 
