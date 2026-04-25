@@ -4402,32 +4402,87 @@ const CreditsInfoModal = () => {
     </div>
   )}
 
-  {/* Preview iframe */}
-  {previewUrl && !isBuilding && showPreviewDelayed && !isGeneratingPreview && (
-    <iframe
-      key={previewKey}
-      ref={iframeRef}
-      src={previewUrl}
-      className="w-full h-full border-0 bg-[#020617] animate-in fade-in duration-700"
-      loading="eager"
-      sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-popups-to-escape-sandbox"
-      title="Preview"
-      onLoad={() => {
-        setPreviewError(null);
-        try {
-          const iframeWindow = iframeRef.current?.contentWindow;
-          if (iframeWindow) {
-            setTimeout(() => {
-              iframeWindow.postMessage({ type: 'PREVIEW_READY', path: window.location.pathname }, '*');
-            }, 100);
+
+
+
+
+
+
+
+{/* Preview iframe */}
+{previewUrl && !isBuilding && showPreviewDelayed && !isGeneratingPreview && (
+  <iframe
+    key={previewKey}
+    ref={iframeRef}
+    src={previewUrl}
+    className="w-full h-full border-0 bg-[#020617] animate-in fade-in duration-700"
+    loading="eager"
+    sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+    allow="fullscreen; autoplay; clipboard-write"
+    title="Preview"
+    style={{
+      touchAction: 'auto',
+      pointerEvents: 'auto',
+      WebkitOverflowScrolling: 'touch',
+    }}
+    onLoad={() => {
+      setPreviewError(null);
+      try {
+        const iframeWindow = iframeRef.current?.contentWindow;
+        if (iframeWindow) {
+          // Inject mobile-optimized viewport and styles into the iframe content
+          try {
+            const iframeDoc = iframeWindow.document;
+            if (iframeDoc) {
+              // Ensure viewport meta tag exists for mobile
+              if (!iframeDoc.querySelector('meta[name="viewport"]')) {
+                const meta = iframeDoc.createElement('meta');
+                meta.name = 'viewport';
+                meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover';
+                iframeDoc.head.insertBefore(meta, iframeDoc.head.firstChild);
+              }
+              
+              // Add mobile touch styles if not present
+              if (!iframeDoc.querySelector('#mobile-touch-styles')) {
+                const style = iframeDoc.createElement('style');
+                style.id = 'mobile-touch-styles';
+                style.textContent = `
+                  @media (max-width: 768px) {
+                    button, a, [role="button"], [onclick], [onClick] {
+                      cursor: pointer;
+                      touch-action: manipulation;
+                      min-height: 44px;
+                      min-width: 44px;
+                    }
+                    body {
+                      touch-action: pan-x pan-y;
+                      -webkit-tap-highlight-color: transparent;
+                    }
+                  }
+                `;
+                iframeDoc.head.appendChild(style);
+              }
+            }
+          } catch (innerErr) {
+            // Cross-origin restrictions - ignore
+            console.debug("Cannot modify iframe DOM due to cross-origin");
           }
-        } catch (err) {
-          console.warn("Could not notify parent:", err);
+          
+          setTimeout(() => {
+            iframeWindow.postMessage({ 
+              type: 'PREVIEW_READY', 
+              path: window.location.pathname,
+              isMobile: window.innerWidth <= 768 
+            }, '*');
+          }, 100);
         }
-      }}
-      onError={() => setPreviewError("Failed to load preview")}
-    />
-  )}
+      } catch (err) {
+        console.warn("Could not notify parent:", err);
+      }
+    }}
+    onError={() => setPreviewError("Failed to load preview")}
+  />
+)}
 </div>
 
 
