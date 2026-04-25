@@ -26,11 +26,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      // Added data-scroll-behavior to fix the Next.js warning
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-[#f8fafc] text-[#1e293b]">
         <Providers>
-          {children}
+          {/* Main is useful for keeping footer at the bottom if using flex-col */}
+          <main className="flex-grow">
+            {children}
+          </main>
         </Providers>
       </body>
     </html>
