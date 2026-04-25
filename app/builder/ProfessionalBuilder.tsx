@@ -640,6 +640,29 @@ const checkAndDeductCredits = async (creditsToDeduct: number, action: string) =>
       .view-toggle button span { display: none; }
       .deploy-button span { display: none; }
       .ai-edit-button span { display: none; }
+
+
+  /* CRITICAL FIX: Ensure iframe content is tappable on mobile */
+  .mobile-preview iframe {
+    pointer-events: auto !important;
+    touch-action: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Ensure iframe container doesn't block touches */
+  .mobile-preview {
+    touch-action: pan-x pan-y !important;
+  }
+  
+  /* Make sure the iframe content receives clicks */
+  .mobile-preview iframe {
+    width: 100%;
+    height: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+
     }
   `;
 
