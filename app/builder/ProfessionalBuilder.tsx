@@ -1713,11 +1713,14 @@ const reconstructPreview = (updatedFiles: Record<string, string>): string => {
 
 
 
-
 // Intelligent AI-powered edit function - no target file required
 const applyIntelligentEdit = useCallback(async () => {
+  // 🔥 SET LOADING STATE IMMEDIATELY - MUST BE FIRST
+  setIsEditingProject(true);
+  
   if (!editPrompt.trim()) {
     toast.error("Please describe what change you want to make");
+    setIsEditingProject(false);
     return;
   }
 
@@ -1727,23 +1730,24 @@ const applyIntelligentEdit = useCallback(async () => {
   if (editPrompt.length > 500) creditsNeeded = 5;
   
   const hasCredits = await checkAndDeductCredits(creditsNeeded, "AI Edit");
-  if (!hasCredits) return;
-
+  if (!hasCredits) {
+    setIsEditingProject(false);
+    return;
+  }
 
   const currentFiles = loadedFiles || buildFiles;
   
   if (Object.keys(currentFiles).length <= 1) {
     toast.error("No project loaded to edit");
+    setIsEditingProject(false);
     return;
   }
-
-  setIsEditingProject(true);
   
   // Get stored database URL if any
   const storedDbUrl = localStorage.getItem('temp_database_url');
   
   try {
-      const response = await fetch(`${BACKEND_URL}/api/edit-file`, {  // ✅ Updated
+    const response = await fetch(`${BACKEND_URL}/api/edit-file`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1753,7 +1757,7 @@ const applyIntelligentEdit = useCallback(async () => {
         all_files: currentFiles,
         existing_preview: rawPreviewHtml || currentFiles.preview_html || "",
         regenerate_preview: true,
-        database_url: storedDbUrl || null  // <-- ADD THIS LINE
+        database_url: storedDbUrl || null
       })
     });
     
@@ -1763,16 +1767,8 @@ const applyIntelligentEdit = useCallback(async () => {
     }
     
     const result = await response.json();
-
-
-
-
-
-
-
-
     
-    // ADD THIS BLOCK - Check if backend needs database URL
+    // Check if backend needs database URL
     if (result.needs_database_url) {
       setIsEditingProject(false);
       setPendingEditDescription(editPrompt);
@@ -1812,7 +1808,7 @@ const applyIntelligentEdit = useCallback(async () => {
               ? { 
                   ...p, 
                   files: updatedFiles, 
-                  preview_html: updatedFiles.preview_html || "",  // <-- CRITICAL: Save the new preview!
+                  preview_html: updatedFiles.preview_html || "",
                   timestamp: new Date().toISOString() 
                 }
               : p
@@ -1847,7 +1843,7 @@ const applyIntelligentEdit = useCallback(async () => {
               ? { 
                   ...p, 
                   files: updatedFiles, 
-                  preview_html: updatedFiles.preview_html || "",  // <-- Save preview
+                  preview_html: updatedFiles.preview_html || "",
                   timestamp: new Date().toISOString() 
                 }
               : p
@@ -1908,11 +1904,7 @@ const applyIntelligentEdit = useCallback(async () => {
   } finally {
     setIsEditingProject(false);
   }
-}, [editPrompt, loadedFiles, buildFiles, savedProjects, currentProjectName, setBuildFiles, prompt]); // No changes to dependencies
-
-
-
-
+}, [editPrompt, loadedFiles, buildFiles, savedProjects, currentProjectName, setBuildFiles, prompt,]);
 
 
 
@@ -3757,6 +3749,14 @@ const CreditsInfoModal = () => {
       >
         Cancel
       </Button>
+
+
+
+
+
+
+
+      
     </div>
   ) : (
     <div className="relative">
@@ -3894,16 +3894,34 @@ const CreditsInfoModal = () => {
 
 
 
+{!isEditMode && (loadedFiles || Object.keys(buildFiles).length > 1) && (
+  <Button
+    onClick={() => setIsEditMode(true)}
+    disabled={isEditingProject}
+    className={`flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 shadow-lg shadow-amber-500/30 whitespace-nowrap ${isEditingProject ? 'opacity-50 cursor-not-allowed' : ''}`}
+  >
+    {isEditingProject ? (
+      <>
+        <Loader2 size={20} className="animate-spin" />
+        <span>Editing...</span>
+      </>
+    ) : (
+      <>
+        <Bot size={20} strokeWidth={2.5} />
+        <span>AI Edit</span>
+      </>
+    )}
+  </Button>
+)}
 
-      {(loadedFiles || Object.keys(buildFiles).length > 1) && !isEditMode && (
-        <Button
-          onClick={() => setIsEditMode(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300 shadow-lg shadow-amber-500/30 whitespace-nowrap"
-        >
-          <Bot size={20} strokeWidth={2.5} />
-          <span>AI Edit</span>
-        </Button>
-      )}
+
+
+
+
+
+
+
+      
       
       {loadedFiles && (
         <Button 
