@@ -36,6 +36,7 @@ interface UpgradeRequest {
 export default function AdminPanel() {
   const [users, setUsers] = useState<User[]>([]);
   const [upgradeRequests, setUpgradeRequests] = useState<UpgradeRequest[]>([]);
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -200,7 +201,7 @@ export default function AdminPanel() {
       case "contacted":
         return <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-[10px] sm:text-xs">📧 Contacted</span>;
       default:
-        return <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full text-[10px] sm:text-xs">⏳ Pending</span>;
+        return <span className="px-2 py-2 bg-yellow-500/20 text-yellow-400 rounded-full text-[10px] sm:text-xs">⏳ Pending</span>;
     }
   };
 
@@ -227,18 +228,11 @@ Thank you for your interest in upgrading to the ${plan.toUpperCase()} plan!
 
 💰 Payment Options:
 
-🏦 Bank Transfer:
-   Bank: Example Bank
-   Account Name: EagleCode
-   Account Number: 1234567890
-   Swift Code: EXMPUS33
-
-💳 Credit Card:
-   Visit: https://eaglecode.com/payment
+📱 M-Pesa (Kenya):
+   Number: 0716594620
 
 🪙 Cryptocurrency:
-   USDT (TRC20): TX8sVgZxXyZ1234567890ABCDEF
-   Bitcoin: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+   USDT (TRC20): TPRfXztUWAQfcqaCRqXz3fTAUPNLWXSFi9
 
 📸 AFTER MAKING PAYMENT, UPLOAD YOUR PROOF HERE:
 ${uploadLink}
@@ -508,15 +502,23 @@ EagleCode Team`;
 
 
 
+
+
+
+
                       {/* Email Status Badge */}
   {req.email_sent ? (
-    <span className="px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full text-[10px] flex items-center gap-1">
-      <Mail size={10} />
-      Email Sent
-    </span>
+
+    <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-[10px] flex items-center gap-1">
+  <Mail size={25} />
+  Email Sent
+</span>
+
+
+
   ) : (
     <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full text-[10px] flex items-center gap-1">
-      <Clock size={10} />
+      <Clock size={25} />
       Email Not Sent
     </span>
   )}
@@ -637,22 +639,29 @@ EagleCode Team`;
 
 
 
-                  {/* Action Buttons */}
+                {/* Action Buttons - Email button ALWAYS works */}
 <div className="flex flex-wrap gap-2 sm:gap-3">
-  {/* Send Email Button - Changes based on email_sent status */}
+  {/* Send Email Button - Always clickable, just shows status badge */}
   <button
     onClick={() => sendPaymentEmail(req.user_email, req.requested_plan, req.user_name, req.id)}
-    disabled={req.email_sent}
+    disabled={sendingEmail === req.id}
     className={`flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-sm transition whitespace-nowrap ${
-      req.email_sent
-        ? "bg-green-500/20 text-green-400 cursor-default opacity-70"
-        : "bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400"
+      sendingEmail === req.id
+        ? "bg-gray-500/20 text-gray-400 cursor-wait"
+        : req.email_sent
+          ? "bg-green-500/20 hover:bg-green-500/30 text-green-400"
+          : "bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400"
     }`}
   >
-    {req.email_sent ? (
+    {sendingEmail === req.id ? (
       <>
-        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-        <span>Email Sent</span>
+        <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+        <span>Sending...</span>
+      </>
+    ) : req.email_sent ? (
+      <>
+        <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
+        <span>Send Email Again</span>
       </>
     ) : (
       <>
