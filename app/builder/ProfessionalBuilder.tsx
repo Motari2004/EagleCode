@@ -280,6 +280,7 @@ export default function ProfessionalBuilder() {
 const [pendingEditDescription, setPendingEditDescription] = useState("");
 const [isProcessingAuth, setIsProcessingAuth] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showBackConfirmModal, setShowBackConfirmModal] = useState(false);
 
 
   // ========== ADD THESE TWO LINES HERE ==========
@@ -2875,8 +2876,6 @@ useEffect(() => {
 
 
 
-
-
 // Navigation controls with user-friendly messages
 const goBack = useCallback(() => {
   console.log("🔙 Back button clicked - Current state:", { 
@@ -2910,48 +2909,11 @@ const goBack = useCallback(() => {
     }
   }
   
-  // If we have a prompt parameter and no history, show warning before leaving
+  // If we have a prompt parameter and no history, show custom modal
   const hasPromptParam = window.location.search.includes('prompt');
   if (hasPromptParam) {
-    console.log("⚠️ About to leave builder - showing confirmation");
-    
-    // Show a toast with action buttons
-    toast.warning("⚠️ You're about to leave the builder", {
-      duration: 5000,
-      position: "bottom-center",
-      icon: "🚪",
-      action: {
-        label: "Stay Here",
-        onClick: () => {
-          console.log("User chose to stay");
-          toast.success("👍 Staying in builder", { duration: 2000 });
-        }
-      },
-      actionButtonStyle: {
-        backgroundColor: "#8b5cf6",
-        color: "white",
-        padding: "4px 12px",
-        borderRadius: "8px"
-      }
-    });
-    
-    // Also show a confirm dialog for extra safety
-    const confirmLeave = window.confirm(
-      "⚠️ Going back will take you to the landing page.\n\n" +
-      "Your current project will be saved. You can restore it from the sidebar.\n\n" +
-      "Click OK to go to landing page, Cancel to stay here."
-    );
-    
-    if (confirmLeave) {
-      console.log("User confirmed - going to landing page");
-      toast.info("🏠 Taking you to landing page...", { duration: 1500 });
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 500);
-    } else {
-      console.log("User cancelled - staying in builder");
-      toast.success("✅ Staying in builder", { duration: 2000 });
-    }
+    console.log("⚠️ About to leave builder - showing custom modal");
+    setShowBackConfirmModal(true);
     return;
   }
   
@@ -2966,6 +2928,16 @@ const goBack = useCallback(() => {
     window.location.href = '/';
   }, 300);
 }, [currentPathIndex, navigationHistory]);
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3160,6 +3132,87 @@ const copyCode = () => {
 };
 
 
+
+
+
+
+
+
+
+
+  const BackConfirmModal = () => {
+    if (!showBackConfirmModal) return null;
+    
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+        {/* Backdrop */}
+        <div 
+          className="absolute inset-0 bg-black/70 backdrop-blur-md"
+          onClick={() => setShowBackConfirmModal(false)}
+        />
+        
+        {/* Modal */}
+        <div className="relative bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 rounded-2xl border border-white/10 shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+          {/* Close button */}
+          <button
+            onClick={() => setShowBackConfirmModal(false)}
+            className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+          >
+            <X size={20} />
+          </button>
+          
+          {/* Icon */}
+          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/30">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 8v4m0 4h.01M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+            </svg>
+          </div>
+          
+          {/* Title */}
+          <h3 className="text-xl font-bold text-center text-white mb-3">
+            ⚠️ Leaving the Builder
+          </h3>
+          
+          {/* Message */}
+          <div className="space-y-3 mb-6">
+            <p className="text-amber-400 font-medium text-center">
+              Going back will take you to the landing page.
+            </p>
+            <p className="text-slate-300 text-sm text-center">
+              Your current project will be saved. You can restore it from the sidebar.
+            </p>
+          </div>
+          
+          {/* Buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setShowBackConfirmModal(false);
+                toast.info("🏠 Taking you to landing page...", { duration: 1500 });
+                setTimeout(() => {
+                  window.location.href = '/';
+                }, 500);
+              }}
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold transition-all duration-300 shadow-lg shadow-red-500/30"
+            >
+              OK, Leave
+            </button>
+            <button
+              onClick={() => setShowBackConfirmModal(false)}
+              className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white font-semibold transition-all duration-300"
+            >
+              Cancel, Stay
+            </button>
+          </div>
+          
+          {/* Save indicator note */}
+          <p className="text-center text-xs text-slate-500 mt-4">
+            ✓ Your project auto-saves every few seconds
+          </p>
+        </div>
+      </div>
+    );
+  };
 
 
 
@@ -4296,6 +4349,23 @@ const CreditsInfoModal = () => {
         /* Preview Mode */
         <div className="flex-1 flex flex-col bg-white min-h-0">
           <div className="h-12 px-4 bg-gradient-to-r from-slate-950/95 via-purple-950/90 to-slate-950/95 border-b border-white/10 flex items-center gap-3 shadow-lg backdrop-blur-sm shrink-0">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          
             {/* Navigation Buttons Group */}
             <div className="flex items-center gap-1.5 bg-black/40 rounded-xl p-1 border border-white/10">
               {/* Back Button */}
@@ -4498,7 +4568,6 @@ const CreditsInfoModal = () => {
 
 
 
-
   {/* Wave animation keyframes */}
   <style jsx>{`
     @keyframes wave {
@@ -4510,12 +4579,22 @@ const CreditsInfoModal = () => {
   {/* Upgrade Modal */}
   <UpgradeModal />
 
+  {/* Credits Info Modal */}
+  <CreditsInfoModal />
+
+  {/* Deploy Modal */}
+  <DeployModal
+    isOpen={isDeployModalOpen}
+    onClose={() => setIsDeployModalOpen(false)}
+    files={files}
+    projectName={currentProjectName || prompt?.slice(0, 35) || "scorpio-project"}
+    onDeploy={handleDeployWithOptions}
+  />
+
+  {/* 👇👇👇 ADD THIS LINE HERE 👇👇👇 */}
+  <BackConfirmModal />
+
 </div>
-
-
-
-
-
 
 
   );
