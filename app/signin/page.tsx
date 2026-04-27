@@ -78,14 +78,19 @@ export default function SignInPage() {
             )}
           </Button>
 
+
+
+
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/10"></div>
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-2 bg-transparent text-slate-500">Secure OAuth 2.0</span>
+
             </div>
           </div>
+
+
 
           <p className="text-center text-xs text-slate-500">
             Don't have an account?{" "}

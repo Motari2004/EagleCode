@@ -83,7 +83,7 @@ export default function SignUpPage() {
               <div className="w-full border-t border-white/10"></div>
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-2 bg-transparent text-slate-500">Secure OAuth 2.0</span>
+             
             </div>
           </div>
 
