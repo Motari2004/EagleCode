@@ -12,7 +12,7 @@ interface User {
 interface UserContextType {
   user: User | null;
   isLoading: boolean;
-  login: (userData: User, token: string) => void;  // ✅ Added token parameter
+  login: (userData: User, token: string) => void;
   logout: () => void;
   token: string | null;
 }
@@ -48,7 +48,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  // ✅ Fixed login function - now accepts token parameter
   const login = useCallback((userData: User, authToken: string) => {
     console.log("🔐 Login called with user:", userData.email);
     console.log("🔐 Token received:", !!authToken);
@@ -66,12 +65,68 @@ export function UserProvider({ children }: { children: ReactNode }) {
     console.log("✅ User logged in and stored");
   }, []);
 
+  // ✅ UPDATED logout function - clears ALL project cache
   const logout = useCallback(() => {
-    console.log("🔐 Logout called");
+    console.log("🔐 Logout called - clearing all cache...");
+    
+    // Clear user state
     setUser(null);
     setToken(null);
+    
+    // Clear auth items
     localStorage.removeItem("eaglecode_token");
     localStorage.removeItem("eaglecode_user");
+    
+    // ========== CLEAR PROJECT CACHE ==========
+    localStorage.removeItem("projectsCache");
+    localStorage.removeItem("projectToLoad");
+    localStorage.removeItem("projectsNeedRefresh");
+    localStorage.removeItem("user_plan");
+    
+    // Clear any other project-related items
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.includes('project') || key.includes('cache') || key.includes('preview'))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // Clear sessionStorage completely
+    sessionStorage.clear();
+    
+    // Clear IndexedDB (async - don't await)
+    if (typeof window !== 'undefined' && window.indexedDB) {
+      try {
+        indexedDB.databases().then(dbs => {
+          dbs.forEach(db => {
+            if (db.name && (db.name.includes('project') || db.name.includes('cache') || db.name.includes('eaglecode'))) {
+              console.log(`🗑️ Deleting IndexedDB: ${db.name}`);
+              indexedDB.deleteDatabase(db.name);
+            }
+          });
+        }).catch(err => console.error("Failed to clear IndexedDB:", err));
+      } catch (err) {
+        console.error("IndexedDB not available:", err);
+      }
+    }
+    
+    // Clear service worker caches
+    if (typeof window !== 'undefined' && 'caches' in window) {
+      caches.keys().then(names => {
+        names.forEach(name => {
+          if (name.includes('project') || name.includes('cache') || name.includes('preview')) {
+            console.log(`🗑️ Deleting cache: ${name}`);
+            caches.delete(name);
+          }
+        });
+      }).catch(err => console.error("Failed to clear caches:", err));
+    }
+    
+    console.log("✅ All cache cleared, redirecting to home...");
+    
+    // Redirect to home page (not signin, since your button goes to "/")
     window.location.href = "/";
   }, []);
 
