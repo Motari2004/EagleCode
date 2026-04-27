@@ -15,7 +15,7 @@ interface DeployModalProps {
   onClose: () => void;
   files: Record<string, string>;
   projectName: string;
-  onDeploy: (options: DeployOptions) => void;
+  onDeploy?: (options: DeployOptions) => void;
 }
 
 interface DeployOptions {
@@ -25,7 +25,7 @@ interface DeployOptions {
   region: string;
   buildCommand?: string;
   outputDir?: string;
-  vercelToken?: string; // Add this field
+  vercelToken?: string;
 }
 
 export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: DeployModalProps) {
@@ -38,7 +38,8 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
   const [region, setRegion] = useState("auto");
   const [isDeploying, setIsDeploying] = useState(false);
   const [showEnvInput, setShowEnvInput] = useState(false);
-  const [vercelToken, setVercelToken] = useState(""); // Add this state
+  const [vercelToken, setVercelToken] = useState("");
+  const [deploymentError, setDeploymentError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -78,19 +79,94 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
 
   const handleDeploy = async () => {
     setIsDeploying(true);
-    
-    const deployOptions: DeployOptions = {
-      platform: selectedPlatform,
-      database: selectedDatabase,
-      envVars: envVars,
-      region: region,
-      vercelToken: selectedPlatform === "vercel" ? vercelToken : undefined, // Pass token only for Vercel
-    };
+    setDeploymentError(null);
     
     try {
-      await onDeploy(deployOptions);
+      // Prepare files for deployment - ensure all content is string
+      const deployFiles: Record<string, string> = {};
+      for (const [path, content] of Object.entries(files)) {
+        if (typeof content === 'string') {
+          deployFiles[path] = content;
+        } else if (typeof content === 'object') {
+          deployFiles[path] = JSON.stringify(content);
+        } else {
+          deployFiles[path] = String(content);
+        }
+      }
+      
+      // Get the API URL from environment or use default
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      
+      console.log("🚀 Deploying to Vercel...");
+      console.log("📁 Files count:", Object.keys(deployFiles).length);
+      console.log("📦 Project name:", projectName);
+      
+      // Call the backend deploy API
+      const response = await fetch(`${API_URL}/api/deploy-vercel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          files: deployFiles,
+          projectName: projectName,
+          vercel_token: vercelToken,
+          envVars: envVars,
+        }),
+      });
+      
+      // Check if response is OK before parsing JSON
+      if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorData.error || errorMessage;
+        } catch {
+          const errorText = await response.text();
+          errorMessage = `${errorMessage}: ${errorText.substring(0, 100)}`;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Close the deploy modal
+        onClose();
+        
+        // Call onDeploy callback if provided
+        if (onDeploy) {
+          await onDeploy({
+            platform: selectedPlatform,
+            database: selectedDatabase,
+            envVars: envVars,
+            region: region,
+            vercelToken: vercelToken,
+          });
+        }
+        
+        // Dispatch global event for the success modal
+        const event = new CustomEvent("deployment-success", {
+          detail: {
+            deployment_url: result.deployment_url,
+            deployment_id: result.deployment_id,
+            project_name: result.project_name || projectName,
+            images_uploaded: result.images_uploaded || 0,
+            timestamp: new Date().toISOString()
+          }
+        });
+        window.dispatchEvent(event);
+        
+        toast.success("Deployed successfully! Check the modal for your link.");
+      } else {
+        setDeploymentError(result.error || result.message || "Deployment failed");
+        toast.error(result.error || "Deployment failed");
+      }
     } catch (error) {
-      toast.error("Deployment failed: " + (error as Error).message);
+      console.error("Deployment error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      setDeploymentError(errorMessage);
+      toast.error("Deployment failed: " + errorMessage);
     } finally {
       setIsDeploying(false);
     }
@@ -117,6 +193,13 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
             <X size={20} />
           </button>
         </div>
+
+        {/* Error Message */}
+        {deploymentError && (
+          <div className="mx-6 mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <p className="text-red-400 text-sm">{deploymentError}</p>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex border-b border-white/10 px-5">
@@ -266,19 +349,23 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
                 
                 {/* Existing env vars */}
                 <div className="space-y-2 mb-3">
-                  {Object.entries(envVars).map(([key, value]) => (
-                    <div key={key} className="flex items-center gap-2 bg-white/5 rounded-lg p-2">
-                      <code className="text-xs text-purple-400 bg-purple-500/10 px-2 py-1 rounded font-mono">{key}</code>
-                      <span className="text-xs text-slate-400 flex-1">=</span>
-                      <code className="text-xs text-slate-400 font-mono">••••••••</code>
-                      <button
-                        onClick={() => removeEnvVar(key)}
-                        className="p-1 hover:bg-red-500/20 rounded transition-colors"
-                      >
-                        <X size={12} className="text-red-400" />
-                      </button>
-                    </div>
-                  ))}
+                  {Object.entries(envVars).length === 0 ? (
+                    <p className="text-xs text-slate-500 text-center py-4">No environment variables configured</p>
+                  ) : (
+                    Object.entries(envVars).map(([key, value]) => (
+                      <div key={key} className="flex items-center gap-2 bg-white/5 rounded-lg p-2">
+                        <code className="text-xs text-purple-400 bg-purple-500/10 px-2 py-1 rounded font-mono">{key}</code>
+                        <span className="text-xs text-slate-400 flex-1">=</span>
+                        <code className="text-xs text-slate-400 font-mono">••••••••</code>
+                        <button
+                          onClick={() => removeEnvVar(key)}
+                          className="p-1 hover:bg-red-500/20 rounded transition-colors"
+                        >
+                          <X size={12} className="text-red-400" />
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
                 
                 {/* New env var input */}
@@ -287,7 +374,7 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
                     <Input
                       placeholder="KEY"
                       value={newEnvKey}
-                      onChange={(e) => setNewEnvKey(e.target.value)}
+                      onChange={(e) => setNewEnvKey(e.target.value.toUpperCase())}
                       className="flex-1 h-8 text-xs font-mono bg-transparent border-white/10"
                     />
                     <span className="text-slate-500 text-xs">=</span>

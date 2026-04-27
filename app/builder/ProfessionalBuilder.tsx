@@ -4072,6 +4072,11 @@ const CreditsInfoModal = () => {
     onDeploy={handleDeployWithOptions}
   />
 
+
+
+
+  
+
   {/* Main Content - Horizontal scroll on mobile */}
   <main className={`flex-1 flex ${isMobile ? 'mobile-horizontal-scroll' : 'overflow-hidden'}`}>
     

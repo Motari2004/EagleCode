@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Providers from "../components/Providers";
+import { DeploymentSuccessModal } from "@/components/DeploymentSuccessModal";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -26,16 +27,18 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      // Added data-scroll-behavior to fix the Next.js warning
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#f8fafc] text-[#1e293b]">
         <Providers>
-          {/* Main is useful for keeping footer at the bottom if using flex-col */}
+          {/* Main content */}
           <main className="flex-grow">
             {children}
           </main>
+          
+          {/* Global deployment success modal - always available */}
+          <DeploymentSuccessModal />
         </Providers>
       </body>
     </html>
