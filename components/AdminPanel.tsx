@@ -44,6 +44,7 @@ export default function AdminPanel() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const [deletingRequest, setDeletingRequest] = useState<string | null>(null);
+  const [resettingCredits, setResettingCredits] = useState<string | null>(null);
   
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://eaglecode2-2.onrender.com';
   
@@ -115,27 +116,94 @@ export default function AdminPanel() {
     }
   };
 
-  const resetCredits = async (userId: string) => {
-    try {
-      const response = await fetch(`${backendUrl}/api/admin/reset-credits`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ user_id: userId })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const resetCredits = async (userId: string) => {
+  // Set loading state for this specific user
+  setResettingCredits(userId);
+  
+  try {
+    const response = await fetch(`${backendUrl}/api/admin/reset-credits`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ user_id: userId })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      toast.success("Credits reset successfully!", {
+        duration: 2000,
+        position: "bottom-right",
+        icon: "🔄"
       });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        toast.success("Credits reset successfully!");
-        await checkAdminAndLoadData();
-      }
-    } catch (error) {
-      toast.error("Failed to reset credits");
+      await checkAdminAndLoadData();
+    } else {
+      toast.error("Failed to reset credits", {
+        duration: 2000,
+        position: "bottom-right"
+      });
     }
-  };
+  } catch (error) {
+    toast.error("Failed to reset credits", {
+      duration: 2000,
+      position: "bottom-right"
+    });
+  } finally {
+    // Clear loading state
+    setResettingCredits(null);
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   const updateRequestStatus = async (requestId: string, status: string, notes?: string) => {
     try {
@@ -763,27 +831,85 @@ EagleCode Team`;
                           </div>
                         </div>
                        </td>
+
+
+
+
+
+
+
+
+
+
+
+
                       <td className="px-3 sm:px-6 py-3 sm:py-4">
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <select
-                            onChange={(e) => upgradeUser(user.id, e.target.value)}
-                            value={user.plan}
-                            disabled={upgrading === user.id}
-                            className="px-2 sm:px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-[10px] sm:text-sm text-white focus:outline-none focus:border-purple-500"
-                          >
-                            <option value="free">Free</option>
-                            <option value="pro">Pro</option>
-                            <option value="business">Biz</option>
-                          </select>
-                          <button
-                            onClick={() => resetCredits(user.id)}
-                            className="p-1.5 sm:p-2 bg-yellow-500/20 hover:bg-yellow-500/30 rounded-lg transition"
-                            title="Reset Credits"
-                          >
-                            <RefreshCw size={14} className="sm:w-4 sm:h-4 text-yellow-500" />
-                          </button>
-                        </div>
-                       </td>
+  <div className="flex flex-col sm:flex-row gap-2">
+    <select
+      onChange={(e) => upgradeUser(user.id, e.target.value)}
+      value={user.plan}
+      disabled={upgrading === user.id}
+      className={`px-2 sm:px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-[10px] sm:text-sm text-white focus:outline-none focus:border-purple-500 transition-all duration-200 ${
+        upgrading === user.id ? "opacity-50 cursor-wait" : ""
+      }`}
+    >
+      <option value="free">Free</option>
+      <option value="pro">Pro</option>
+      <option value="business">Biz</option>
+    </select>
+    
+    {/* Reset Credits Button with Loading Animation */}
+    <button
+      onClick={() => resetCredits(user.id)}
+      disabled={resettingCredits === user.id}
+      className={`p-1.5 sm:p-2 rounded-lg transition-all duration-200 flex items-center justify-center min-w-[32px] ${
+        resettingCredits === user.id
+          ? "bg-yellow-500/30 cursor-wait"
+          : "bg-yellow-500/20 hover:bg-yellow-500/30 hover:scale-105 active:scale-95"
+      }`}
+      title="Reset Credits"
+    >
+      {resettingCredits === user.id ? (
+        <RefreshCw size={14} className="sm:w-4 sm:h-4 text-yellow-500 animate-spin" />
+      ) : (
+        <RefreshCw size={14} className="sm:w-4 sm:h-4 text-yellow-500 transition-transform group-hover:rotate-180" />
+      )}
+    </button>
+  </div>
+</td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     </tr>
                   ))}
                 </tbody>
