@@ -3152,26 +3152,6 @@ useEffect(() => {
 
 
 
-// Check for existing database connection on page load
-useEffect(() => {
-  const savedConnectionId = localStorage.getItem("connection_id");
-  const savedConnectionString = localStorage.getItem("neon_db_connection");
-  
-  if (savedConnectionId) {
-    console.log("✅ Found existing connection_id in localStorage");
-  }
-  if (savedConnectionString) {
-    console.log("✅ Found database connection string in localStorage");
-  }
-}, []);
-
-
-
-
-
-
-
-
 
 
 
@@ -3806,104 +3786,13 @@ useEffect(() => {
 
 
 
-const setVercelEnvironmentVariable = async (vercelToken: string, projectId: string) => {
-  try {
-    // Get the stored database connection string from localStorage
-    const dbConnectionString = localStorage.getItem("neon_db_connection");
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || BACKEND_URL;
-    
-    if (!dbConnectionString) {
-      console.log("No database connection string to set");
-      return { success: true };
-    }
-    
-    console.log("🌍 Setting environment variable on Vercel...");
-    console.log("   Project ID:", projectId);
-    console.log("   DATABASE_URL length:", dbConnectionString.length);
-    
-    // ✅ CORRECT VERCEL API FORMAT
-    const response = await fetch(`https://api.vercel.com/v1/env?projectId=${projectId}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${vercelToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        "evs": [
-          {
-            "key": "DATABASE_URL",
-            "value": dbConnectionString,
-            "comment": "Neon PostgreSQL connection string for authentication"
-          }
-        ],
-        "type": "encrypted",
-        "target": ["production", "preview", "development"],
-        "projectId": [projectId]
-      })
-    });
-    
-    const data = await response.json();
-    console.log("📡 Vercel API Response Status:", response.status);
-    
-    // ✅ Handle 409 - Variable already exists (this is fine and expected!)
-    if (response.status === 409) {
-      console.log("✅ DATABASE_URL already exists on Vercel project (skipping - already configured)");
-      return { success: true, alreadyExists: true };
-    }
-    
-    // ✅ Handle success
-    if (response.ok) {
-      if (data.created && data.created.length > 0) {
-        console.log(`✅ Environment variable DATABASE_URL set on Vercel`);
-        return { success: true, envVars: data.created };
-      } else {
-        console.log(`✅ Environment variable already configured`);
-        return { success: true };
-      }
-    }
-    
-    // ✅ Handle other errors
-    console.error("Vercel API error:", response.status, data);
-    let errorMessage = "Unknown error";
-    
-    if (data.error) {
-      errorMessage = data.error.message || data.error.code || "Vercel API error";
-    } else if (data.message) {
-      errorMessage = data.message;
-    } else if (data.failed && data.failed.length > 0) {
-      errorMessage = data.failed.map((fail: any) => 
-        fail.error?.message || fail.message || "Unknown"
-      ).join(', ');
-    }
-    
-    // Don't show error to user for 409 since it's expected
-    if (response.status !== 409) {
-      console.error("Error message:", errorMessage);
-    }
-    
-    return { success: response.status === 409, error: response.status !== 409 ? errorMessage : undefined };
-    
-  } catch (error) {
-    console.error("Error setting Vercel env vars:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return { success: false, error: errorMessage };
-  }
-};
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
+  
 
 
 
@@ -3913,59 +3802,41 @@ const handleDeployWithOptions = async (options: any) => {
   try {
     let response;
     
-    if (options.platform === "vercel") {
-      if (!options.vercelToken) {
-        toast.error("Vercel token is required for deployment");
-        return;
-      }
-      
-      // Get the stored database connection string from localStorage
-      const dbConnectionString = localStorage.getItem("neon_db_connection");
-      console.log("🔍 Database connection string found:", dbConnectionString ? "Yes ✅" : "No ❌");
-      
-      // Merge environment variables
-      let envVarsToSend: Record<string, string> = {};
-      if (options.envVars && typeof options.envVars === 'object') {
-        envVarsToSend = { ...options.envVars };
-      }
-      if (dbConnectionString) {
-        envVarsToSend.DATABASE_URL = dbConnectionString;
-      }
-      
-      toast.loading("Deploying to Vercel...", { id: "vercel-deploy" });
-      
-      const requestBody = {
-        files: files,
-        projectName: currentProjectName || prompt?.slice(0, 35) || "scorpio-project",
-        vercel_token: options.vercelToken,
-        envVars: envVarsToSend,
-        region: options.region,
-      };
-      
-      response = await fetch(`${BACKEND_URL}/api/deploy-vercel`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Origin': window.location.origin,
-        },
-        body: JSON.stringify(requestBody),
-        credentials: 'omit',
-      });
+
+
+
+
+// Find this code block (around line 1370)
+if (options.platform === "vercel") {
+  if (!options.vercelToken) {
+    toast.error("Vercel token is required for deployment");
+    return;
+  }
+  
+  toast.loading("Deploying to Vercel...", { id: "vercel-deploy" });
+  
+  response = await fetch(`${BACKEND_URL}/api/deploy-vercel`, {  // ✅ Updated
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      // Add these headers for better security handling
+      'Origin': window.location.origin,
+    },
+    body: JSON.stringify({
+      files: files,
+      projectName: currentProjectName || prompt?.slice(0, 35) || "scorpio-project",
+      vercel_token: options.vercelToken,
+      envVars: options.envVars,
+      region: options.region,
+    }),
+    // Add credentials mode
+    credentials: 'omit', // or 'include' if your backend needs cookies
+  });
       
       const result = await response.json();
       toast.dismiss("vercel-deploy");
       
       if (result.success) {
-        // ✅ BACKEND ALREADY HANDLES ENVIRONMENT VARIABLES IN STEP 4
-        // No need to call setVercelEnvironmentVariable again - prevents duplicate 409 errors
-        
-        if (dbConnectionString) {
-          toast.success("✅ Database connection included with deployment!", {
-            duration: 3000,
-            position: "bottom-right",
-          });
-        }
-        
         toast.success(`🚀 Successfully deployed to Vercel!`, {
           duration: 5000,
           action: {
@@ -3985,19 +3856,8 @@ const handleDeployWithOptions = async (options: any) => {
         toast.error("Deployment failed: " + (result.message || "Unknown error"));
       }
     } else {
-      // For other platforms (Netlify, Cloudflare, etc.)
-      const dbConnectionString = localStorage.getItem("neon_db_connection");
-      let envVarsToSend: Record<string, string> = {};
-      
-      if (options.envVars && typeof options.envVars === 'object') {
-        envVarsToSend = { ...options.envVars };
-      }
-      
-      if (dbConnectionString) {
-        envVarsToSend.DATABASE_URL = dbConnectionString;
-      }
-      
-      response = await fetch(`${BACKEND_URL}/api/deploy-advanced`, {
+      // For other platforms, use the advanced deploy endpoint (download ZIP)
+      response = await fetch('http://localhost:8000/api/deploy-advanced', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -4006,7 +3866,7 @@ const handleDeployWithOptions = async (options: any) => {
           options: {
             platform: options.platform,
             database: options.database,
-            envVars: envVarsToSend,
+            envVars: options.envVars,
             region: options.region,
           }
         })
@@ -4034,12 +3894,6 @@ const handleDeployWithOptions = async (options: any) => {
         
         toast.success(`Deployment package ready for ${options.platform}!`);
         
-        if (dbConnectionString) {
-          toast.info("📝 Database connection string included in environment variables. Update after deployment!", { 
-            duration: 5000 
-          });
-        }
-        
         if (result.url) {
           toast.info(`Your project will be available at: ${result.url}`, { duration: 5000 });
         }
@@ -4049,12 +3903,9 @@ const handleDeployWithOptions = async (options: any) => {
     }
   } catch (error) {
     console.error("Deploy error:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    toast.error("Failed to deploy project: " + errorMessage);
+    toast.error("Failed to deploy project: " + (error instanceof Error ? error.message : "Unknown error"));
   }
 };
-
-
 
 
 
