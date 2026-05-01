@@ -579,29 +579,31 @@ const loadProject = async (project: SavedProject) => {
 
 
 
-
-
-
 const loadTemplate = (template: TemplateProject) => {
   if (isNavigating) return;
 
   setLoadingTemplateId(template.id);
   
-  // Check if user is logged in
   if (!user) {
+    // If not logged in, show the animation for a moment then redirect
     setTimeout(() => {
       router.push('/signup');
-    }, 800); // Give them a moment to see the animation
+    }, 3000); 
     return;
   }
   
   setIsNavigating(true);
 
-  // The navigation delay allows the user to actually see 
-  // the border "run" before the page changes.
+  // Trigger a loading toast that matches the 3s duration
+  toast.loading(`Initializing ${template.name}...`, {
+    duration: 3000,
+    position: "bottom-right",
+  });
+
+  // Precise 3-second delay to let the border colors "run"
   setTimeout(() => {
     router.push(`/builder?prompt=${encodeURIComponent(template.prompt)}`);
-  }, 1200); 
+  }, 3000); 
 };
 
 
