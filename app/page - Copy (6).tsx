@@ -61,12 +61,12 @@ export default function LandingPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
 
-  const [clickedTemplateId, setClickedTemplateId] = useState<string | null>(null);
+
 
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   
 
- const [loadingTemplateId, setLoadingTemplateId] = useState<string | null>(null);
+
 
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -579,46 +579,18 @@ const loadProject = async (project: SavedProject) => {
 
 
 
-
-
-
 const loadTemplate = (template: TemplateProject) => {
-  if (isNavigating) return;
-
-  setLoadingTemplateId(template.id);
-  
-  // Check if user is logged in
+  // Add this check at the beginning
   if (!user) {
-    setTimeout(() => {
-      router.push('/signup');
-    }, 800); // Give them a moment to see the animation
+    router.push('/signup');
     return;
   }
   
-  setIsNavigating(true);
-
-  // The navigation delay allows the user to actually see 
-  // the border "run" before the page changes.
-  setTimeout(() => {
+  if (!isNavigating) {
+    setIsNavigating(true);
     router.push(`/builder?prompt=${encodeURIComponent(template.prompt)}`);
-  }, 1200); 
+  }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -984,20 +956,6 @@ useEffect(() => {
       )}
     </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     {/* Horizontal Scroll Container - REDUCED HEIGHT CARDS */}
     <div 
       id="projects-scroll"
@@ -1285,11 +1243,7 @@ useEffect(() => {
 
 
 
-
-
-
-
-{/* Templates Section - Border-only Click Animation */}
+{/* Templates Section - TIGHTER GRID */}
 <div className="mt-12 text-left">
   <div className="flex items-center gap-2 mb-4">
     <div className="w-1 h-4 bg-cyan-500 rounded-full" />
@@ -1301,49 +1255,20 @@ useEffect(() => {
       <div
         key={template.id}
         onClick={() => loadTemplate(template)}
-        className={`
-          group bg-gradient-to-br ${template.bgColor} 
-          border ${template.borderColor} rounded-lg p-2.5 
-          hover:${template.hoverBorder} hover:bg-white/10 
-          transition-all cursor-pointer backdrop-blur-sm
-          relative
-          ${loadingTemplateId === template.id ? 'template-card-clicked' : ''}
-        `}
+        className={`group bg-gradient-to-br ${template.bgColor} border ${template.borderColor} rounded-lg p-2.5 hover:${template.hoverBorder} hover:bg-white/10 transition-all cursor-pointer backdrop-blur-sm`}
       >
-        <div className={`
-          mb-2 w-7 h-7 rounded-lg bg-gradient-to-br ${template.color} 
-          flex items-center justify-center text-white shadow-lg 
-          transition-all duration-300
-          ${loadingTemplateId === template.id ? 'scale-110' : 'group-hover:scale-110'}
-        `}>
+        <div className={`mb-2 w-7 h-7 rounded-lg bg-gradient-to-br ${template.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
           {template.icon}
         </div>
         <h3 className="font-semibold text-[11px] text-white mb-0.5 truncate">{template.name}</h3>
         <p className="text-[9px] text-slate-400 mb-1.5 line-clamp-1">{template.description}</p>
-        <div className={`
-          flex items-center gap-0.5 text-[8px] ${template.iconColor} 
-          transition-all duration-300
-          ${loadingTemplateId === template.id ? 'opacity-100 translate-x-1' : 'opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5'}
-        `}>
+        <div className={`flex items-center gap-0.5 text-[8px] ${template.iconColor} opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-0.5`}>
           Use <ArrowRight className="w-2 h-2" />
         </div>
       </div>
     ))}
   </div>
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

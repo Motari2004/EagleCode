@@ -875,6 +875,17 @@ const saveProjectToDatabase = async (project: SavedProject) => {
     
 
 
+
+
+
+
+
+
+
+
+
+
+
     if (result.success) {
         console.log("✅ Saved to database:", result.id);
         
@@ -2177,7 +2188,6 @@ const applyIntelligentEdit = useCallback(async () => {
 
 
 
-
 // Handle database connection submission
 const handleDatabaseConnect = useCallback(async (connectionString: string) => {
   if (!pendingEditData) return;
@@ -2185,28 +2195,11 @@ const handleDatabaseConnect = useCallback(async (connectionString: string) => {
   setIsConnectingDatabase(true);
   
   try {
-    // ✅ STEP 1: Store connection string in localStorage immediately
+    // ✅ Store connection string in localStorage only
     localStorage.setItem("neon_db_connection", connectionString);
     console.log("💾 Connection string saved to localStorage");
     
-    // ✅ STEP 2: Call backend to store connection and get connection_id
-    const storeResponse = await fetch(`${BACKEND_URL}/api/store-db-connection`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ db_connection_string: connectionString })
-    });
-    
-    const storeData = await storeResponse.json();
-    
-    if (storeData.success && storeData.connection_id) {
-      // ✅ STEP 3: Save connection_id to localStorage (critical for preview)
-      localStorage.setItem("connection_id", storeData.connection_id);
-      console.log("✅ connection_id saved to localStorage:", storeData.connection_id.substring(0, 20) + "...");
-    } else {
-      console.warn("⚠️ Failed to get connection_id from backend");
-    }
-    
-    // ✅ STEP 4: Proceed with the edit that requires database
+    // ✅ Proceed with the edit that requires database
     const response = await fetch(`${BACKEND_URL}/api/edit-file`, {
       method: 'POST',
       headers: {
@@ -2217,14 +2210,14 @@ const handleDatabaseConnect = useCallback(async (connectionString: string) => {
         all_files: pendingEditData.currentFiles,
         existing_preview: pendingEditData.existingPreview,
         force_regenerate: true,
-        db_connection_string: connectionString  // ✅ This matches the backend's expected field
+        db_connection_string: connectionString  // Send connection string directly
       })
     });
     
     const result = await response.json();
     
     if (result.success) {
-      // Update files
+      // Update files with the new auth pages
       const updatedFiles = { ...pendingEditData.currentFiles };
       
       if (result.edits) {
@@ -2235,6 +2228,13 @@ const handleDatabaseConnect = useCallback(async (connectionString: string) => {
       
       if (result.preview_html) {
         updatedFiles.preview_html = result.preview_html;
+        
+        // Force preview refresh
+        const processedHtml = getPreviewHTML(result.preview_html);
+        const newBlobUrl = URL.createObjectURL(new Blob([processedHtml], { type: 'text/html' }));
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(newBlobUrl);
+        setPreviewKey(Date.now());
       }
       
       // Update state based on mode
@@ -2256,23 +2256,22 @@ const handleDatabaseConnect = useCallback(async (connectionString: string) => {
         setBuildFiles(updatedFiles);
       }
       
-      // Show success message
       toast.success(result.message || "✅ Database connected! Authentication system added.", {
         duration: 5000,
         position: "bottom-right",
       });
       
-      // Close modal
+      // Close modal and clean up
       setIsDatabaseModalOpen(false);
       setPendingEditData(null);
       setIsEditMode(false);
       setEditPrompt("");
       
-      // ✅ Force preview refresh with a slight delay to ensure localStorage is ready
+      // Force preview refresh
       setTimeout(() => {
         setViewMode("preview");
         setPreviewKey(Date.now());
-        console.log("🔄 Preview refreshed, connection_id should be available in localStorage");
+        console.log("🔄 Preview refreshed, connection string available in localStorage");
       }, 500);
       
     } else {
@@ -2280,7 +2279,6 @@ const handleDatabaseConnect = useCallback(async (connectionString: string) => {
         duration: 5000,
         position: "bottom-right",
       });
-      // Keep modal open so user can try again
     }
   } catch (error) {
     console.error("Database connection error:", error);
@@ -2291,7 +2289,10 @@ const handleDatabaseConnect = useCallback(async (connectionString: string) => {
   } finally {
     setIsConnectingDatabase(false);
   }
-}, [pendingEditData, loadedFiles, savedProjects, prompt, currentProjectName, setBuildFiles]);
+}, [pendingEditData, loadedFiles, savedProjects, prompt, currentProjectName, setBuildFiles, previewUrl]);
+
+
+
 
 
 
