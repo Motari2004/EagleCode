@@ -576,37 +576,33 @@ const loadProject = async (project: SavedProject) => {
 
 
 
-
-
-
 const loadTemplate = (template: TemplateProject) => {
   if (isNavigating) return;
 
   setLoadingTemplateId(template.id);
   
+  // Detect production environment
+  const isProduction = process.env.NODE_ENV === 'production';
+  const animationDelay = isProduction ? 800 : 3000; // 0.8s on Vercel, 3s locally
+  
   if (!user) {
-    // If not logged in, show the animation for a moment then redirect
     setTimeout(() => {
       router.push('/signup');
-    }, 3000); 
+    }, animationDelay);
     return;
   }
   
   setIsNavigating(true);
 
-  // Trigger a loading toast that matches the 3s duration
   toast.loading(`Initializing ${template.name}...`, {
-    duration: 3000,
+    duration: animationDelay + 2000,
     position: "bottom-right",
   });
 
-  // Precise 3-second delay to let the border colors "run"
   setTimeout(() => {
     router.push(`/builder?prompt=${encodeURIComponent(template.prompt)}`);
-  }, 3000); 
+  }, animationDelay);
 };
-
-
 
 
 
