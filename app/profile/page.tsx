@@ -199,6 +199,19 @@ export default function ProfilePage() {
     }
   };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -209,6 +222,18 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+
+
+
+
+
+
+
+
+
+
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#050507] via-[#0f0f1a] to-[#1a1429]">
@@ -253,11 +278,70 @@ export default function ProfilePage() {
         
         <div className="max-w-4xl mx-auto">
           
-          {/* Loading State */}
-          {isLoading || credits.isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
-            </div>
+
+
+
+
+
+          
+
+
+
+
+
+
+          
+{/* Loading State - Premium */}
+{isLoading || credits.isLoading ? (
+  <div className="flex items-center justify-center py-20">
+    
+    <div className="relative w-full max-w-md">
+      
+      {/* Glow background */}
+      <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 blur-2xl rounded-3xl animate-pulse" />
+
+      {/* Glass card */}
+      <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 text-center shadow-2xl">
+
+        {/* Animated logo */}
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-xl shadow-amber-500/20 animate-bounce">
+          🦅
+        </div>
+
+        {/* Shimmer bar (fake loading content) */}
+        <div className="mt-6 space-y-3">
+          <div className="h-3 w-2/3 mx-auto bg-white/10 rounded animate-pulse" />
+          <div className="h-3 w-1/2 mx-auto bg-white/10 rounded animate-pulse delay-150" />
+        </div>
+
+        {/* Animated dots */}
+        <div className="flex justify-center gap-1 mt-5">
+          <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" />
+          <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce delay-150" />
+          <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce delay-300" />
+        </div>
+
+        {/* Text */}
+        <p className="text-sm text-slate-400 mt-4 tracking-wide">
+          Loading your data...
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
           ) : (
             <>
               {/* Profile Header Card */}
