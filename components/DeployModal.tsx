@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
-  Rocket, Database, Cloud, Code, Server, 
-  GitBranch, Globe, Zap, X, Check, Loader2,
-  Terminal
+  Rocket, Zap, X, Check, Loader2, Terminal, Globe, Lock, Unlock, ShieldOff,Key
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,19 +17,37 @@ interface DeployModalProps {
 }
 
 interface DeployOptions {
-  platform: "vercel" | "netlify" | "cloudflare" | "aws";
-  database: "postgresql" | "mongodb" | "supabase" | "firebase" | "none";
+  platform: "vercel";
   envVars: Record<string, string>;
   region: string;
-  buildCommand?: string;
-  outputDir?: string;
   vercelToken?: string;
 }
 
+
+
+
+
+
+
+const VercelLogo = ({ size = 20, className = "" }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 76 65" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" fill="white" />
+  </svg>
+);
+
+
+
+
+
 export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: DeployModalProps) {
-  const [activeTab, setActiveTab] = useState<"platform" | "database" | "advanced">("platform");
-  const [selectedPlatform, setSelectedPlatform] = useState<DeployOptions["platform"]>("vercel");
-  const [selectedDatabase, setSelectedDatabase] = useState<DeployOptions["database"]>("none");
+  const [activeTab, setActiveTab] = useState<"vercel" | "advanced">("vercel");
   const [envVars, setEnvVars] = useState<Record<string, string>>({});
   const [newEnvKey, setNewEnvKey] = useState("");
   const [newEnvValue, setNewEnvValue] = useState("");
@@ -40,23 +56,26 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
   const [showEnvInput, setShowEnvInput] = useState(false);
   const [vercelToken, setVercelToken] = useState("");
   const [deploymentError, setDeploymentError] = useState<string | null>(null);
+  const [isTokenSaved, setIsTokenSaved] = useState(false);
+  
+
+
+
+
+useEffect(() => {
+  const savedToken = localStorage.getItem("vercel_token");
+  if (savedToken) {
+    setVercelToken(savedToken);
+    setIsTokenSaved(true);  // ← This keeps the locked state
+  }
+}, []);
+
+
+
+
+
 
   if (!isOpen) return null;
-
-  const platforms = [
-    { id: "vercel", name: "Vercel", icon: <Zap size={20} />, color: "from-black to-gray-800", bg: "bg-black/50" },
-    { id: "netlify", name: "Netlify", icon: <Globe size={20} />, color: "from-teal-500 to-cyan-500", bg: "bg-teal-500/10" },
-    { id: "cloudflare", name: "Cloudflare Pages", icon: <Cloud size={20} />, color: "from-orange-500 to-yellow-500", bg: "bg-orange-500/10" },
-    { id: "aws", name: "AWS Amplify", icon: <Server size={20} />, color: "from-orange-600 to-orange-400", bg: "bg-orange-500/10" },
-  ];
-
-  const databases = [
-    { id: "postgresql", name: "PostgreSQL", icon: <Database size={20} />, description: "Powerful relational database" },
-    { id: "mongodb", name: "MongoDB", icon: <Database size={20} />, description: "NoSQL document database" },
-    { id: "supabase", name: "Supabase", icon: <Database size={20} />, description: "Open source Firebase alternative" },
-    { id: "firebase", name: "Firebase", icon: <Globe size={20} />, description: "Google's app development platform" },
-    { id: "none", name: "No Database", icon: <X size={20} />, description: "Skip database setup" },
-  ];
 
   const regions = [
     "auto", "us-east-1", "us-west-2", "eu-west-1", "eu-central-1", "ap-southeast-1", "ap-northeast-1"
@@ -82,7 +101,6 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
     setDeploymentError(null);
     
     try {
-      // Prepare files for deployment - ensure all content is string
       const deployFiles: Record<string, string> = {};
       for (const [path, content] of Object.entries(files)) {
         if (typeof content === 'string') {
@@ -94,14 +112,12 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
         }
       }
       
-      // Get the API URL from environment or use default
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       
       console.log("🚀 Deploying to Vercel...");
       console.log("📁 Files count:", Object.keys(deployFiles).length);
       console.log("📦 Project name:", projectName);
       
-      // Call the backend deploy API
       const response = await fetch(`${API_URL}/api/deploy-vercel`, {
         method: "POST",
         headers: {
@@ -115,7 +131,6 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
         }),
       });
       
-      // Check if response is OK before parsing JSON
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}`;
         try {
@@ -131,21 +146,17 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
       const result = await response.json();
       
       if (result.success) {
-        // Close the deploy modal
         onClose();
         
-        // Call onDeploy callback if provided
         if (onDeploy) {
           await onDeploy({
-            platform: selectedPlatform,
-            database: selectedDatabase,
+            platform: "vercel",
             envVars: envVars,
             region: region,
             vercelToken: vercelToken,
           });
         }
         
-        // Dispatch global event for the success modal
         const event = new CustomEvent("deployment-success", {
           detail: {
             deployment_url: result.deployment_url,
@@ -179,11 +190,11 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
         <div className="flex items-center justify-between p-5 border-b border-white/10 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg shadow-purple-500/25">
-              <Rocket size={20} className="text-white" />
+              <Zap size={20} className="text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Deployment Center</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Configure and deploy your project</p>
+              <h2 className="text-xl font-bold text-white">Deploy to Vercel</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Deploy your project to Vercel</p>
             </div>
           </div>
           <button
@@ -204,8 +215,7 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
         {/* Tabs */}
         <div className="flex border-b border-white/10 px-5">
           {[
-            { id: "platform", label: "Platform", icon: <Cloud size={14} /> },
-            { id: "database", label: "Database", icon: <Database size={14} /> },
+            { id: "vercel", label: "Vercel", icon: <Zap size={14} /> },
             { id: "advanced", label: "Advanced", icon: <Terminal size={14} /> },
           ].map((tab) => (
             <button
@@ -223,100 +233,147 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
           ))}
         </div>
 
-        {/* Content */}
-        <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
-          {/* Platform Selection */}
-          {activeTab === "platform" && (
-            <div className="space-y-4">
-              <p className="text-sm text-slate-400 mb-4">Choose where to deploy your application</p>
-              <div className="grid grid-cols-2 gap-3">
-                {platforms.map((platform) => (
-                  <button
-                    key={platform.id}
-                    onClick={() => setSelectedPlatform(platform.id as any)}
-                    className={`p-4 rounded-xl border-2 transition-all text-left ${
-                      selectedPlatform === platform.id
-                        ? "border-purple-500 bg-purple-500/10 shadow-lg shadow-purple-500/20"
-                        : "border-white/10 hover:border-white/20 bg-white/5"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={`p-2 rounded-lg bg-gradient-to-r ${platform.color} bg-opacity-20`}>
-                        {platform.icon}
-                      </div>
-                      <span className="font-semibold text-white">{platform.name}</span>
-                    </div>
-                    <p className="text-xs text-slate-500">One-click deployment platform</p>
-                  </button>
-                ))}
-              </div>
-              
-              {/* Vercel Token Input */}
-              {selectedPlatform === "vercel" && (
-                <div className="mt-4 p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl">
-                  <label className="block text-sm font-medium text-purple-300 mb-2">
-                    Vercel API Token
-                  </label>
-                  <Input
-                    type="password"
-                    placeholder="Enter your Vercel API token"
-                    value={vercelToken}
-                    onChange={(e) => setVercelToken(e.target.value)}
-                    className="bg-white/5 border-purple-500/30 text-white"
-                  />
-                  <p className="text-xs text-slate-400 mt-2">
-                    Get your token from{" "}
-                    <a 
-                      href="https://vercel.com/account/tokens" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-purple-400 hover:underline"
-                    >
-                      vercel.com/account/tokens
-                    </a>
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* Database Selection */}
-          {activeTab === "database" && (
-            <div className="space-y-4">
-              <p className="text-sm text-slate-400 mb-4">Connect a database to your project</p>
-              <div className="space-y-2">
-                {databases.map((db) => (
-                  <button
-                    key={db.id}
-                    onClick={() => setSelectedDatabase(db.id as any)}
-                    className={`w-full p-4 rounded-xl border-2 transition-all text-left flex items-center justify-between ${
-                      selectedDatabase === db.id
-                        ? "border-purple-500 bg-purple-500/10"
-                        : "border-white/10 hover:border-white/20 bg-white/5"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${selectedDatabase === db.id ? "bg-purple-500/20" : "bg-white/5"}`}>
-                        {db.icon}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-white">{db.name}</div>
-                        <div className="text-xs text-slate-500">{db.description}</div>
-                      </div>
-                    </div>
-                    {selectedDatabase === db.id && <Check size={18} className="text-purple-500" />}
-                  </button>
-                ))}
-              </div>
-              
-              {selectedDatabase !== "none" && (
-                <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                  <p className="text-xs text-blue-400 mb-2">📦 Database will be provisioned automatically</p>
-                  <p className="text-[11px] text-slate-400">Connection strings will be added to environment variables</p>
-                </div>
-              )}
+
+
+
+
+
+
+
+
+
+
+{/* Content */}
+<div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
+  {/* Vercel Configuration */}
+  {activeTab === "vercel" && (
+    <div className="space-y-4">
+      <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="p-2 bg-black rounded-lg">
+            <VercelLogo size={20} className="text-white" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-white">Vercel</h3>
+            <p className="text-xs text-slate-400">The platform for frontend developers</p>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-purple-300 mb-2">
+            Vercel API Token
+          </label>
+          <div className="flex gap-2">
+            <Input
+              type="password"
+              placeholder="Enter your Vercel API token"
+              value={vercelToken}
+              onChange={(e) => setVercelToken(e.target.value)}
+              className="flex-1 bg-white/5 border-purple-500/30 text-white"
+            />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<Button
+  onClick={() => {
+    if (vercelToken) {
+      localStorage.setItem("vercel_token", vercelToken);
+      setIsTokenSaved(true);
+      toast.success("Token saved!", { duration: 2000 });
+    }
+  }}
+  size="sm"
+  className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300"
+>
+  {isTokenSaved ? (
+    <>
+      <Lock size={14} className="mr-1 text-green-400" />
+      Locked
+    </>
+  ) : (
+    <>
+      <Unlock size={14} className="mr-1 text-yellow-400" />
+      Save Token
+    </>
+  )}
+</Button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          </div>
+
+
+
+
+
+
+
+
+
+
+
+          
+          {/* Show when token is saved */}
+          {isTokenSaved && (
+            <div className="flex items-center gap-2 mt-2 text-xs text-green-400">
+              <Lock size={12} />
+              <span>Token locked and ready to deploy!</span>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("vercel_token");
+                  setVercelToken("");
+                  setIsTokenSaved(false);
+                  toast.info("Token removed", { duration: 2000 });
+                }}
+                className="text-red-400 hover:text-red-300 ml-2"
+              >
+                Clear
+              </button>
             </div>
           )}
+          
+          <p className="text-xs text-slate-400 mt-2">
+            Get your token from{" "}
+            <a 
+              href="https://vercel.com/account/tokens" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-purple-400 hover:underline"
+            >
+              vercel.com/account/tokens
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  )}
+
+
+
+          
 
           {/* Advanced Settings */}
           {activeTab === "advanced" && (
@@ -400,8 +457,8 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
         {/* Footer */}
         <div className="p-5 border-t border-white/10 bg-white/5 flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs text-slate-500">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span>Ready to deploy {Object.keys(files).length} files</span>
+            <Globe size={12} />
+            <span>Ready to deploy {Object.keys(files).length} files to Vercel</span>
           </div>
           <div className="flex gap-3">
             <Button
@@ -413,18 +470,18 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
             </Button>
             <Button
               onClick={handleDeploy}
-              disabled={isDeploying || (selectedPlatform === "vercel" && !vercelToken)}
+              disabled={isDeploying || !vercelToken}
               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/25"
             >
               {isDeploying ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deploying...
+                  Deploying to Vercel...
                 </>
               ) : (
                 <>
-                  <Rocket className="mr-2 h-4 w-4" />
-                  Deploy Now
+                  <Zap className="mr-2 h-4 w-4" />
+                  Deploy to Vercel
                 </>
               )}
             </Button>
