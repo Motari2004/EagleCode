@@ -589,7 +589,7 @@ const loadTemplate = (template: TemplateProject) => {
     // If not logged in, show the animation for a moment then redirect
     setTimeout(() => {
       router.push('/signup');
-    }, 500); 
+    }, 1500); 
     return;
   }
   
@@ -597,14 +597,14 @@ const loadTemplate = (template: TemplateProject) => {
 
   // Trigger a loading toast that matches the 3s duration
   toast.loading(`Initializing ${template.name}...`, {
-    duration: 500,
+    duration: 1500,
     position: "bottom-right",
   });
 
   // Precise 3-second delay to let the border colors "run"
   setTimeout(() => {
     router.push(`/builder?prompt=${encodeURIComponent(template.prompt)}`);
-  }, 500); 
+  }, 1500); 
 };
 
 
