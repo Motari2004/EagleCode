@@ -328,7 +328,18 @@ const currentProjectIdRef = useRef<string | null>(null);
 
 
 
- const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+ const BACKEND_URL = (() => {
+  // Check if running in production
+  if (typeof window !== 'undefined') {
+    // If on Vercel frontend, use Render backend
+    if (window.location.hostname.includes('vercel.app') || 
+        window.location.hostname === 'eaglecode.vercel.app') {
+      return 'https://eaglecode2-2.onrender.com';
+    }
+  }
+  // Local development
+  return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+})();
 
 
 
