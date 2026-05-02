@@ -320,6 +320,7 @@ const [hasActiveProject, setHasActiveProject] = useState(false);
 
 
 
+
   
 
 
@@ -2997,26 +2998,17 @@ useEffect(() => {
     }
   }, [generationLog, isBuilding]);
 
+  // Set active file
+  useEffect(() => {
+    const filePaths = Object.keys(files).filter(f => f !== "preview_html");
+    if (filePaths.length > 0 && !activeFile) setActiveFile(filePaths[0]);
+    if (generatingFile && !loadedFiles) {
+      setActiveFile(generatingFile);
+      if (viewMode === "preview") setViewMode("code");
+    }
+  }, [files, activeFile, generatingFile, viewMode, loadedFiles]);
 
 
-
-
-
-
-
-
-// Set active file - BUT DON'T AUTO-SWITCH TO CODE VIEW
-useEffect(() => {
-  const filePaths = Object.keys(files).filter(f => f !== "preview_html");
-  if (filePaths.length > 0 && !activeFile) setActiveFile(filePaths[0]);
-  
-  // Only update active file, but DON'T switch to code view automatically
-  if (generatingFile && !loadedFiles) {
-    setActiveFile(generatingFile);
-    // REMOVED: if (viewMode === "preview") setViewMode("code");
-    // This was forcing the view to switch to code during generation
-  }
-}, [files, activeFile, generatingFile, loadedFiles]); // Also removed viewMode from dependencies
 
 
 
@@ -4859,106 +4851,35 @@ const CreditsInfoModal = () => {
             </div>
           </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{/* AI Edit Mode Hint */}
-{isEditMode && (
-  <div className="mx-3 mt-2 p-3 bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-orange-500/10 border border-yellow-500/30 rounded-xl shadow-lg shadow-yellow-500/10">
-    <div className="flex items-start gap-2">
-      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center shadow-md">
-        <Sparkles size={12} className="text-white" />
-      </div>
-      <div className="flex-1">
-        <p className="font-semibold text-xs text-yellow-400 mb-2 flex items-center gap-2">
-          AI-Powered Editing Active
-          <span className="text-[9px] bg-yellow-500/20 px-1.5 py-0.5 rounded-full text-yellow-300">Live</span>
-        </p>
-        <p className="text-yellow-300/80 text-[10px] mb-2">Describe what you want to change in natural language:</p>
-        <div className="grid grid-cols-2 gap-1.5">
-          <div className="bg-white/5 rounded-lg p-1.5 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => setEditPrompt("Change the title to 'My Dashboard'")}>
-            <div className="flex items-center gap-1.5">
-              <span className="text-yellow-500 text-[10px]">📝</span>
-              <span className="text-[9px] text-slate-300 group-hover:text-yellow-400 transition">Change title to "My Dashboard"</span>
+          {/* AI Edit Mode Hint */}
+          {isEditMode && (
+            <div className="mx-3 mt-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+              <div className="flex items-start gap-2">
+                <div className="text-xs text-yellow-400">
+                  <p className="font-medium mb-1.5">AI-Powered Editing</p>
+                  <p className="text-yellow-300/80 text-[11px] mb-2">Just describe what you want to change:</p>
+                  <ul className="text-[10px] text-yellow-300/70 space-y-1.5">
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-yellow-500">•</span>
+                      <span>"Change the title to 'My Dashboard'"</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-yellow-500">•</span>
+                      <span>"Add a dark mode toggle button"</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-yellow-500">•</span>
+                      <span>"Make the header background blue"</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-yellow-500">•</span>
+                      <span>"Add a contact form with name and email"</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="bg-white/5 rounded-lg p-1.5 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => setEditPrompt("Add a dark mode toggle button")}>
-            <div className="flex items-center gap-1.5">
-              <span className="text-yellow-500 text-[10px]">🌙</span>
-              <span className="text-[9px] text-slate-300 group-hover:text-yellow-400 transition">Add dark mode toggle</span>
-            </div>
-          </div>
-          <div className="bg-white/5 rounded-lg p-1.5 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => setEditPrompt("Make the header background blue")}>
-            <div className="flex items-center gap-1.5">
-              <span className="text-yellow-500 text-[10px]">🎨</span>
-              <span className="text-[9px] text-slate-300 group-hover:text-yellow-400 transition">Make header background blue</span>
-            </div>
-          </div>
-          <div className="bg-white/5 rounded-lg p-1.5 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => setEditPrompt("Add a contact form with name and email fields")}>
-            <div className="flex items-center gap-1.5">
-              <span className="text-yellow-500 text-[10px]">📧</span>
-              <span className="text-[9px] text-slate-300 group-hover:text-yellow-400 transition">Add contact form</span>
-            </div>
-          </div>
-          <div className="bg-white/5 rounded-lg p-1.5 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => setEditPrompt("Remove the footer section completely")}>
-            <div className="flex items-center gap-1.5">
-              <span className="text-yellow-500 text-[10px]">🗑️</span>
-              <span className="text-[9px] text-slate-300 group-hover:text-yellow-400 transition">Remove footer section</span>
-            </div>
-          </div>
-          <div className="bg-white/5 rounded-lg p-1.5 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => setEditPrompt("Implement sign up functionality with email and password")}>
-            <div className="flex items-center gap-1.5">
-              <span className="text-yellow-500 text-[10px]">🔐</span>
-              <span className="text-[9px] text-slate-300 group-hover:text-yellow-400 transition">Implement Sign Up</span>
-            </div>
-          </div>
-        </div>
-        <p className="text-[8px] text-slate-500 mt-2 text-center">
-          💡 Click any example to auto-fill | AI will intelligently find & edit the right files
-        </p>
-      </div>
-    </div>
-  </div>
-)}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+          )}
 
           <div className="flex-1 overflow-y-auto py-4 custom-scrollbar px-3">
             <FileTree
@@ -5221,27 +5142,6 @@ const CreditsInfoModal = () => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <div className="flex-1 relative overflow-hidden bg-[#020617]">
   {/* Preview Generation Loading */}
   {isGeneratingPreview && (
@@ -5335,15 +5235,6 @@ const CreditsInfoModal = () => {
     />
   )}
 </div>
-
-
-
-
-
-
-
-
-
 
 
 
