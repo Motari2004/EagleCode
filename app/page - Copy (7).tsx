@@ -22,63 +22,6 @@ import UserProfile from "@/components/UserProfile";
 
 
 
-
-
-
-
-
-
-
-
-
-
-// Skeleton loader for projects
-const ProjectSkeleton = () => (
-  <div className="flex-shrink-0 w-56 sm:w-64">
-    <div className="bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-xl overflow-hidden">
-      {/* Image skeleton */}
-      <div className="w-full h-28 bg-gradient-to-br from-slate-800 to-slate-900 animate-pulse">
-        <div className="w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
-      </div>
-      
-      {/* Content skeleton */}
-      <div className="p-2">
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <div className="h-3 w-24 bg-white/10 rounded animate-pulse" />
-          </div>
-          <div className="w-5 h-5 bg-white/10 rounded animate-pulse" />
-        </div>
-        
-        <div className="flex items-center justify-between mt-1 pt-1 border-t border-white/10">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-white/10 rounded animate-pulse" />
-            <div className="h-2 w-12 bg-white/10 rounded animate-pulse" />
-          </div>
-          <div className="h-2 w-8 bg-white/10 rounded animate-pulse" />
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 interface SavedProject {
   id: string;
   name: string;
@@ -1283,25 +1226,15 @@ useEffect(() => {
 
 
 
-{/* Loading State with Skeletons */}
+
+{/* Loading State */}
 {isLoadingProjects && savedProjects.length === 0 && (
-  <div className="mt-12 text-left">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2">
-        <div className="w-1 h-4 bg-cyan-500 rounded-full" />
-        <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Recent Projects</h2>
-        <div className="w-8 h-3 bg-white/10 rounded animate-pulse" />
-      </div>
-    </div>
-    
-    {/* Horizontal scroll skeleton container */}
-    <div className="flex overflow-x-auto gap-3 pb-3">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <ProjectSkeleton key={i} />
-      ))}
-    </div>
+  <div className="mt-16 text-center py-12">
+    <Loader2 className="w-10 h-10 animate-spin text-cyan-400 mx-auto mb-3" />
+    <p className="text-sm text-slate-400">Loading your projects...</p>
   </div>
 )}
+
 
 
 
