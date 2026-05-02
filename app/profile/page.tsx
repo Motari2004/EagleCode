@@ -285,51 +285,24 @@ export default function ProfilePage() {
 
           
 
-
-
-
-
-
-          
 {/* Loading State - Premium */}
 {isLoading || credits.isLoading ? (
-  <div className="flex items-center justify-center py-20">
-    
-    <div className="relative w-full max-w-md">
+  <div className="flex items-center justify-center min-h-[60vh]">
+    <div className="relative">
+      {/* Single animated ring */}
+      <div className="w-16 h-16 rounded-full border-2 border-cyan-500/20 border-t-cyan-500 border-r-purple-500 animate-spin"></div>
       
-      {/* Glow background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 blur-2xl rounded-3xl animate-pulse" />
-
-      {/* Glass card */}
-      <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 text-center shadow-2xl">
-
-        {/* Animated logo */}
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-xl shadow-amber-500/20 animate-bounce">
-          🦅
-        </div>
-
-        {/* Shimmer bar (fake loading content) */}
-        <div className="mt-6 space-y-3">
-          <div className="h-3 w-2/3 mx-auto bg-white/10 rounded animate-pulse" />
-          <div className="h-3 w-1/2 mx-auto bg-white/10 rounded animate-pulse delay-150" />
-        </div>
-
-        {/* Animated dots */}
-        <div className="flex justify-center gap-1 mt-5">
-          <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" />
-          <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce delay-150" />
-          <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce delay-300" />
-        </div>
-
-        {/* Text */}
-        <p className="text-sm text-slate-400 mt-4 tracking-wide">
-          Loading your data...
-        </p>
+      {/* Center icon */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
+      </div>
+      
+      {/* Loading text */}
+      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+        <p className="text-sm text-slate-400">Loading your profile...</p>
       </div>
     </div>
   </div>
-
-
 
 
 
