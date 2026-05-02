@@ -1274,14 +1274,14 @@ useEffect(() => {
 
 
 
+
+// Add with other useEffects (around line 800-900)
 useEffect(() => {
   const handleProjectInitialized = (event: CustomEvent) => {
     const { projectId, projectName } = event.detail;
     console.log("🎯 Project initialized event received:", { projectId, projectName });
-    // ✅ Set the NEW project ID (not preserve old one)
     setBuildProjectId(projectId);
     setCurrentProjectId(projectId);
-    currentProjectIdRef.current = projectId;
     setCurrentProjectName(projectName);
   };
   
@@ -1301,23 +1301,27 @@ useEffect(() => {
 
 
 
+
+
+
+// Add with other useEffects (around line 850-950)
 useEffect(() => {
   // ✅ Add type check - ensure it's a string
   const projectId = buildFiles.__project_id__;
   if (typeof projectId === 'string' && projectId && !buildProjectId) {
-    // This is a NEW project from build
     setBuildProjectId(projectId);
     setCurrentProjectId(projectId);
-    currentProjectIdRef.current = projectId;
-    console.log("📌 Set NEW project ID from buildFiles:", projectId);
+    console.log("📌 Retrieved project ID from buildFiles:", projectId);
   }
   
   const projectName = buildFiles.__project_name__;
   if (typeof projectName === 'string' && projectName && !currentProjectName) {
     setCurrentProjectName(projectName);
-    console.log("📌 Set project name from buildFiles:", projectName);
+    console.log("📌 Retrieved project name from buildFiles:", projectName);
   }
 }, [buildFiles, buildProjectId, currentProjectName]);
+
+
 
 
 
@@ -2450,14 +2454,7 @@ const handleDatabaseConnect = useCallback(async (connectionString: string) => {
 
 
 
-
-
-
-
-
-
-
-
+// Add this function after clearLoadedProject or around line 2800-2900
 const handleGenerateNewProject = useCallback(async () => {
   const promptToUse = pendingPrompt || prompt;
   
@@ -2474,18 +2471,13 @@ const handleGenerateNewProject = useCallback(async () => {
   // Close the modal immediately
   setShowNewProjectConfirm(false);
   
-  // ✅ CRITICAL: Clear ALL project IDs before starting new build
-  setCurrentProjectId(null);
-  currentProjectIdRef.current = null;
-  setBuildProjectId(null);
-  setHasActiveProject(false);
-  
-  // Clear any loaded project
+  // Clear any loaded project FIRST
   setLoadedFiles(null);
   setActiveFile("");
   setCurrentProjectName("");
   setIsEditMode(false);
   setEditPrompt("");
+  setHasActiveProject(false);  // ← ADD THIS LINE AFTER setEditPrompt
   
   // Small delay to ensure state updates complete
   await new Promise(resolve => setTimeout(resolve, 50));
@@ -2504,15 +2496,19 @@ const handleGenerateNewProject = useCallback(async () => {
   if (hasCredits) {
     // Clear the input prompt and start fresh build
     setPrompt("");
+    // Clear pending prompt
     setPendingPrompt("");
     // Start the build
     startBuild(promptToUse);
     toast.success("Starting fresh project generation!");
   } else {
+    // Restore the prompt if credit check failed
     setPendingPrompt("");
     toast.error("Insufficient credits for new project generation");
   }
 }, [pendingPrompt, prompt, startBuild]);
+
+
 
 
 
@@ -3068,19 +3064,13 @@ const generatePreview = useCallback(async () => {
 
 
 
+
+
 // AUTO-START Logic from URL
 useEffect(() => {
   const urlPrompt = searchParams.get("prompt");
   if (urlPrompt && !hasAutoStarted.current && !loadedFiles && !isBuilding) {
-    console.log("🚀 Auto-starting build from URL with prompt:", urlPrompt);
-    
-    // ✅ CRITICAL: Clear old project ID before starting new build from URL
-    setCurrentProjectId(null);
-    currentProjectIdRef.current = null;
-    setBuildProjectId(null);
-    setHasActiveProject(false);
-    setLoadedFiles(null);
-    
+    console.log("🚀 Auto-starting build with prompt:", urlPrompt);
     setPrompt(urlPrompt);
     
     // Set loading state immediately so button shows spinner
@@ -3100,10 +3090,11 @@ useEffect(() => {
       setIsCheckingCredits(false);
       
       if (hasCredits) {
-        console.log("🚀 Auto-starting build from URL...");
+        console.log("🚀 Auto-starting build...");
         startBuild(urlPrompt);
       } else {
         console.log("❌ No credits, auto-start cancelled");
+        // Clear the URL parameter to prevent infinite loop
         window.history.replaceState({}, "", "/builder");
       }
     }, 100);
@@ -4923,34 +4914,16 @@ const CreditsInfoModal = () => {
 
 
       
-{loadedFiles && (
-  <Button 
-    onClick={() => {
-      // ✅ Clear all project IDs before showing new build state
-      setCurrentProjectId(null);
-      currentProjectIdRef.current = null;
-      setBuildProjectId(null);
-      setLoadedFiles(null);
-      setHasActiveProject(false);
-      setPrompt("");
-      setCurrentProjectName("");
-      toast.info("Ready for new project. Enter a prompt and click Generate.");
-    }} 
-    className="..."
-  >
-    <RefreshCw size={14} className="mr-2 inline-block group-hover:rotate-180 transition-transform duration-500" />
-    <span>New Build</span>
-  </Button>
-)}
-
-
-
-
-
-
-
-
-
+      
+      {loadedFiles && (
+        <Button 
+          onClick={clearLoadedProject} 
+          className="relative group overflow-hidden bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-xl px-4 py-2.5 text-xs font-semibold transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 border-0 whitespace-nowrap"
+        >
+          <RefreshCw size={14} className="mr-2 inline-block group-hover:rotate-180 transition-transform duration-500" />
+          <span>New Build</span>
+        </Button>
+      )}
       
       {/* Export Button */}
       <Button 

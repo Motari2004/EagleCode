@@ -548,6 +548,52 @@ const handleWebSocketMessage = useCallback((event: MessageEvent) => {
 
 
 
+
+
+
+
+
+
+
+      // ========== ADD THIS NEW CASE HERE ==========
+      case "project_id":
+        console.log("📌 Received project ID from backend:", data.project_id);
+        console.log("📌 Project name:", data.project_name);
+        
+        // Store the project ID in state
+        setState(prev => ({
+          ...prev,
+          files: {
+            ...prev.files,
+            __project_id__: data.project_id,
+            __project_name__: data.project_name
+          }
+        }));
+        
+        // Dispatch custom event for ProfessionalBuilder
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('project-initialized', {
+            detail: {
+              projectId: data.project_id,
+              projectName: data.project_name
+            }
+          }));
+        }
+        break;
+      // ===========================================
+
+
+
+
+
+
+
+
+
+
+
+
+
       case "error":
         console.log("Raw error data:", data);
         const errorMsg = data.message || "AI Generation Failed";
