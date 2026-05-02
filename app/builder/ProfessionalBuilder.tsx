@@ -4930,10 +4930,10 @@ const CreditsInfoModal = () => {
               <span className="text-[9px] text-slate-300 group-hover:text-yellow-400 transition">Remove footer section</span>
             </div>
           </div>
-          <div className="bg-white/5 rounded-lg p-1.5 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => setEditPrompt("Implement sign up functionality with email and password")}>
+          <div className="bg-white/5 rounded-lg p-1.5 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => setEditPrompt("implement signup functionality")}>
             <div className="flex items-center gap-1.5">
               <span className="text-yellow-500 text-[10px]">🔐</span>
-              <span className="text-[9px] text-slate-300 group-hover:text-yellow-400 transition">Implement Sign Up</span>
+              <span className="text-[9px] text-slate-300 group-hover:text-yellow-400 transition">Implement SignUp</span>
             </div>
           </div>
         </div>

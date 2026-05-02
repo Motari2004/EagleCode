@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { 
-  Rocket, Zap, X, Check, Loader2, Terminal, Globe, Lock, Unlock, ShieldOff,Key
+  Rocket, Zap, X, Check, Loader2, Terminal, Globe, Lock, Unlock, Send
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -480,7 +480,7 @@ useEffect(() => {
                 </>
               ) : (
                 <>
-                  <Zap className="mr-2 h-4 w-4" />
+                  <Send className="mr-2 h-4 w-4" />
                   Deploy to Vercel
                 </>
               )}
