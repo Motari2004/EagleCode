@@ -97,6 +97,16 @@ export default function ProfilePage() {
     }
   };
 
+
+
+
+
+
+
+
+
+
+
   // ✅ FIXED: Use backendUrl instead of hardcoded localhost
   const loadStats = async () => {
     try {
@@ -116,7 +126,7 @@ export default function ProfilePage() {
       
       console.log("📊 Fetching projects from:", `${backendUrl}/api/get-projects?limit=100`);
       
-      const response = await fetch(`${backendUrl}/api/get-projects?limit=100`, {
+      const response = await fetch(`${backendUrl}/api/get-projects?limit=10000`, {
         headers: { 
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
@@ -419,6 +429,11 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   
+
+
+
+
+
                   {/* Simple Stats */}
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <div className="bg-white/5 rounded-xl p-3 text-center">
@@ -434,6 +449,12 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
+
+
+
+
+
+
               
               {/* Account Settings Card */}
               <div className="mt-6 bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
