@@ -287,7 +287,7 @@ const editFile = useCallback(async (
       window.location.hostname !== 'localhost'
     );
     
-    const apiUrl = isProduction ? 'https://eaglecode2-1.onrender.com' : 'http://localhost:8000';
+    const apiUrl = isProduction ? 'https://eaglecode2-2.onrender.com' : 'http://localhost:8000';
     console.log(`📡 Using API URL: ${apiUrl}`);
     
     const response = await fetch(`${apiUrl}/api/edit-file`, {

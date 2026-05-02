@@ -327,13 +327,36 @@ const currentProjectIdRef = useRef<string | null>(null);
 
 
 
+// Auto-detect backend URL based on environment
+const BACKEND_URL = (() => {
+  if (typeof window === 'undefined') return 'http://localhost:8000';
+  
+  const hostname = window.location.hostname;
+  
+  // Production on Vercel
+  if (hostname.includes('vercel.app') || hostname === 'eaglecode.vercel.app') {
+    console.log('🏢 Running on Vercel - using production backend');
+    return 'https://eaglecode2-2.onrender.com';
+  }
+  
+  // Local development (localhost or 127.0.0.1)
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    console.log('💻 Running locally - using local backend');
+    return 'http://localhost:8000';
+  }
+  
+  // Custom domain or other production
+  if (window.location.protocol === 'https:') {
+    console.log('🔒 HTTPS detected - using production backend');
+    return 'https://eaglecode2-2.onrender.com';
+  }
+  
+  // Fallback
+  console.log('⚠️ Unknown environment - using production backend');
+  return 'https://eaglecode2-2.onrender.com';
+})();
 
-// Use production backend URL
- const BACKEND_URL = 'https://eaglecode2-2.onrender.com';
-
-
-
-
+console.log(`🔗 Backend URL: ${BACKEND_URL}`);
 
 
 
