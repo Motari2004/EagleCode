@@ -37,6 +37,7 @@ interface SavedProject {
   preview_url?: string;   // NEW: Cloudinary URL for preview HTML
   thumbnail_url?: string; // NEW: Cloudinary URL for thumbnail (was thumbnail_base64)
   files_url?: string;     // NEW: Cloudinary URL for ZIP file
+  cloudinary_image_url?: string;  // ← ADD THIS LINE
   timestamp: string;
   project_type?: string;
 }
@@ -302,7 +303,7 @@ const [hasActiveProject, setHasActiveProject] = useState(false);
 
 
 
-
+const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
 
 
 
@@ -1014,6 +1015,7 @@ const loadProjectsFromDatabase = async () => {
         files: Record<string, string>;
         preview_html: string;
         preview_url?: string;
+        cloudinary_image_url?: string;  // ← ADD THIS
         thumbnail_url?: string;
         files_url?: string;
         timestamp: string;
@@ -1027,6 +1029,7 @@ const loadProjectsFromDatabase = async () => {
         preview_url: project.preview_url || null,
         thumbnail_url: project.thumbnail_url || null,
         files_url: project.files_url || null,
+        cloudinary_image_url: project.cloudinary_image_url || null,  // ← ADD THIS
         timestamp: project.timestamp,
         project_type: project.project_type || 'general'
       }));
@@ -1787,8 +1790,6 @@ const previewHtml = useMemo(() => getPreviewHTML(rawPreviewHtml), [rawPreviewHtm
 
 
 
-
-
 // Intelligent AI-powered edit function - no target file required
 const applyIntelligentEdit = useCallback(async () => {
   // 🔥 SET LOADING STATE IMMEDIATELY - MUST BE FIRST
@@ -1819,6 +1820,19 @@ const applyIntelligentEdit = useCallback(async () => {
     return;
   }
   
+  // ✅ Get the current project ID from savedProjects (ADD THIS LINE)
+  const currentProject = savedProjects.find(p => p.name === currentProjectName || p.prompt === prompt);
+  const projectId = currentProject?.id || null;
+  
+
+
+  
+  console.log("📝 Editing project:", currentProjectName);
+  console.log("🆔 Project ID:", projectId);
+  console.log("📝 Editing project:", currentProjectName);
+  console.log("🆔 Project ID:", projectId);
+  
+
   try {
     const response = await fetch(`${BACKEND_URL}/api/edit-file`, {
       method: 'POST',
@@ -1826,6 +1840,8 @@ const applyIntelligentEdit = useCallback(async () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        project_id: projectId,              // ✅ Now projectId is defined
+        project_name: currentProjectName,   // ✅ Pass project name
         edit_description: editPrompt,
         all_files: currentFiles,
         existing_preview: rawPreviewHtml || currentFiles.preview_html || "",
@@ -2186,12 +2202,18 @@ const applyIntelligentEdit = useCallback(async () => {
 
 
 
-
 // Handle database connection submission
 const handleDatabaseConnect = useCallback(async (connectionString: string) => {
   if (!pendingEditData) return;
   
   setIsConnectingDatabase(true);
+  
+  // ✅ Get the current project ID from savedProjects
+  const currentProject = savedProjects.find(p => p.name === currentProjectName || p.prompt === prompt);
+  const projectId = currentProject?.id || null;
+  
+  console.log("🔐 Database connect for project:", currentProjectName);
+  console.log("🆔 Project ID:", projectId);
   
   try {
     // ✅ Store connection string in localStorage only
@@ -2205,11 +2227,13 @@ const handleDatabaseConnect = useCallback(async (connectionString: string) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        project_id: projectId,                     // ✅ ADD THIS - Load Cloudinary URL from DB
+        project_name: currentProjectName,          // ✅ ADD THIS - Pass project name
         edit_description: pendingEditData.editDescription,
         all_files: pendingEditData.currentFiles,
         existing_preview: pendingEditData.existingPreview,
         force_regenerate: true,
-        db_connection_string: connectionString  // Send connection string directly
+        db_connection_string: connectionString
       })
     });
     
@@ -2289,7 +2313,6 @@ const handleDatabaseConnect = useCallback(async (connectionString: string) => {
     setIsConnectingDatabase(false);
   }
 }, [pendingEditData, loadedFiles, savedProjects, prompt, currentProjectName, setBuildFiles, previewUrl]);
-
 
 
 
@@ -2464,8 +2487,6 @@ const currentBuildId = useMemo(() => {
 
 
 
-
-
 const silentSaveToDatabase = useCallback(async () => {
   console.log("🔵 ========== AUTO-SAVE START ==========");
   console.log("🔵 Current isAutoSaving:", isAutoSaving);
@@ -2519,6 +2540,12 @@ const silentSaveToDatabase = useCallback(async () => {
     // Create a clean copy of files for saving
     const completeFiles = { ...buildFiles };
     
+    // ✅ Preserve Cloudinary URL from files if present
+    if (buildFiles.__cloudinary_image_url__) {
+      completeFiles.__cloudinary_image_url__ = buildFiles.__cloudinary_image_url__;
+      console.log("📸 Preserving Cloudinary URL in save:", buildFiles.__cloudinary_image_url__);
+    }
+    
     // Ensure preview_html exists
     if (!completeFiles.preview_html && rawPreviewHtml) {
       completeFiles.preview_html = rawPreviewHtml;
@@ -2538,10 +2565,42 @@ const silentSaveToDatabase = useCallback(async () => {
       }
     }
     
-    const existingProject = savedProjectsRef.current.find(p => p.prompt === prompt);
+    // ✅ FIX: Find existing project by name OR by currentProjectId
+    let existingProject = null;
+    
+    // First try to find by currentProjectId
+    if (currentProjectId) {
+      existingProject = savedProjectsRef.current.find(p => p.id === currentProjectId);
+      if (existingProject) {
+        console.log("✅ Found existing project by ID:", currentProjectId);
+      }
+    }
+    
+    // If not found by ID, try by prompt
+    if (!existingProject) {
+      existingProject = savedProjectsRef.current.find(p => p.prompt === prompt);
+      if (existingProject) {
+        console.log("✅ Found existing project by prompt:", existingProject.id);
+      }
+    }
+    
+    // If still not found, try by name
+    if (!existingProject && actualProjectName) {
+      existingProject = savedProjectsRef.current.find(p => p.name === actualProjectName);
+      if (existingProject) {
+        console.log("✅ Found existing project by name:", existingProject.id);
+      }
+    }
+    
+    // Use existing project ID if found, otherwise create new
+    const projectIdToUse = existingProject?.id || Date.now().toString();
+    
+    console.log("💾 Saving with project ID:", projectIdToUse);
+    console.log("   Is update:", !!existingProject);
+    console.log("   Project name:", actualProjectName);
     
     const projectToSave: SavedProject = {
-      id: existingProject?.id || Date.now().toString(),
+      id: projectIdToUse,  // ← Use the found ID or new one
       name: actualProjectName,
       prompt: prompt,
       files: completeFiles,
@@ -2566,32 +2625,44 @@ const silentSaveToDatabase = useCallback(async () => {
     
     if (result.success) {
       console.log("✅ Save SUCCESSFUL!");
+      console.log("   Backend returned ID:", result.id);
       
       // Mark this build as saved AND update throttle time
       lastSavedBuildId.current = currentBuildId;
       setLastSaveTime(new Date());
       setCurrentProjectName(actualProjectName);
       
+      // ✅ Update currentProjectId with the backend ID
+      if (result.id) {
+        setCurrentProjectId(result.id);
+        console.log("   Updated currentProjectId to:", result.id);
+      }
+      
       // Update saved projects list with the new/updated project
       const updatedProjects = [...savedProjectsRef.current];
-      const existingIndex = updatedProjects.findIndex(p => p.id === projectToSave.id);
+      const existingIndex = updatedProjects.findIndex(p => p.id === projectIdToUse);
       
       if (existingIndex >= 0) {
+        // Update existing project
         updatedProjects[existingIndex] = {
           ...updatedProjects[existingIndex],
+          id: result.id || projectIdToUse,
           name: actualProjectName,
           prompt: prompt,
           timestamp: new Date().toISOString()
         };
+        console.log("   Updated existing project in list");
       } else {
+        // Add new project
         updatedProjects.unshift({
-          id: projectToSave.id,
+          id: result.id || projectIdToUse,
           name: actualProjectName,
           prompt: prompt,
           files: {},
           preview_html: "",
           timestamp: new Date().toISOString()
         });
+        console.log("   Added new project to list");
       }
       
       const trimmedProjects = updatedProjects.slice(0, 20);
@@ -2631,45 +2702,7 @@ const silentSaveToDatabase = useCallback(async () => {
   }
   
   console.log("🔵 ========== AUTO-SAVE END ==========");
-}, [buildFiles, prompt, isBuilding, buildError, currentProjectName, currentBuildId, isAutoSaving, lastSaveTime]);
-
-
-
-
-
-
-// ========== DEBOUNCED AUTO-SAVE TRIGGER ==========
-useEffect(() => {
-  // Clear existing timeout
-  if (autoSaveTimeoutRef.current) {
-    clearTimeout(autoSaveTimeoutRef.current);
-  }
-  
-  // Only auto-save if we have a valid project and not already saving
-  const hasValidProject = !isBuilding && 
-                          Object.keys(buildFiles).length > 1 && 
-                          prompt && 
-                          !loadedFiles;
-  
-  if (hasValidProject && !isAutoSaving) {
-    // Reset saved flag when build changes significantly
-    if (Object.keys(buildFiles).length > 5 && lastSavedBuildId.current) {
-      lastSavedBuildId.current = null;
-    }
-    
-    // Schedule auto-save after 3 seconds of inactivity
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      silentSaveToDatabase();
-    }, 3000);
-  }
-  
-  return () => {
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-  };
-}, [buildFiles, isBuilding, prompt, loadedFiles, isAutoSaving]);
-
+}, [buildFiles, prompt, isBuilding, buildError, currentProjectName, currentBuildId, isAutoSaving, lastSaveTime, currentProjectId, rawPreviewHtml]);
 
 
 
