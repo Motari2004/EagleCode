@@ -368,6 +368,13 @@ console.log(`🔗 Backend URL: ${BACKEND_URL}`);
 
 
 
+
+
+
+
+
+
+
 const iframeReady = useRef(false);
 
   const [isEditMode, setIsEditMode] = useState(false);
@@ -4161,12 +4168,26 @@ const setVercelEnvironmentVariable = async (vercelToken: string, projectId: stri
 
 
 
-
-
-
-
 const handleDeployWithOptions = async (options: any) => {
   console.log("Deploying with options:", options);
+  
+  // ✅ FIX: Define BACKEND_URL at the start of the function
+  const getBackendUrl = () => {
+    if (typeof window === 'undefined') return 'https://eaglecode2-2.onrender.com';
+    
+    const hostname = window.location.hostname;
+    
+    // Local development
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:8000';
+    }
+    
+    // Production (Vercel, custom domain, etc.)
+    return 'https://eaglecode2-2.onrender.com';
+  };
+  
+  const BACKEND_URL = getBackendUrl();
+  console.log("🔗 Using backend URL for deployment:", BACKEND_URL);
   
   try {
     let response;
@@ -4199,6 +4220,8 @@ const handleDeployWithOptions = async (options: any) => {
         envVars: envVarsToSend,
         region: options.region,
       };
+      
+      console.log("📡 Sending deploy request to:", `${BACKEND_URL}/api/deploy-vercel`);
       
       response = await fetch(`${BACKEND_URL}/api/deploy-vercel`, {
         method: 'POST',
@@ -4254,6 +4277,8 @@ const handleDeployWithOptions = async (options: any) => {
       if (dbConnectionString) {
         envVarsToSend.DATABASE_URL = dbConnectionString;
       }
+      
+      console.log("📡 Sending deploy request to:", `${BACKEND_URL}/api/deploy-advanced`);
       
       response = await fetch(`${BACKEND_URL}/api/deploy-advanced`, {
         method: 'POST',
@@ -4311,8 +4336,6 @@ const handleDeployWithOptions = async (options: any) => {
     toast.error("Failed to deploy project: " + errorMessage);
   }
 };
-
-
 
 
 
