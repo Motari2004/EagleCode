@@ -8,6 +8,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 interface DeployModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -22,6 +37,40 @@ interface DeployOptions {
   region: string;
   vercelToken?: string;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Add this helper function right after the imports and before the component
+const getBackendUrl = () => {
+  if (typeof window === 'undefined') return 'https://eaglecode2-2.onrender.com';
+  
+  const hostname = window.location.hostname;
+  
+  // Local development
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:8000';
+  }
+  
+  // Production (Vercel, custom domain, etc.)
+  return 'https://eaglecode2-2.onrender.com';
+};
+
+
+
+
+
 
 
 
@@ -58,6 +107,31 @@ export function DeployModal({ isOpen, onClose, files, projectName, onDeploy }: D
   const [deploymentError, setDeploymentError] = useState<string | null>(null);
   const [isTokenSaved, setIsTokenSaved] = useState(false);
   
+
+
+
+
+
+
+
+
+
+
+// Add this inside the component, after the useState declarations
+const API_URL = getBackendUrl();
+
+// Optional: Add this for debugging
+useEffect(() => {
+  console.log("🔗 DeployModal using backend URL:", API_URL);
+}, [API_URL]);
+
+
+
+
+
+
+
+
 
 
 
@@ -112,7 +186,7 @@ useEffect(() => {
         }
       }
       
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
       
       console.log("🚀 Deploying to Vercel...");
       console.log("📁 Files count:", Object.keys(deployFiles).length);
