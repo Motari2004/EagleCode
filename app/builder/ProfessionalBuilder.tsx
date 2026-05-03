@@ -4171,23 +4171,26 @@ const setVercelEnvironmentVariable = async (vercelToken: string, projectId: stri
 const handleDeployWithOptions = async (options: any) => {
   console.log("Deploying with options:", options);
   
-  // ✅ FIX: Define BACKEND_URL at the start of the function
+  // ✅ CRITICAL: Define backend URL at the VERY START of the function
   const getBackendUrl = () => {
     if (typeof window === 'undefined') return 'https://eaglecode2-2.onrender.com';
     
     const hostname = window.location.hostname;
+    console.log("📍 Detected hostname for deployment:", hostname);
     
     // Local development
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      console.log("💻 Using LOCAL backend for deployment");
       return 'http://localhost:8000';
     }
     
     // Production (Vercel, custom domain, etc.)
+    console.log("🚀 Using PRODUCTION backend for deployment");
     return 'https://eaglecode2-2.onrender.com';
   };
   
   const BACKEND_URL = getBackendUrl();
-  console.log("🔗 Using backend URL for deployment:", BACKEND_URL);
+  console.log("🔗 FINAL BACKEND URL FOR DEPLOYMENT:", BACKEND_URL);
   
   try {
     let response;
@@ -4221,25 +4224,23 @@ const handleDeployWithOptions = async (options: any) => {
         region: options.region,
       };
       
-      console.log("📡 Sending deploy request to:", `${BACKEND_URL}/api/deploy-vercel`);
+      // Log the full URL being called
+      const deploymentUrl = `${BACKEND_URL}/api/deploy-vercel`;
+      console.log("📡 Making fetch request to:", deploymentUrl);
+      console.log("📡 BACKEND_URL value:", BACKEND_URL);
       
-      response = await fetch(`${BACKEND_URL}/api/deploy-vercel`, {
+      response = await fetch(deploymentUrl, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Origin': window.location.origin,
         },
         body: JSON.stringify(requestBody),
-        credentials: 'omit',
       });
       
       const result = await response.json();
       toast.dismiss("vercel-deploy");
       
       if (result.success) {
-        // ✅ BACKEND ALREADY HANDLES ENVIRONMENT VARIABLES IN STEP 4
-        // No need to call setVercelEnvironmentVariable again - prevents duplicate 409 errors
-        
         if (dbConnectionString) {
           toast.success("✅ Database connection included with deployment!", {
             duration: 3000,
@@ -4278,9 +4279,10 @@ const handleDeployWithOptions = async (options: any) => {
         envVarsToSend.DATABASE_URL = dbConnectionString;
       }
       
-      console.log("📡 Sending deploy request to:", `${BACKEND_URL}/api/deploy-advanced`);
+      const deploymentUrl = `${BACKEND_URL}/api/deploy-advanced`;
+      console.log("📡 Making fetch request to:", deploymentUrl);
       
-      response = await fetch(`${BACKEND_URL}/api/deploy-advanced`, {
+      response = await fetch(deploymentUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
