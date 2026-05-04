@@ -643,7 +643,7 @@ const handleWebSocketMessage = useCallback((event: MessageEvent) => {
 
 
 // Setup WebSocket connection - PRODUCTION READY for Render.com
-const setupWebSocket = useCallback((prompt: string, forceNew: boolean = false): Promise<WebSocket> => {
+const setupWebSocket = useCallback((prompt: string): Promise<WebSocket> => {
   return new Promise((resolve, reject) => {
     cleanup();
     
@@ -698,22 +698,8 @@ const getWebSocketUrl = () => {
       clearTimeout(connectionTimeout);
       console.log(`🟢 WebSocket connected successfully to ${wsUrl}`);
       
-
-
-
-
-
-
       // Send the prompt immediately after connection
-      const message = JSON.stringify({ 
-       prompt, 
-       force_new: forceNew  // ← Add this
-     });
-
-
-
-
-
+      const message = JSON.stringify({ prompt });
       ws.send(message);
       console.log("📤 Sent prompt:", prompt);
       
@@ -786,7 +772,7 @@ ws.onerror = (error) => {
         const delay = 3000 * reconnectAttemptsRef.current;
         console.log(`Attempting to reconnect in ${delay}ms...`);
         setTimeout(() => {
-            setupWebSocket(prompt, forceNew).catch(console.error);  // ✅ Add forceNew
+          setupWebSocket(prompt).catch(console.error);
         }, delay);
       } else if (state.isBuilding) {
         const errorMsg = isProduction
@@ -815,7 +801,7 @@ ws.onerror = (error) => {
 
 
   /// Start build function - FIXED VERSION
-const startBuild = useCallback(async (prompt: string, options?: { forceNew?: boolean }) => {
+const startBuild = useCallback(async (prompt: string) => {
   if (!prompt.trim()) {
     toast.error("Please enter a prompt");
     return;
@@ -838,7 +824,7 @@ const startBuild = useCallback(async (prompt: string, options?: { forceNew?: boo
   
   try {
     // Ensure WebSocket is properly set up and connected
-    const ws = await setupWebSocket(prompt, options?.forceNew);
+    const ws = await setupWebSocket(prompt);
     
     // The prompt is sent in ws.onopen, so we're good
     console.log("✅ WebSocket connected and build started");

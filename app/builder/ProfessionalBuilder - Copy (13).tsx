@@ -2484,6 +2484,11 @@ const handleDatabaseConnect = useCallback(async (connectionString: string) => {
 
 
 
+
+
+
+
+
 const handleGenerateNewProject = useCallback(async () => {
   const promptToUse = pendingPrompt || prompt;
   
@@ -2494,22 +2499,29 @@ const handleGenerateNewProject = useCallback(async () => {
     return;
   }
   
-  console.log("🚀 Generating NEW project, forcing new creation...");
+  console.log("🚀 Generating new project, clearing old one...");
+  console.log("📝 Prompt:", promptToUse.substring(0, 100));
   
-  // ✅ Clear ALL project IDs
+  // Close the modal immediately
+  setShowNewProjectConfirm(false);
+  
+  // ✅ CRITICAL: Clear ALL project IDs before starting new build
   setCurrentProjectId(null);
   currentProjectIdRef.current = null;
   setBuildProjectId(null);
   setHasActiveProject(false);
+  
+  // Clear any loaded project
   setLoadedFiles(null);
+  setActiveFile("");
+  setCurrentProjectName("");
+  setIsEditMode(false);
+  setEditPrompt("");
   
-  // Close modal
-  setShowNewProjectConfirm(false);
+  // Small delay to ensure state updates complete
+  await new Promise(resolve => setTimeout(resolve, 50));
   
-  // Wait for state to update
-  await new Promise(resolve => setTimeout(resolve, 100));
-  
-  // Check credits
+  // Set loading state immediately
   setIsCheckingCredits(true);
   
   let creditsNeeded = 2;
@@ -2521,28 +2533,17 @@ const handleGenerateNewProject = useCallback(async () => {
   setIsCheckingCredits(false);
   
   if (hasCredits) {
+    // Clear the input prompt and start fresh build
     setPrompt("");
     setPendingPrompt("");
-    // ✅ CRITICAL: Pass forceNew: true to startBuild
-    startBuild(promptToUse, { forceNew: true });
+    // Start the build
+    startBuild(promptToUse);
     toast.success("Starting fresh project generation!");
   } else {
     setPendingPrompt("");
     toast.error("Insufficient credits for new project generation");
   }
 }, [pendingPrompt, prompt, startBuild]);
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2634,6 +2635,11 @@ const currentBuildId = useMemo(() => {
 
 
 
+
+
+
+
+
 const silentSaveToDatabase = useCallback(async () => {
   console.log("🔵 ========== AUTO-SAVE START ==========");
   console.log("🔵 Current isAutoSaving:", isAutoSaving);
@@ -2642,7 +2648,6 @@ const silentSaveToDatabase = useCallback(async () => {
   console.log("🔵 currentProjectIdRef.current:", currentProjectIdRef.current);
   console.log("🔵 currentProjectName:", currentProjectName);
   console.log("🔵 has __cloudinary_image_url__:", !!buildFiles.__cloudinary_image_url__);
-  console.log("🔵 buildFiles.__project_id__:", buildFiles.__project_id__);  // ← ADD THIS LOG
   
   // ========== THROTTLE CHECK ==========
   const now = Date.now();
@@ -2713,35 +2718,42 @@ const silentSaveToDatabase = useCallback(async () => {
       }
     }
     
-    // ✅ FIX: ALWAYS use the WebSocket project ID if available
-    // This is the MOST IMPORTANT change
-    const wsProjectId = buildFiles.__project_id__;
-    console.log("🔍 WebSocket project ID from files:", wsProjectId);
+    // ✅ FIX: Read from ref first to avoid stale closure on currentProjectId
+    const latestProjectId = currentProjectIdRef.current || currentProjectId;
     
-    // Determine the project ID to use
-    let projectIdToUse = null;
-    let isUpdate = false;
+    // Find existing project: ref/state ID → prompt → name
+    let existingProject = null;
     
-    if (wsProjectId) {
-      // Use the WebSocket's project ID (this is the correct new ID)
-      projectIdToUse = wsProjectId;
-      
-      // Check if this ID already exists in our saved projects
-      const existingById = savedProjectsRef.current.find(p => p.id === wsProjectId);
-      isUpdate = !!existingById;
-      console.log(`   Using WebSocket ID: ${projectIdToUse} (${isUpdate ? 'update existing' : 'create new'})`);
-    } else {
-      // No WebSocket ID - generate a temporary one (should not happen for new builds)
-      projectIdToUse = Date.now().toString();
-      console.log(`⚠️ No WebSocket ID, using temporary: ${projectIdToUse}`);
+    // 1. Check by latest project ID (ref is always current even in stale closures)
+    if (latestProjectId) {
+      existingProject = savedProjectsRef.current.find(p => p.id === latestProjectId);
+      if (existingProject) {
+        console.log("✅ Found existing project by ID (ref):", latestProjectId);
+      }
     }
     
-    // ❌ REMOVED: DO NOT fall back to prompt or name matching
-    // This was the bug - it was finding the old project by name!
+    // 2. Fall back to prompt match
+    if (!existingProject) {
+      existingProject = savedProjectsRef.current.find(p => p.prompt === prompt);
+      if (existingProject) {
+        console.log("✅ Found existing project by prompt:", existingProject.id);
+      }
+    }
+    
+    // 3. Fall back to name match
+    if (!existingProject && actualProjectName) {
+      existingProject = savedProjectsRef.current.find(p => p.name === actualProjectName);
+      if (existingProject) {
+        console.log("✅ Found existing project by name:", existingProject.id);
+      }
+    }
+    
+    // Use existing ID, or latest known ID, or generate new one
+    const projectIdToUse = existingProject?.id || latestProjectId || Date.now().toString();
     
     console.log("💾 Saving with project ID:", projectIdToUse);
+    console.log("   Is update:", !!existingProject);
     console.log("   Project name:", actualProjectName);
-    console.log("   Is update:", isUpdate);
     
     const projectToSave: SavedProject = {
       id: projectIdToUse,
@@ -2842,6 +2854,9 @@ const silentSaveToDatabase = useCallback(async () => {
   
   console.log("🔵 ========== AUTO-SAVE END ==========");
 }, [buildFiles, prompt, isBuilding, buildError, currentProjectName, currentBuildId, isAutoSaving, lastSaveTime, currentProjectId, rawPreviewHtml]);
+
+
+
 
 
 
