@@ -4792,23 +4792,41 @@ const CreditsInfoModal = () => {
 
       
 {loadedFiles && (
-  <Button 
-    onClick={() => {
-      // ✅ Clear all project IDs before showing new build state
-      setCurrentProjectId(null);
-      currentProjectIdRef.current = null;
-      setBuildProjectId(null);
-      setLoadedFiles(null);
-      setHasActiveProject(false);
-      setPrompt("");
-      setCurrentProjectName("");
-      toast.info("Ready for new project. Enter a prompt and click Generate.");
-    }} 
-    className="..."
-  >
-    <RefreshCw size={14} className="mr-2 inline-block group-hover:rotate-180 transition-transform duration-500" />
-    <span>New Build</span>
-  </Button>
+
+
+
+
+
+
+
+
+
+<Button 
+  onClick={() => {
+    setCurrentProjectId(null);
+    currentProjectIdRef.current = null;
+    setBuildProjectId(null);
+    setLoadedFiles(null);
+    setHasActiveProject(false);
+    setPrompt("");
+    setCurrentProjectName("");
+    toast.info("Ready for new project. Enter a prompt and click Generate.");
+  }} 
+  className="group relative flex items-center gap-2 px-4 py-2 bg-slate-900/50 hover:bg-slate-800 
+             text-slate-200 border border-slate-700/50 hover:border-blue-500/50 
+             rounded-lg backdrop-blur-sm transition-all duration-300 active:scale-95 shadow-lg"
+>
+  <RefreshCw 
+    size={14} 
+    className="group-hover:rotate-180 transition-transform duration-500 text-blue-400" 
+  />
+  <span className="font-medium tracking-tight">New Build</span>
+</Button>
+
+
+
+
+
 )}
 
 
