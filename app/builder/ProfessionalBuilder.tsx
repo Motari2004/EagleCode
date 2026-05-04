@@ -1873,12 +1873,6 @@ const previewHtml = useMemo(() => getPreviewHTML(rawPreviewHtml), [rawPreviewHtm
 
 
 
-
-
-
-
-
-
 // Intelligent AI-powered edit function - no target file required
 const applyIntelligentEdit = useCallback(async () => {
   // 🔥 SET LOADING STATE IMMEDIATELY - MUST BE FIRST
@@ -1909,18 +1903,12 @@ const applyIntelligentEdit = useCallback(async () => {
     return;
   }
   
-  // ✅ Get the current project ID from savedProjects (ADD THIS LINE)
+  // ✅ Get the current project ID from savedProjects
   const currentProject = savedProjects.find(p => p.name === currentProjectName || p.prompt === prompt);
   const projectId = currentProject?.id || null;
   
-
-
-  
   console.log("📝 Editing project:", currentProjectName);
   console.log("🆔 Project ID:", projectId);
-  console.log("📝 Editing project:", currentProjectName);
-  console.log("🆔 Project ID:", projectId);
-  
 
   try {
     const response = await fetch(`${BACKEND_URL}/api/edit-file`, {
@@ -1929,8 +1917,8 @@ const applyIntelligentEdit = useCallback(async () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        project_id: projectId,              // ✅ Now projectId is defined
-        project_name: currentProjectName,   // ✅ Pass project name
+        project_id: projectId,
+        project_name: currentProjectName,
         edit_description: editPrompt,
         all_files: currentFiles,
         existing_preview: rawPreviewHtml || currentFiles.preview_html || "",
@@ -1957,37 +1945,27 @@ const applyIntelligentEdit = useCallback(async () => {
       return;
     }
     
-    // ✅ HANDLE DELETION RESPONSE (files deleted)
+    // ✅ HANDLE DELETION RESPONSE
     if (result.deleted_files && result.deleted_files.length > 0) {
       console.log("🗑️ Processing deletion of files:", result.deleted_files);
       
-      // Create updated files by removing deleted ones
       const updatedFiles = { ...currentFiles };
       result.deleted_files.forEach((deletedFile: string) => {
         delete updatedFiles[deletedFile];
         console.log(`   🗑️ Removed from state: ${deletedFile}`);
       });
       
-      // ✅ CRITICAL: Update preview HTML with the new version from backend
       if (result.preview_html) {
         updatedFiles.preview_html = result.preview_html;
-        console.log("📝 Updated preview HTML from backend (length:", result.preview_html.length, "chars)");
-      } else {
-        console.warn("⚠️ No preview_html in deletion response, preview may not reflect changes");
       }
       
-      // ✅ Force preview refresh by cleaning up old URL
       if (previewUrl) {
-        console.log("🧹 Cleaning up old preview URL:", previewUrl);
         URL.revokeObjectURL(previewUrl);
         setPreviewUrl("");
       }
       
-      // Update state based on mode
       if (loadedFiles) {
         setLoadedFiles(updatedFiles);
-        
-        // Update saved project
         const existingProject = savedProjects.find(p => p.prompt === prompt || p.name === currentProjectName);
         if (existingProject) {
           const updatedProjects = savedProjects.map(p => 
@@ -2001,12 +1979,21 @@ const applyIntelligentEdit = useCallback(async () => {
               : p
           );
           setSavedProjects(updatedProjects);
-          localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
+          // ❌ REMOVE THIS LINE
+          // localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
+          
+          // ✅ Save to database instead
+          await saveProjectToDatabase({
+            id: existingProject.id,
+            name: existingProject.name,
+            prompt: prompt,
+            files: updatedFiles,
+            preview_html: updatedFiles.preview_html || "",
+            timestamp: new Date().toISOString()
+          });
         }
       } else {
         setBuildFiles(updatedFiles);
-        
-        // Update saved project
         const existingProject = savedProjects.find(p => p.prompt === prompt);
         if (existingProject) {
           const updatedProjects = savedProjects.map(p => 
@@ -2020,206 +2007,59 @@ const applyIntelligentEdit = useCallback(async () => {
               : p
           );
           setSavedProjects(updatedProjects);
-          localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
+          // ❌ REMOVE THIS LINE
+          // localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
+          
+          // ✅ Save to database instead
+          await saveProjectToDatabase({
+            id: existingProject.id,
+            name: existingProject.name,
+            prompt: prompt,
+            files: updatedFiles,
+            preview_html: updatedFiles.preview_html || "",
+            timestamp: new Date().toISOString()
+          });
         }
       }
       
-      // ✅ Show detailed success message
-      const removalDetails = [];
-      if (result.deleted_files.length > 0) {
-        removalDetails.push(`${result.deleted_files.length} file(s) deleted`);
-      }
-      if (result.removed_links && result.removed_links.length > 0) {
-        removalDetails.push(`links: ${result.removed_links.join(', ')} removed`);
-      }
-      
-      toast.success(`✅ ${removalDetails.join(' | ')}`, {
-        duration: 4000,
-        position: "bottom-right",
-      });
-      
-      // Exit edit mode
+      toast.success(`✅ Deletion successful`, { duration: 4000, position: "bottom-right" });
       setIsEditMode(false);
       setEditPrompt("");
       
-      // ✅ Force preview refresh with delay to ensure state updates
       setTimeout(() => {
         setViewMode("preview");
         setPreviewKey(Date.now());
         setShowPreviewDelayed(false);
-        // Small delay to ensure new preview loads
-        setTimeout(() => {
-          setShowPreviewDelayed(true);
-          console.log("🔄 Preview refresh triggered after deletion");
-        }, 100);
+        setTimeout(() => setShowPreviewDelayed(true), 100);
       }, 300);
       
       setIsEditingProject(false);
       return;
     }
     
-    // ✅ HANDLE LINK REMOVAL RESPONSE (navigation links removed, no files deleted)
-    if (result.removed_links && result.removed_links.length > 0) {
-      console.log("🔗 Processing removal of navigation links:", result.removed_links);
-      
-      // Create updated files
-      const updatedFiles = { ...currentFiles };
-      
-      // Update Navigation.tsx if provided in updated_files
-      if (result.updated_files && result.updated_files["components/Navigation.tsx"]) {
-        updatedFiles["components/Navigation.tsx"] = result.updated_files["components/Navigation.tsx"];
-        console.log("   📝 Updated Navigation.tsx from backend");
-      }
-      
-      // Update preview HTML if provided
-      if (result.preview_html) {
-        updatedFiles.preview_html = result.preview_html;
-        console.log("📝 Updated preview HTML from backend (length:", result.preview_html.length, "chars)");
-      }
-      
-      // ✅ Force preview refresh
-      if (previewUrl) {
-        console.log("🧹 Cleaning up old preview URL:", previewUrl);
-        URL.revokeObjectURL(previewUrl);
-        setPreviewUrl("");
-      }
-      
-      // Update state based on mode
-      if (loadedFiles) {
-        setLoadedFiles(updatedFiles);
-        
-        // Update saved project
-        const existingProject = savedProjects.find(p => p.prompt === prompt || p.name === currentProjectName);
-        if (existingProject) {
-          const updatedProjects = savedProjects.map(p => 
-            p.id === existingProject.id 
-              ? { 
-                  ...p, 
-                  files: updatedFiles, 
-                  preview_html: updatedFiles.preview_html || "",
-                  timestamp: new Date().toISOString() 
-                }
-              : p
-          );
-          setSavedProjects(updatedProjects);
-          localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
-        }
-      } else {
-        setBuildFiles(updatedFiles);
-        
-        // Update saved project
-        const existingProject = savedProjects.find(p => p.prompt === prompt);
-        if (existingProject) {
-          const updatedProjects = savedProjects.map(p => 
-            p.id === existingProject.id 
-              ? { 
-                  ...p, 
-                  files: updatedFiles, 
-                  preview_html: updatedFiles.preview_html || "",
-                  timestamp: new Date().toISOString() 
-                }
-              : p
-          );
-          setSavedProjects(updatedProjects);
-          localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
-        }
-      }
-      
-      // ✅ Show detailed success message
-      toast.success(result.message || `✅ Removed navigation links: ${result.removed_links.join(', ')}`, {
-        duration: 4000,
-        position: "bottom-right",
-      });
-      
-      // Exit edit mode
-      setIsEditMode(false);
-      setEditPrompt("");
-      
-      // ✅ Force preview refresh
-      setTimeout(() => {
-        setViewMode("preview");
-        setPreviewKey(Date.now());
-        setShowPreviewDelayed(false);
-        setTimeout(() => {
-          setShowPreviewDelayed(true);
-          console.log("🔄 Preview refresh triggered after link removal");
-        }, 100);
-      }, 300);
-      
-      setIsEditingProject(false);
-      return;
-    }
-
-
-
-
-
-
-
-
-
-
-// ✅ HANDLE NORMAL EDIT RESPONSE
-if (result.success) {
-
-    if (projectId) {
+    // ✅ HANDLE NORMAL EDIT RESPONSE
+    if (result.success) {
+      if (projectId) {
         setCurrentProjectId(projectId);
-        currentProjectIdRef.current = projectId;  // ← ADD THIS LINE
-    }
+        currentProjectIdRef.current = projectId;
+      }
 
-    console.log("🔵 ========== EDIT SUCCESS ==========");
-    console.log("📌 Set currentProjectId to:", projectId);
-    console.log("📌 Ref value:", currentProjectIdRef.current);  // ← ADD THIS LINE
-    console.log("📌 Project Name:", currentProjectName);
-    console.log("🔵 ==================================");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      // Update files with all edits
       const updatedFiles = { ...currentFiles };
       
-      // Apply all edits
       if (result.edits) {
         result.edits.forEach((edit: any) => {
           updatedFiles[edit.file_path] = edit.updated_content;
         });
       }
 
-
-
-
-
-
-
-
-
-
       if (result.preview_html) {
         updatedFiles.preview_html = result.preview_html;
-      } else {
-        // Fallback: Reconstruct preview from source files
-        const rebuilt = reconstructPreview(updatedFiles);
-        if (rebuilt) updatedFiles.preview_html = rebuilt;
-        console.log("Updated preview HTML:", updatedFiles.preview_html);
       }
 
       // Update state based on whether we're in loaded or build mode
       if (loadedFiles) {
         setLoadedFiles(updatedFiles);
         
-        // Update saved project
         const existingProject = savedProjects.find(p => p.prompt === prompt || p.name === currentProjectName);
         if (existingProject) {
           const updatedProjects = savedProjects.map(p => 
@@ -2233,21 +2073,32 @@ if (result.success) {
               : p
           );
           setSavedProjects(updatedProjects);
-          localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
+          // ❌ REMOVE THIS LINE
+          // localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
+          
+          // ✅ Save to database instead
+          await saveProjectToDatabase({
+            id: existingProject.id,
+            name: existingProject.name,
+            prompt: prompt,
+            files: updatedFiles,
+            preview_html: updatedFiles.preview_html || "",
+            timestamp: new Date().toISOString()
+          });
+          
           console.log("✅ Updated existing project with new preview:", existingProject.name);
         } else {
-          const newProject: SavedProject = {
-            id: Date.now().toString(),
+          // Create new project in database
+          const newProjectId = Date.now().toString();
+          await saveProjectToDatabase({
+            id: newProjectId,
             name: currentProjectName || prompt.slice(0, 35) || "Edited Project",
             prompt: prompt || editPrompt,
-            preview_html: updatedFiles.preview_html || "",
             files: updatedFiles,
+            preview_html: updatedFiles.preview_html || "",
             timestamp: new Date().toISOString()
-          };
-          const updated = [newProject, ...savedProjects];
-          setSavedProjects(updated);
-          localStorage.setItem("scorpioSavedProjects", JSON.stringify(updated));
-          console.log("✅ Created new project from edit with preview:", newProject.name);
+          });
+          console.log("✅ Created new project from edit");
         }
       } else {
         setBuildFiles(updatedFiles);
@@ -2265,65 +2116,75 @@ if (result.success) {
               : p
           );
           setSavedProjects(updatedProjects);
-          localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
-          console.log("✅ Updated build project with new preview:", existingProject.name);
+          // ❌ REMOVE THIS LINE
+          // localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
+          
+          // ✅ Save to database instead
+          await saveProjectToDatabase({
+            id: existingProject.id,
+            name: existingProject.name,
+            prompt: prompt,
+            files: updatedFiles,
+            preview_html: updatedFiles.preview_html || "",
+            timestamp: new Date().toISOString()
+          });
         } else if (prompt) {
-          const newProject: SavedProject = {
+          await saveProjectToDatabase({
             id: Date.now().toString(),
             name: prompt.slice(0, 35) || "Build Project",
             prompt: prompt,
-            preview_html: updatedFiles.preview_html || "",
             files: updatedFiles,
+            preview_html: updatedFiles.preview_html || "",
             timestamp: new Date().toISOString()
-          };
-          const updated = [newProject, ...savedProjects];
-          setSavedProjects(updated);
-          localStorage.setItem("scorpioSavedProjects", JSON.stringify(updated));
-          setCurrentProjectName(newProject.name);
-          console.log("✅ Created new project from build edit with preview:", newProject.name);
+          });
         }
       }
       
-      const changeSummary = result.change_summary || `Applied changes to ${result.files_edited?.join(', ') || 'files'}`;
-      
-      if (result.database_configured) {
-        toast.success(`✅ ${result.message || "Database configured! Auth system added."}`, {
-          duration: 5000,
-          position: "bottom-right",
-        });
-      } else {
-        toast.success(`✅ ${changeSummary}`, {
-          duration: 3000,
-          position: "bottom-right",
-        });
-      }
-      
-      setIsEditMode(false);
-      setEditPrompt("");
 
-      setTimeout(() => {
-        setViewMode("preview");
-        setPreviewKey(Date.now());
-      }, 300);
+
+
+
+
+toast.success(`✅ Edit applied successfully`, { duration: 3000, position: "bottom-right" });
+
+setIsEditMode(false);
+setEditPrompt("");
+
+// ✅ Force preview refresh with new HTML
+if (result.preview_html) {
+  // Revoke old blob URL
+  if (previewUrl && previewUrl.startsWith('blob:')) {
+    URL.revokeObjectURL(previewUrl);
+  }
+  
+  const processedHtml = getPreviewHTML(result.preview_html);
+  const newBlobUrl = URL.createObjectURL(
+    new Blob([processedHtml], { type: 'text/html' })
+  );
+  setPreviewUrl(newBlobUrl);
+  setShowPreviewDelayed(true);
+}
+
+setTimeout(() => {
+  setViewMode("preview");
+  setPreviewKey(Date.now()); // Forces iframe to re-mount with new src
+}, 300);
+
+
+
+
 
     } else {
-      const errorMsg = result.error || "Unknown error";
-      const hint = result.hint ? ` ${result.hint}` : '';
-      toast.error(`❌ Edit failed: ${errorMsg}${hint}`, {
-        duration: 5000,
-        position: "bottom-right",
-      });
+      toast.error(`❌ Edit failed: ${result.error || "Unknown error"}`, { duration: 5000, position: "bottom-right" });
     }
   } catch (error) {
     console.error("Intelligent edit failed:", error);
-    toast.error(`Failed to apply edit: ${error instanceof Error ? error.message : "Unknown error"}`, {
-      duration: 5000,
-      position: "bottom-right",
-    });
+    toast.error(`Failed to apply edit: ${error instanceof Error ? error.message : "Unknown error"}`);
   } finally {
     setIsEditingProject(false);
   }
-}, [editPrompt, loadedFiles, buildFiles, savedProjects, currentProjectName, setBuildFiles, prompt, rawPreviewHtml, previewUrl]);
+}, [editPrompt, loadedFiles, buildFiles, savedProjects, currentProjectName, setBuildFiles, prompt, rawPreviewHtml, previewUrl, saveProjectToDatabase]);
+
 
 
 
@@ -3678,6 +3539,12 @@ const goForward = useCallback(() => {
     });
   }
 }, [currentPathIndex, navigationHistory]);
+
+
+
+
+
+
 
 
 
