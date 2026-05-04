@@ -3137,21 +3137,6 @@ useEffect(() => {
 
 
 
-// Auto-show preview when files.preview_html is received
-useEffect(() => {
-  if (files.preview_html && !isBuilding && !loadedFiles) {
-    console.log("🎯 Auto-displaying preview from build");
-    setShowPreviewDelayed(true);
-    setViewMode("preview");
-    // Force refresh of preview
-    setPreviewKey(Date.now());
-  }
-}, [files.preview_html, isBuilding, loadedFiles]);
-
-
-
-
-
 
 
 
