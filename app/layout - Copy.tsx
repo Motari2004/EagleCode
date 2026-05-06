@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Providers from "../components/Providers";
 import { DeploymentSuccessModal } from "@/components/DeploymentSuccessModal";
-import { CartProvider } from "../contexts/CartContext";  // ← ADD THIS IMPORT
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,17 +31,14 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#f8fafc] text-[#1e293b]">
-        {/* Wrap CartProvider INSIDE Providers if Providers has useEffect, or OUTSIDE if needed */}
         <Providers>
-          <CartProvider>  {/* ← ADD THIS LINE */}
-            {/* Main content */}
-            <main className="flex-grow">
-              {children}
-            </main>
-            
-            {/* Global deployment success modal - always available */}
-            <DeploymentSuccessModal />
-          </CartProvider>  {/* ← ADD THIS CLOSING TAG */}
+          {/* Main content */}
+          <main className="flex-grow">
+            {children}
+          </main>
+          
+          {/* Global deployment success modal - always available */}
+          <DeploymentSuccessModal />
         </Providers>
       </body>
     </html>
