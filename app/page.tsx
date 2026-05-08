@@ -8,7 +8,7 @@ import {
   Sparkles, ArrowRight, Zap, Shield, Code, Star, Rocket, Cpu, Loader2,
   FolderOpen, Trash2, Clock, Layout, ShoppingBag, Briefcase, Coffee, Grid3X3, Terminal,
   ChevronDown, Check, Home, Utensils, Dumbbell, Palette, GraduationCap, Hotel,
-  Store, PenTool, Music, Film, Heart, Globe, Layers,CheckCircle,CreditCard,DollarSign
+  Store, PenTool, Music, Film, Heart, Globe, Layers,CheckCircle,CreditCard,DollarSign,Lightbulb,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -19,7 +19,7 @@ import ClientMotionDiv from "@/components/ClientMotionDiv";
 import { useUser } from "@/contexts/UserContext";
 import UserProfile from "@/components/UserProfile";
 
-
+import { Play, BadgeDollarSign, BookOpen} from "lucide-react";
 
 
 
@@ -893,43 +893,177 @@ useEffect(() => {
 
 
 
-{/* Header - Unicode Eagle */}
-<header className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
-  <div className="container mx-auto px-6 h-14 flex items-center justify-between">
-    <div className="flex items-center gap-2">
-      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 text-white text-sm">
-        🦅
-      </div>
-      <span className="font-bold text-sm tracking-tight">Eagle<span className="text-amber-500">Code</span></span>
-    </div>
-          
-          <div className="flex items-center gap-3">
-  {user ? (
-    <UserProfile />
-  ) : (
-    <>
-      <Button 
-        onClick={() => router.push('/signin')} 
-        size="sm" 
-        className="h-8 px-3 bg-transparent text-slate-300 hover:text-white hover:bg-white/10 rounded-lg text-xs border border-white/10 transition-all duration-200"
-      >
-        Sign In
-      </Button>
-      
-      <Button 
-        onClick={() => router.push('/signup')} 
-        size="sm" 
-        className="h-8 px-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:opacity-90 rounded-lg text-xs font-medium shadow-lg shadow-cyan-500/20"
-      >
-        Sign Up
-        <ArrowRight className="w-3 h-3 ml-1" />
-      </Button>
-    </>
-  )}
-</div>
-        </div>
-      </header>
 
+
+
+
+
+
+
+
+{/* Header - Stylish Version with Demos */}
+<header className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
+  <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+    {/* Logo with animation */}
+    <div className="flex items-center gap-2.5 group cursor-pointer" onClick={() => router.push('/')}>
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-600 rounded-lg blur-lg opacity-50 group-hover:opacity-75 transition-opacity duration-300" />
+        <div className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 text-white text-base transform group-hover:scale-110 transition-all duration-300">
+          🦅
+        </div>
+      </div>
+      <span className="font-bold text-base tracking-tight bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+        Eagle<span className="text-amber-500">Code</span>
+      </span>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{/* Navigation Links - Premium SaaS Style */}
+<div className="hidden md:flex items-center gap-2 p-1.5 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl">
+
+  {[
+    {
+      href: "/demos",
+      label: "Demos",
+      icon: Play,
+      glow: "from-pink-500/20 to-purple-500/20",
+      iconColor: "text-pink-400"
+    },
+    {
+      href: "/tips",  // Changed from "/pricing" to "/tips"
+      label: "Tips",   // Changed from "Pricing" to "Tips"
+      icon: Lightbulb, // Changed from BadgeDollarSign to Lightbulb (need to import)
+      glow: "from-amber-500/20 to-yellow-500/20", // Changed to warm colors
+      iconColor: "text-amber-400" // Changed to amber for tips/insights
+    },
+    {
+      href: "/docs",
+      label: "Docs",
+      icon: BookOpen,
+      glow: "from-emerald-500/20 to-teal-500/20",
+      iconColor: "text-emerald-400"
+    },
+  ].map((item) => {
+
+    const Icon = item.icon;
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        className="relative group"
+      >
+
+        {/* Glow */}
+        <div className={`absolute inset-0 bg-gradient-to-r ${item.glow} rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+
+        {/* Main button */}
+        <div className="relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-white/5 bg-black/20 hover:bg-white/[0.05] transition-all duration-300 hover:-translate-y-0.5">
+
+          {/* Icon */}
+          <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.04] border border-white/10">
+
+            <div className={`absolute inset-0 rounded-lg bg-gradient-to-br ${item.glow} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+
+            <Icon className={`relative w-4 h-4 ${item.iconColor} group-hover:scale-110 transition-transform duration-300`} />
+
+          </div>
+
+          {/* Text */}
+          <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors duration-300">
+            {item.label}
+          </span>
+
+          {/* Hover underline */}
+          <div className="absolute bottom-0 left-1/2 w-0 h-[2px] bg-gradient-to-r from-transparent via-white to-transparent group-hover:w-4/5 transition-all duration-500 -translate-x-1/2" />
+
+        </div>
+      </Link>
+    );
+  })}
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    {/* Auth Buttons with Premium Styling */}
+    <div className="flex items-center gap-3">
+      {user ? (
+        <div className="transform hover:scale-105 transition-transform duration-300">
+          <UserProfile />
+        </div>
+      ) : (
+        <>
+          <Button 
+            onClick={() => router.push('/signin')} 
+            size="sm" 
+            className="relative h-9 px-4 bg-transparent text-slate-300 hover:text-white hover:bg-white/10 rounded-lg text-sm border border-white/10 transition-all duration-300 overflow-hidden group"
+          >
+            <span className="relative z-10">Sign In</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-500" />
+          </Button>
+          
+          <Button 
+            onClick={() => router.push('/signup')} 
+            size="sm" 
+            className="relative h-9 px-5 bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:shadow-lg hover:shadow-purple-500/25 rounded-lg text-sm font-medium transition-all duration-300 overflow-hidden group"
+          >
+            <span className="relative z-10 flex items-center gap-1">
+              Get Started
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+            </span>
+            
+            {/* Animated shine */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            
+            {/* Subtle pulse animation */}
+            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          </Button>
+        </>
+      )}
+    </div>
+  </div>
+  
+  {/* Optional: Mobile menu button (for responsive) */}
+  <div className="md:hidden absolute right-6 top-4">
+    <button className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300">
+      <div className="w-5 h-0.5 bg-white mb-1.5" />
+      <div className="w-5 h-0.5 bg-white mb-1.5" />
+      <div className="w-5 h-0.5 bg-white" />
+    </button>
+  </div>
+</header>
 
 
 
