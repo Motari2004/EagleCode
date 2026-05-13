@@ -313,7 +313,7 @@ const [buildProjectId, setBuildProjectId] = useState<string | null>(null);
 const currentProjectIdRef = useRef<string | null>(null);
 
 
-const projectsLoadedRef = useRef(false);
+
 
 
 
@@ -1287,24 +1287,20 @@ useEffect(() => {
 
 
 
+// Load projects from database when user is logged in
 useEffect(() => {
   if (user && user.id) {
-    // Only load projects once per session
-    if (!projectsLoadedRef.current) {
-      console.log("👤 User logged in, loading projects (first time only)...");
-      loadProjectsFromDatabase().finally(() => {
-        projectsLoadedRef.current = true;
-      });
-    } else {
-      console.log("⏭️ Projects already loaded this session, skipping API call");
-    }
+    console.log("👤 User logged in, loading projects...");
+    loadProjectsFromDatabase();
   } else {
     console.log("👤 No user logged in, clearing projects");
     setSavedProjects([]);
     savedProjectsRef.current = [];
-    projectsLoadedRef.current = false; // Reset on logout
   }
-}, [user]);
+}, [user]); // Only run when user changes
+
+
+
 
 
 
@@ -5383,13 +5379,9 @@ const CreditsInfoModal = () => {
 
 
 
-<div className="flex-1 relative overflow-hidden bg-zinc-950">
-  {/* Top-down gradient beam */}
-  <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none" />
-  {/* Subtle grid accent */}
-  <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
-  
+
+<div className="flex-1 relative overflow-hidden bg-[#020617]">
   {/* Preview Generation Loading */}
   {isGeneratingPreview && (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#020617] via-purple-900/20 to-[#020617] z-50">
@@ -5426,18 +5418,9 @@ const CreditsInfoModal = () => {
                 <div key={i} className="w-2 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full" style={{ height: '40px', animation: `wave 1.2s ease-in-out infinite`, animationDelay: `${i * 0.1}s` }} />
               ))}
             </div>
-
-
-
-<h3 className="text-base font-bold mb-3 italic tracking-wider uppercase text-zinc-400 relative group inline-block">
-  <span className="inline-block animate-pulse">
-    Generating your website...
-  </span>
-  {/* The "shimmer" underline - balanced for text-base */}
-  <div className="absolute -bottom-1 left-0 h-[1px] w-full bg-gradient-to-r from-transparent via-amber-500/60 to-transparent scale-x-110 opacity-70" />
-</h3>
-
-            
+            <h3 className="text-white font-bold text-2xl mb-3 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Generating your website
+            </h3>
           </>
         ) : loadedFiles && !showPreviewDelayed ? (
           <>

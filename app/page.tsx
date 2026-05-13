@@ -3,12 +3,15 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Footer from "@/components/Footer";
 
 import {
   Sparkles, ArrowRight, Zap, Shield, Code, Star, Rocket, Cpu, Loader2,
   FolderOpen, Trash2, Clock, Layout, ShoppingBag, Briefcase, Coffee, Grid3X3, Terminal,
   ChevronDown, Check, Home, Utensils, Dumbbell, Palette, GraduationCap, Hotel,
-  Store, PenTool, Music, Film, Heart, Globe, Layers,CheckCircle,CreditCard,DollarSign,Lightbulb,
+  Store, PenTool, Music, Film, Heart, Globe, Layers,CheckCircle,CreditCard,DollarSign,Lightbulb,BarChart3,TrendingUp,Activity,Gauge,PieChart
+  
+
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -20,6 +23,15 @@ import { useUser } from "@/contexts/UserContext";
 import UserProfile from "@/components/UserProfile";
 
 import { Play, BadgeDollarSign, BookOpen} from "lucide-react";
+
+
+
+
+
+
+
+
+
 
 
 
@@ -292,19 +304,30 @@ const timeAgo = (timestamp: string) => {
       hoverBorder: "hover:border-red-500/50",
       iconColor: "text-red-400"
     },
-    {
-      id: "template-6",
-      name: "Coffee Shop",
-      description: "Menu & story",
-      icon: <Coffee className="w-4 h-4" />,
-      prompt: "Build a coffee shop website.",
-      category: "Restaurant",
-      color: "from-amber-600 to-yellow-600",
-      bgColor: "bg-amber-500/10",
-      borderColor: "border-amber-500/30",
-      hoverBorder: "hover:border-amber-500/50",
-      iconColor: "text-amber-400"
-    },
+
+
+
+
+
+
+
+
+{
+    id: "template-6",
+    name: "Analytics Dashboard",
+    description: "KPI metrics, charts & reports",
+    icon: <Activity className="w-4 h-4" />,
+    prompt: "Build an analytics dashboard website with KPI cards, charts, and settings",
+    category: "Dashboard",
+    color: "from-yellow-600 to-orange-600",
+    bgColor: "bg-blue-500/10",
+    borderColor: "border-pink-500/30",
+    hoverBorder: "hover:border-indigo-500/50",
+    iconColor: "text-blue-400"
+},
+
+
+
     {
       id: "template-7",
       name: "Digital Agency",
@@ -706,8 +729,6 @@ const loadTemplate = (template: TemplateProject) => {
 
 
 
-
-
 // Listen for real-time cache updates from builder
 useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -719,23 +740,30 @@ useEffect(() => {
                     const newCache = JSON.parse(e.newValue);
                     const newProjects = newCache.data || [];
                     
-                    // Update the projects state immediately
+                    // ✅ Update the projects state immediately from cache
                     setSavedProjects(newProjects);
                     console.log(`✅ Projects updated from storage: ${newProjects.length} projects`);
                     
-                    // Show a subtle notification
-                    toast.success("New project added!", {
-                        duration: 2000,
-                        position: "bottom-right",
-                        icon: "✨"
-                    });
+                    // ✅ Only show notification if it's not from our own save
+                    // Check if this is a cross-tab event
+                    if (e.isTrusted) {
+                        toast.success("New project added!", {
+                            duration: 2000,
+                            position: "bottom-right",
+                            icon: "✨"
+                        });
+                    }
                 } catch (err) {
                     console.error("Failed to parse storage event:", err);
-                    loadSavedProjects();
+                    // ❌ REMOVE this - it causes GET /api/get-projects
+                    // loadSavedProjects();
                 }
             } else {
-                // Cache was cleared, reload from API
-                loadSavedProjects();
+                // Cache was cleared - don't auto-reload, just clear UI
+                setSavedProjects([]);
+                console.log("🗑️ Cache cleared, UI updated");
+                // ❌ REMOVE this - it causes GET /api/get-projects
+                // loadSavedProjects();
             }
         }
     };
@@ -743,8 +771,6 @@ useEffect(() => {
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
 }, []);
-
-
 
 
 
@@ -876,10 +902,51 @@ useEffect(() => {
   if (!mounted) return null;
 
 
-  return (
-   <div className="min-h-dvh bg-gradient-to-br from-[#050507] via-[#0f0f1a] to-[#1a1429] bg-fixed text-white selection:bg-violet-400/30">
+
+
+
+
+
+
+return (
+
+
+
+
+
+
+
+
+
+<div className="min-h-dvh bg-zinc-950 text-zinc-200 selection:bg-blue-500/30 relative">
+  {/* Blue accent glow */}
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(59,130,246,0.08)_0%,_transparent_40%)] pointer-events-none" />
+  {/* Micro Dot Pattern */}
+  <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
+
+
+
+
+
+
+
+
+
+      {/* Professional Background Elements */}
+      <div className="orb-1" />
+      <div className="orb-2" />
+      <div className="orb-3" />
+      <div className="noise-overlay" />
+      
       {/* Subtle Grid Pattern */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+
+
+
+
+
+
+
         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3Cpattern%20id%3D%22grid%22%20width%3D%2260%22%20height%3D%2260%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath%20d%3D%22M%2060%200%20L%200%200%200%2060%22%20fill%3D%22none%22%20stroke%3D%22rgba(0%2C255%2C255%2C0.03)%22%20stroke-width%3D%221%22%2F%3E%3C%2Fpattern%3E%3C%2Fdefs%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22url(%23grid)%22%2F%3E%3C%2Fsvg%3E')] opacity-30" />
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent" />
       </div>
@@ -1676,7 +1743,7 @@ useEffect(() => {
 
 
 {/* CTA Footer - Compact Container with Content */}
-<div className="mt-8 mb-12 flex justify-center">
+<div className="mt-8 mb-4 flex justify-center">
   <ClientMotionDiv 
     initial={{ opacity: 0, y: 20 }} 
     animate={{ opacity: 1, y: 0 }} 
@@ -1738,9 +1805,14 @@ useEffect(() => {
 </div>
 
 
-
         </div>
       </main>
+
+
+
+
+          {/* Footer - Place it HERE, after main, before closing div */}
+    <Footer />
     </div>
   );
 }
