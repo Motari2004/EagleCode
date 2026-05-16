@@ -6,6 +6,7 @@ import { useBuild } from "@/hooks/useBuild";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/contexts/UserContext";
 import { Bot,ArrowRight } from "lucide-react";
+import ReplaceModal from "@/components/ReplaceModal";
 
 import DatabaseConnectionModal from "@/components/DatabaseConnectionModal";
 
@@ -20,7 +21,7 @@ import {
   Send, Loader2, FileCode, FolderTree, Download,
   Terminal, Copy, Check, Globe, RefreshCw,
   Sparkles, Layers, Search, Code2, Activity, CheckCircle2,
-  Maximize2, Minimize2, X, AlertCircle, Folder, FolderOpen,  Rocket, Save, Trash2, Edit3, Target, Zap, Shield, Code, Star, Coffee, Clock,CheckCircle
+  Maximize2, Minimize2, X, AlertCircle, Folder, FolderOpen,  Rocket, Save, Trash2, Edit3, Target, Zap, Shield, Code, Star, Coffee, Clock,CheckCircle,Wrench
 } from "lucide-react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
@@ -1728,6 +1729,25 @@ useEffect(() => {
 
 
 
+const [showReplaceModal, setShowReplaceModal] = useState(false);
+const [replaceData, setReplaceData] = useState<{
+  files: string[];
+  oldText: string;
+  newText: string;
+  isPartialMatch: boolean;
+  projectId: string | null;
+  projectName: string;
+  allFiles: Record<string, any>;
+  existingPreview: string;
+  heroRemovedFlag: boolean;
+  originalCloudinaryUrl: string | null;
+  fileContext: any[];  // ← ADD THIS LINE
+} | null>(null);
+
+
+
+
+
 
 
 
@@ -1923,7 +1943,9 @@ const applyIntelligentEdit = useCallback(async () => {
       body: JSON.stringify({
         project_id: projectId,
         project_name: currentProjectName,
+        
         edit_description: editPrompt,
+        user_prompt: prompt, 
         all_files: currentFiles,
         existing_preview: rawPreviewHtml || currentFiles.preview_html || "",
         force_regenerate: true
@@ -1935,252 +1957,295 @@ const applyIntelligentEdit = useCallback(async () => {
       throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 200)}`);
     }
     
-    const result = await response.json();
-    
-    // ✅ Check if backend needs database connection
-    if (result.requires_db_connection) {
-      setIsEditingProject(false);
-      setPendingEditData({
-        editDescription: editPrompt,
-        currentFiles: currentFiles,
-        existingPreview: rawPreviewHtml || currentFiles.preview_html || ""
-      });
-      setIsDatabaseModalOpen(true);
-      return;
-    }
-    
-    // ✅ HANDLE DELETION RESPONSE
-    if (result.deleted_files && result.deleted_files.length > 0) {
-      console.log("🗑️ Processing deletion of files:", result.deleted_files);
-      
-      const updatedFiles = { ...currentFiles };
-      result.deleted_files.forEach((deletedFile: string) => {
-        delete updatedFiles[deletedFile];
-        console.log(`   🗑️ Removed from state: ${deletedFile}`);
-      });
-      
-      if (result.preview_html) {
-        updatedFiles.preview_html = result.preview_html;
-      }
-      
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-        setPreviewUrl("");
-      }
-      
-      if (loadedFiles) {
-        setLoadedFiles(updatedFiles);
-        const existingProject = savedProjects.find(p => p.prompt === prompt || p.name === currentProjectName);
-        if (existingProject) {
-          const updatedProjects = savedProjects.map(p => 
-            p.id === existingProject.id 
-              ? { 
-                  ...p, 
-                  files: updatedFiles, 
-                  preview_html: updatedFiles.preview_html || "",
-                  timestamp: new Date().toISOString() 
-                }
-              : p
-          );
-          setSavedProjects(updatedProjects);
-          // ❌ REMOVE THIS LINE
-          // localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
-          
-          // ✅ Save to database instead
-          await saveProjectToDatabase({
-            id: existingProject.id,
-            name: existingProject.name,
-            prompt: prompt,
-            files: updatedFiles,
-            preview_html: updatedFiles.preview_html || "",
-            timestamp: new Date().toISOString()
-          });
-        }
-      } else {
-        setBuildFiles(updatedFiles);
-        const existingProject = savedProjects.find(p => p.prompt === prompt);
-        if (existingProject) {
-          const updatedProjects = savedProjects.map(p => 
-            p.id === existingProject.id 
-              ? { 
-                  ...p, 
-                  files: updatedFiles, 
-                  preview_html: updatedFiles.preview_html || "",
-                  timestamp: new Date().toISOString() 
-                }
-              : p
-          );
-          setSavedProjects(updatedProjects);
-          // ❌ REMOVE THIS LINE
-          // localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
-          
-          // ✅ Save to database instead
-          await saveProjectToDatabase({
-            id: existingProject.id,
-            name: existingProject.name,
-            prompt: prompt,
-            files: updatedFiles,
-            preview_html: updatedFiles.preview_html || "",
-            timestamp: new Date().toISOString()
-          });
-        }
-      }
-      
-      toast.success(`✅ Deletion successful`, { duration: 4000, position: "bottom-right" });
-      setIsEditMode(false);
-      setEditPrompt("");
-      
-      setTimeout(() => {
-        setViewMode("preview");
-        setPreviewKey(Date.now());
-        setShowPreviewDelayed(false);
-        setTimeout(() => setShowPreviewDelayed(true), 100);
-      }, 300);
-      
-      setIsEditingProject(false);
-      return;
-    }
-    
-    // ✅ HANDLE NORMAL EDIT RESPONSE
-    if (result.success) {
-      if (projectId) {
-        setCurrentProjectId(projectId);
-        currentProjectIdRef.current = projectId;
-      }
-
-      const updatedFiles = { ...currentFiles };
-      
-      if (result.edits) {
-        result.edits.forEach((edit: any) => {
-          updatedFiles[edit.file_path] = edit.updated_content;
-        });
-      }
-
-      if (result.preview_html) {
-        updatedFiles.preview_html = result.preview_html;
-      }
-
-      // Update state based on whether we're in loaded or build mode
-      if (loadedFiles) {
-        setLoadedFiles(updatedFiles);
-        
-        const existingProject = savedProjects.find(p => p.prompt === prompt || p.name === currentProjectName);
-        if (existingProject) {
-          const updatedProjects = savedProjects.map(p => 
-            p.id === existingProject.id 
-              ? { 
-                  ...p, 
-                  files: updatedFiles, 
-                  preview_html: updatedFiles.preview_html || "",
-                  timestamp: new Date().toISOString() 
-                }
-              : p
-          );
-          setSavedProjects(updatedProjects);
-          // ❌ REMOVE THIS LINE
-          // localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
-          
-          // ✅ Save to database instead
-          await saveProjectToDatabase({
-            id: existingProject.id,
-            name: existingProject.name,
-            prompt: prompt,
-            files: updatedFiles,
-            preview_html: updatedFiles.preview_html || "",
-            timestamp: new Date().toISOString()
-          });
-          
-          console.log("✅ Updated existing project with new preview:", existingProject.name);
-        } else {
-          // Create new project in database
-          const newProjectId = Date.now().toString();
-          await saveProjectToDatabase({
-            id: newProjectId,
-            name: currentProjectName || prompt.slice(0, 35) || "Edited Project",
-            prompt: prompt || editPrompt,
-            files: updatedFiles,
-            preview_html: updatedFiles.preview_html || "",
-            timestamp: new Date().toISOString()
-          });
-          console.log("✅ Created new project from edit");
-        }
-      } else {
-        setBuildFiles(updatedFiles);
-        
-        const existingProject = savedProjects.find(p => p.prompt === prompt);
-        if (existingProject) {
-          const updatedProjects = savedProjects.map(p => 
-            p.id === existingProject.id 
-              ? { 
-                  ...p, 
-                  files: updatedFiles, 
-                  preview_html: updatedFiles.preview_html || "",
-                  timestamp: new Date().toISOString() 
-                }
-              : p
-          );
-          setSavedProjects(updatedProjects);
-          // ❌ REMOVE THIS LINE
-          // localStorage.setItem("scorpioSavedProjects", JSON.stringify(updatedProjects));
-          
-          // ✅ Save to database instead
-          await saveProjectToDatabase({
-            id: existingProject.id,
-            name: existingProject.name,
-            prompt: prompt,
-            files: updatedFiles,
-            preview_html: updatedFiles.preview_html || "",
-            timestamp: new Date().toISOString()
-          });
-        } else if (prompt) {
-          await saveProjectToDatabase({
-            id: Date.now().toString(),
-            name: prompt.slice(0, 35) || "Build Project",
-            prompt: prompt,
-            files: updatedFiles,
-            preview_html: updatedFiles.preview_html || "",
-            timestamp: new Date().toISOString()
-          });
-        }
-      }
-      
 
 
 
 
+const result = await response.json();
 
-toast.success(`✅ Edit applied successfully`, { duration: 3000, position: "bottom-right" });
-
-setIsEditMode(false);
-setEditPrompt("");
-
-// ✅ Force preview refresh with new HTML
-if (result.preview_html) {
-  // Revoke old blob URL
-  if (previewUrl && previewUrl.startsWith('blob:')) {
-    URL.revokeObjectURL(previewUrl);
-  }
-  
-  const processedHtml = getPreviewHTML(result.preview_html);
-  const newBlobUrl = URL.createObjectURL(
-    new Blob([processedHtml], { type: 'text/html' })
-  );
-  setPreviewUrl(newBlobUrl);
-  setShowPreviewDelayed(true);
+// ✅ Check if backend needs database connection
+if (result.requires_db_connection) {
+  setIsEditingProject(false);
+  setPendingEditData({
+    editDescription: editPrompt,
+    currentFiles: currentFiles,
+    existingPreview: rawPreviewHtml || currentFiles.preview_html || ""
+  });
+  setIsDatabaseModalOpen(true);
+  return;
 }
 
-setTimeout(() => {
-  setViewMode("preview");
-  setPreviewKey(Date.now()); // Forces iframe to re-mount with new src
-}, 300);
 
 
 
 
 
-    } else {
-      toast.error(`❌ Edit failed: ${result.error || "Unknown error"}`, { duration: 5000, position: "bottom-right" });
+
+// ✅ NEW: Check if backend needs file selection for text replacement
+if (result.requires_confirmation && result.confirmation_type === 'text_replacement') {
+  // Get Cloudinary URL from current files or buildFiles
+  const cloudinaryUrl = currentFiles.__original_cloudinary_url__ || 
+                        currentFiles.__cloudinary_image_url__ || 
+                        (loadedFiles ? null : buildFiles.__cloudinary_image_url__);
+  
+  // Build file context from choices
+  const fileContext = result.choices?.map((choice: any) => ({
+    file_path: choice.file_path,
+    display_name: choice.display_name,
+    description: choice.description,
+    route: choice.route,
+    snippet: choice.snippet,
+    file_type: choice.file_type
+  })) || [];
+  
+  setReplaceData({
+    files: result.found_files,
+    oldText: result.old_text,
+    newText: result.new_text,
+    isPartialMatch: result.is_partial_match || false,
+    projectId: result.project_id,
+    projectName: result.project_name,
+    allFiles: currentFiles,
+    existingPreview: rawPreviewHtml || currentFiles.preview_html || "",
+    heroRemovedFlag: currentFiles.__hero_removed__ === "true",
+    originalCloudinaryUrl: cloudinaryUrl,
+    fileContext: fileContext  // ← ADD THIS LINE
+  });
+  setShowReplaceModal(true);
+  setIsEditingProject(false);
+  return;
+}
+
+
+
+
+
+// ✅ HANDLE DELETION RESPONSE
+if (result.deleted_files && result.deleted_files.length > 0) {
+  console.log("🗑️ Processing deletion of files:", result.deleted_files);
+  
+  const updatedFiles = { ...currentFiles };
+  result.deleted_files.forEach((deletedFile: string) => {
+    delete updatedFiles[deletedFile];
+    console.log(`   🗑️ Removed from state: ${deletedFile}`);
+  });
+  
+  if (result.preview_html) {
+    updatedFiles.preview_html = result.preview_html;
+  }
+  
+  if (previewUrl) {
+    URL.revokeObjectURL(previewUrl);
+    setPreviewUrl("");
+  }
+  
+  if (loadedFiles) {
+    setLoadedFiles(updatedFiles);
+    const existingProject = savedProjects.find(p => p.prompt === prompt || p.name === currentProjectName);
+    if (existingProject) {
+      const updatedProjects = savedProjects.map(p => 
+        p.id === existingProject.id 
+          ? { 
+              ...p, 
+              files: updatedFiles, 
+              preview_html: updatedFiles.preview_html || "",
+              timestamp: new Date().toISOString() 
+            }
+          : p
+      );
+      setSavedProjects(updatedProjects);
+      
+      // Save to database
+      await saveProjectToDatabase({
+        id: existingProject.id,
+        name: existingProject.name,
+        prompt: prompt,
+        files: updatedFiles,
+        preview_html: updatedFiles.preview_html || "",
+        timestamp: new Date().toISOString()
+      });
     }
+  } else {
+    setBuildFiles(updatedFiles);
+    const existingProject = savedProjects.find(p => p.prompt === prompt);
+    if (existingProject) {
+      const updatedProjects = savedProjects.map(p => 
+        p.id === existingProject.id 
+          ? { 
+              ...p, 
+              files: updatedFiles, 
+              preview_html: updatedFiles.preview_html || "",
+              timestamp: new Date().toISOString() 
+            }
+          : p
+      );
+      setSavedProjects(updatedProjects);
+      
+      // Save to database
+      await saveProjectToDatabase({
+        id: existingProject.id,
+        name: existingProject.name,
+        prompt: prompt,
+        files: updatedFiles,
+        preview_html: updatedFiles.preview_html || "",
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+  
+  toast.success(`✅ Deletion successful`, { duration: 4000, position: "bottom-right" });
+  setIsEditMode(false);
+  setEditPrompt("");
+  
+  setTimeout(() => {
+    setViewMode("preview");
+    setPreviewKey(Date.now());
+    setShowPreviewDelayed(false);
+    setTimeout(() => setShowPreviewDelayed(true), 100);
+  }, 300);
+  
+  setIsEditingProject(false);
+  return;
+}
+
+// ✅ HANDLE NORMAL EDIT RESPONSE
+if (result.success) {
+  if (projectId) {
+    setCurrentProjectId(projectId);
+    currentProjectIdRef.current = projectId;
+  }
+
+  const updatedFiles = { ...currentFiles };
+  
+  if (result.edits) {
+    result.edits.forEach((edit: any) => {
+      updatedFiles[edit.file_path] = edit.updated_content;
+    });
+  }
+
+  if (result.preview_html) {
+    updatedFiles.preview_html = result.preview_html;
+  }
+
+  // Update state based on whether we're in loaded or build mode
+  if (loadedFiles) {
+    setLoadedFiles(updatedFiles);
+    
+    const existingProject = savedProjects.find(p => p.prompt === prompt || p.name === currentProjectName);
+    if (existingProject) {
+      const updatedProjects = savedProjects.map(p => 
+        p.id === existingProject.id 
+          ? { 
+              ...p, 
+              files: updatedFiles, 
+              preview_html: updatedFiles.preview_html || "",
+              timestamp: new Date().toISOString() 
+            }
+          : p
+      );
+      setSavedProjects(updatedProjects);
+      
+      // Save to database
+      await saveProjectToDatabase({
+        id: existingProject.id,
+        name: existingProject.name,
+        prompt: prompt,
+        files: updatedFiles,
+        preview_html: updatedFiles.preview_html || "",
+        timestamp: new Date().toISOString()
+      });
+      
+      console.log("✅ Updated existing project with new preview:", existingProject.name);
+    } else {
+      // Create new project in database
+      const newProjectId = Date.now().toString();
+      await saveProjectToDatabase({
+        id: newProjectId,
+        name: currentProjectName || prompt.slice(0, 35) || "Edited Project",
+        prompt: prompt || editPrompt,
+        files: updatedFiles,
+        preview_html: updatedFiles.preview_html || "",
+        timestamp: new Date().toISOString()
+      });
+      console.log("✅ Created new project from edit");
+    }
+  } else {
+    setBuildFiles(updatedFiles);
+    
+    const existingProject = savedProjects.find(p => p.prompt === prompt);
+    if (existingProject) {
+      const updatedProjects = savedProjects.map(p => 
+        p.id === existingProject.id 
+          ? { 
+              ...p, 
+              files: updatedFiles, 
+              preview_html: updatedFiles.preview_html || "",
+              timestamp: new Date().toISOString() 
+            }
+          : p
+      );
+      setSavedProjects(updatedProjects);
+      
+      // Save to database
+      await saveProjectToDatabase({
+        id: existingProject.id,
+        name: existingProject.name,
+        prompt: prompt,
+        files: updatedFiles,
+        preview_html: updatedFiles.preview_html || "",
+        timestamp: new Date().toISOString()
+      });
+    } else if (prompt) {
+      await saveProjectToDatabase({
+        id: Date.now().toString(),
+        name: prompt.slice(0, 35) || "Build Project",
+        prompt: prompt,
+        files: updatedFiles,
+        preview_html: updatedFiles.preview_html || "",
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  toast.success(`✅ Edit applied successfully`, { duration: 3000, position: "bottom-right" });
+
+  setIsEditMode(false);
+  setEditPrompt("");
+
+  // Force preview refresh with new HTML
+  if (result.preview_html) {
+    // Revoke old blob URL
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    
+    const processedHtml = getPreviewHTML(result.preview_html);
+    const newBlobUrl = URL.createObjectURL(
+      new Blob([processedHtml], { type: 'text/html' })
+    );
+    setPreviewUrl(newBlobUrl);
+    setShowPreviewDelayed(true);
+  }
+
+  setTimeout(() => {
+    setViewMode("preview");
+    setPreviewKey(Date.now()); // Forces iframe to re-mount with new src
+  }, 300);
+
+} else {
+  toast.error(`❌ Edit failed: ${result.error || "Unknown error"}`, { duration: 5000, position: "bottom-right" });
+}
+
+
+
+
+
+
+
+
+
+
+
   } catch (error) {
     console.error("Intelligent edit failed:", error);
     toast.error(`Failed to apply edit: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -2188,6 +2253,147 @@ setTimeout(() => {
     setIsEditingProject(false);
   }
 }, [editPrompt, loadedFiles, buildFiles, savedProjects, currentProjectName, setBuildFiles, prompt, rawPreviewHtml, previewUrl, saveProjectToDatabase]);
+
+
+
+
+
+
+
+
+
+
+const handleReplaceConfirm = useCallback(async (selectedFile: string | null, editAll: boolean) => {
+  if (!replaceData) return;
+  
+  setShowReplaceModal(false);
+  setIsEditingProject(true);
+  
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/confirm-text-replacement`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        project_id: replaceData.projectId,
+        file_path: selectedFile,
+        edit_all: editAll,
+        old_text: replaceData.oldText,
+        new_text: replaceData.newText,
+        all_files: replaceData.allFiles,
+        existing_preview: replaceData.existingPreview,
+        project_name: replaceData.projectName,
+        is_partial_match: replaceData.isPartialMatch
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      // Update files
+      const updatedFiles = { ...replaceData.allFiles };
+      if (result.edits) {
+        result.edits.forEach((edit: any) => {
+          updatedFiles[edit.file_path] = edit.updated_content;
+        });
+      }
+      
+      if (result.preview_html) {
+        updatedFiles.preview_html = result.preview_html;
+        
+        // Force preview refresh
+        const processedHtml = getPreviewHTML(result.preview_html);
+        const newBlobUrl = URL.createObjectURL(new Blob([processedHtml], { type: 'text/html' }));
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(newBlobUrl);
+        setPreviewKey(Date.now());
+      }
+      
+      // Update state based on mode
+      if (loadedFiles) {
+        setLoadedFiles(updatedFiles);
+      } else {
+        setBuildFiles(updatedFiles);
+      }
+      
+      // ✅ ADD THIS: Save to database
+      const token = localStorage.getItem("eaglecode_token");
+      const projectToSave = {
+        id: replaceData.projectId || Date.now().toString(),
+        name: replaceData.projectName,
+        prompt: prompt || replaceData.projectName,
+        files: updatedFiles,
+        preview_html: updatedFiles.preview_html || "",
+        timestamp: new Date().toISOString()
+      };
+      
+      const saveResponse = await fetch(`${BACKEND_URL}/api/save-project`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(projectToSave)
+      });
+      
+      const saveResult = await saveResponse.json();
+      
+      if (saveResult.success) {
+        console.log("✅ Project saved to database after text replacement");
+        
+        // Update saved projects list
+        const updatedProjects = [...savedProjects];
+        const existingIndex = updatedProjects.findIndex(p => p.id === replaceData.projectId);
+        
+        if (existingIndex >= 0) {
+          updatedProjects[existingIndex] = {
+            ...updatedProjects[existingIndex],
+            files: updatedFiles,
+            preview_html: updatedFiles.preview_html || "",
+            timestamp: new Date().toISOString()
+          };
+        } else {
+          updatedProjects.unshift({
+            id: saveResult.id || replaceData.projectId,
+            name: replaceData.projectName,
+            prompt: prompt || replaceData.projectName,
+            files: updatedFiles,
+            preview_html: updatedFiles.preview_html || "",
+            timestamp: new Date().toISOString()
+          });
+        }
+        
+        setSavedProjects(updatedProjects.slice(0, 20));
+        savedProjectsRef.current = updatedProjects.slice(0, 20);
+        
+        toast.success("Project saved to database!");
+      } else {
+        console.warn("Failed to save to database:", saveResult);
+        toast.warning("Text replaced but failed to save to database");
+      }
+      
+      toast.success(result.message || "Text replaced successfully!");
+      
+      // Switch to preview mode
+      setTimeout(() => {
+        setViewMode("preview");
+        setPreviewKey(Date.now());
+      }, 300);
+      
+    } else {
+      toast.error(result.message || "Failed to replace text");
+    }
+  } catch (error) {
+    console.error("Replace confirmation error:", error);
+    toast.error("Failed to complete text replacement");
+  } finally {
+    setIsEditingProject(false);
+    setReplaceData(null);
+  }
+}, [replaceData, loadedFiles, setBuildFiles, previewUrl, savedProjects, prompt]);
+
+
+
+
 
 
 
@@ -2229,6 +2435,7 @@ const handleDatabaseConnect = useCallback(async (connectionString: string) => {
         project_name: currentProjectName,          // ✅ ADD THIS - Pass project name
         edit_description: pendingEditData.editDescription,
         all_files: pendingEditData.currentFiles,
+        user_prompt: prompt, 
         existing_preview: pendingEditData.existingPreview,
         force_regenerate: true,
         db_connection_string: connectionString
@@ -5031,30 +5238,41 @@ const CreditsInfoModal = () => {
 
 {/* AI Edit Mode Hint */}
 {isEditMode && (
-  <div className="mx-3 mt-2 p-3 bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-orange-500/10 border border-yellow-500/30 rounded-xl shadow-lg shadow-yellow-500/10">
+  <div className="mx-3 mt-2 p-3 bg-gradient-to-r from-emerald-950/90 via-slate-900/95 to-teal-950/90 border border-emerald-500/20 rounded-xl shadow-lg shadow-emerald-500/10">
     <div className="flex items-start gap-2">
-      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center shadow-md">
-        <Sparkles size={12} className="text-white" />
-      </div>
+<div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center shadow-lg shadow-black/20 border border-white/10">
+  <Wrench size={17} className="text-white" />
+</div>
       <div className="flex-1">
         <p className="font-semibold text-xs text-yellow-400 mb-2 flex items-center gap-2">
           AI-Powered Editing Active
-          <span className="text-[9px] bg-yellow-500/20 px-1.5 py-0.5 rounded-full text-yellow-300">Live</span>
         </p>
-        <p className="text-yellow-300/80 text-[10px] mb-2">Describe what you want to change in natural language:</p>
+        <p className="text-yellow-300/80 text-[10px] mb-2">Click from tools below or Describe what you want to change in natural language:</p>
         <div className="grid grid-cols-2 gap-1.5">
-          <div className="bg-white/5 rounded-lg p-1.5 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => setEditPrompt("Change the title to 'My Dashboard'")}>
-            <div className="flex items-center gap-1.5">
-              <span className="text-yellow-500 text-[10px]">📝</span>
-              <span className="text-[9px] text-slate-300 group-hover:text-yellow-400 transition">Change title to "My Dashboard"</span>
-            </div>
-          </div>
-          <div className="bg-white/5 rounded-lg p-1.5 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => setEditPrompt("Add a dark mode toggle button")}>
-            <div className="flex items-center gap-1.5">
-              <span className="text-yellow-500 text-[10px]">🌙</span>
-              <span className="text-[9px] text-slate-300 group-hover:text-yellow-400 transition">Add dark mode toggle</span>
-            </div>
-          </div>
+
+
+
+
+<div className="bg-white/5 rounded-lg p-1.5 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => setEditPrompt("remove hero image")}>
+  <div className="flex items-center gap-1.5">
+    <span className="text-yellow-500 text-[10px]">🖼️</span>
+    <span className="text-[9px] text-slate-300 group-hover:text-yellow-400 transition">Remove hero image</span>
+  </div>
+</div>
+
+
+
+
+
+<div className="bg-white/5 rounded-lg p-1.5 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => setEditPrompt("change the background to black and white")}>
+  <div className="flex items-center gap-1.5">
+    <span className="text-yellow-500 text-[10px]">🌙</span>
+    <span className="text-[9px] text-slate-300 group-hover:text-yellow-400 transition">Black & White Background</span>
+  </div>
+</div>
+
+
+
           <div className="bg-white/5 rounded-lg p-1.5 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => setEditPrompt("Make the header background blue")}>
             <div className="flex items-center gap-1.5">
               <span className="text-yellow-500 text-[10px]">🎨</span>
@@ -5578,6 +5796,32 @@ const CreditsInfoModal = () => {
     instruction="1. Go to https://console.neon.tech\n2. Create a free account or sign in\n3. Create a new project\n4. Copy your connection string from the dashboard"
     example="postgresql://username:password@ep-example.us-east-2.aws.neon.tech/dbname?sslmode=require"
   />
+
+
+
+
+{/* ✅ INSERT ReplaceModal RIGHT HERE */}
+{/* Replace Modal for multiple file selection */}
+{replaceData && (
+  <ReplaceModal
+    isOpen={showReplaceModal}
+    onClose={() => {
+      setShowReplaceModal(false);
+      setReplaceData(null);
+    }}
+    onConfirm={handleReplaceConfirm}
+    files={replaceData.files}
+    oldText={replaceData.oldText}
+    newText={replaceData.newText}
+    isPartialMatch={replaceData.isPartialMatch}
+    fileContext={replaceData.fileContext} 
+  />
+)}
+
+
+
+
+
 
   {/* Back Confirm Modal */}
   <BackConfirmModal />
